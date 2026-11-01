@@ -27,7 +27,6 @@ Telegram: https://t.me/CMEPT0HOCHbIU
 
 ## Что нужно скачать отдельно
 - **RW-Everything** (Rw.exe, RwDrv.sys): нужен для DEVICE-TWEAKER, положите папку `RW-Everything` в `13. Аффинити`. Скачать: http://rweverything.com/download
-- **SecretTweak.exe** (платная функция DEVICE-TWEAKER) в пак не входит.
 
 ## Использованные сторонние разработки
 У каждой программы своя лицензия, они не входят в лицензию этого репозитория.
@@ -42,4 +41,4 @@ Telegram: https://t.me/CMEPT0HOCHbIU
 - Realtek NetAdapterCx драйвер
 - pci.ids (pci-ids.ucw.cz)
 - **DEVICE-TWEAKER** - автор BYND_PERF (LLG), https://x.com/BEYONDPERF_LLG . Скрипт включён без изменений в содержимом, в нём сохранены ссылки автора.
-- Часть скриптов и твиков (Windows Defender Switcher, Windows Update Blocker, MMCSS, сеть и др.) основана на публичных материалах сообщества Low Latency Corp (LLC). Проверьте и уточните авторство перед публикацией.
+- Часть скриптов и твиков (Windows Defender Switcher, Windows Update Blocker, MMCSS, сеть и др.) основана на публичных материалах сообщества Low Latency Corp (LLC). 
