@@ -442,9 +442,10 @@ $form = New-Object System.Windows.Forms.Form
 $form.Text = 'XEOKA PACK'
 $form.ClientSize = New-Object System.Drawing.Size(960, 680)
 $form.StartPosition = 'CenterScreen'
-$form.FormBorderStyle = 'FixedSingle'
+$form.FormBorderStyle = 'None'
 $form.MaximizeBox = $false
 $form.BackColor = $cBg
+$form.Opacity = 0
 $form.ForeColor = $cText
 $form.Font = $fontUi
 
@@ -473,10 +474,39 @@ $lnkTg.Text = ('Telegram: ' + $script:TgLabel)
 $lnkTg.Font = $fontBold; $lnkTg.AutoSize = $true
 $lnkTg.LinkColor = $cAccent2; $lnkTg.ActiveLinkColor = $cText; $lnkTg.VisitedLinkColor = $cAccent2
 $lnkTg.LinkBehavior = 'HoverUnderline'; $lnkTg.BackColor = $cPanel
-$lnkTg.Location = New-Object System.Drawing.Point(($header.Width - $lnkTg.PreferredWidth - 32), 36)
+$lnkTg.Location = New-Object System.Drawing.Point(($header.Width - $lnkTg.PreferredWidth - 32), 50)
 $lnkTg.Cursor = [System.Windows.Forms.Cursors]::Hand
 $lnkTg.Add_LinkClicked({ Open-Url $script:TgUrl })
 $header.Controls.Add($lnkTg)
+
+function New-WinButton {
+    param([string]$Text, [int]$X, $HoverColor)
+    $b = New-Object System.Windows.Forms.Button
+    $b.Text = $Text; $b.SetBounds($X, 0, 46, 34)
+    $b.FlatStyle = 'Flat'; $b.FlatAppearance.BorderSize = 0
+    $b.BackColor = $cPanel; $b.ForeColor = $cDim; $b.Font = New-Object System.Drawing.Font('Segoe UI Symbol', 10)
+    $b.FlatAppearance.MouseOverBackColor = $HoverColor; $b.FlatAppearance.MouseDownBackColor = $HoverColor
+    $b.UseVisualStyleBackColor = $false; $b.TabStop = $false
+    $b.Cursor = [System.Windows.Forms.Cursors]::Hand
+    $b.Add_MouseEnter({ $this.ForeColor = $cText }); $b.Add_MouseLeave({ $this.ForeColor = $cDim })
+    return $b
+}
+$btnMin = New-WinButton ([string][char]0x2014) 868 $cPanel2
+$btnMin.Add_Click({ $form.WindowState = 'Minimized' })
+$btnClose = New-WinButton ([string][char]0x2715) 914 $cErr
+$btnClose.Add_Click({ $form.Close() })
+$header.Controls.Add($btnMin); $header.Controls.Add($btnClose)
+
+$script:Drag = $null; $script:DragOrigin = $null
+$dragDown = { $script:Drag = [System.Windows.Forms.Control]::MousePosition; $script:DragOrigin = $form.Location }
+$dragMove = {
+    if ($script:Drag -and ([System.Windows.Forms.Control]::MouseButtons -eq 'Left')) {
+        $mp = [System.Windows.Forms.Control]::MousePosition
+        $form.Location = New-Object System.Drawing.Point(($script:DragOrigin.X + $mp.X - $script:Drag.X), ($script:DragOrigin.Y + $mp.Y - $script:Drag.Y))
+    }
+}
+$dragUp = { $script:Drag = $null }
+foreach ($dc in @($header, $lblLogo, $lblLogo2, $lblSub)) { $dc.Add_MouseDown($dragDown); $dc.Add_MouseMove($dragMove); $dc.Add_MouseUp($dragUp) }
 
 # ---- навигация
 $nav = New-Object System.Windows.Forms.Panel
@@ -488,6 +518,7 @@ $navButtons = @{}
 function Show-Page {
     param([string]$Name)
     foreach ($k in $pages.Keys) { $pages[$k].Visible = ($k -eq $Name) }
+    if ($pages[$Name] -and $form.Visible) { $pages[$Name].Left = 190 + 44; $script:Slide = $pages[$Name] }
     foreach ($k in $navButtons.Keys) {
         if ($k -eq $Name) { $navButtons[$k].BackColor = $cPanel2; $navButtons[$k].ForeColor = $cText }
         else { $navButtons[$k].BackColor = $cPanel; $navButtons[$k].ForeColor = $cDim }
@@ -545,27 +576,29 @@ function Add-GroupLabel {
 function Add-TweakRow {
     param($Tw)
     $row = New-Object System.Windows.Forms.Panel
-    $row.SetBounds(0, $script:y, 716, 58); $row.BackColor = $cPanel
+    $row.SetBounds(0, $script:y, 716, 76); $row.BackColor = $cPanel; $row.Tag = @{ T = 0.0; Target = 0 }
     $cb = New-Object System.Windows.Forms.CheckBox
     $cb.Text = ''; $cb.AutoSize = $false; $cb.Size = New-Object System.Drawing.Size(24, 24)
-    $cb.Location = New-Object System.Drawing.Point(14, 17); $cb.Checked = [bool]$Tw.Default
-    $cb.FlatStyle = 'Standard'; $cb.BackColor = $cPanel
+    $cb.Location = New-Object System.Drawing.Point(14, 26); $cb.Checked = [bool]$Tw.Default
+    $cb.FlatStyle = 'Standard'; $cb.BackColor = [System.Drawing.Color]::Transparent
     $row.Controls.Add($cb)
     $lt = New-Object System.Windows.Forms.Label
     $lt.Text = $Tw.Title; $lt.Font = $fontBold; $lt.AutoSize = $false
-    $lt.SetBounds(48, 7, 650, 22); $lt.ForeColor = $cText; $lt.BackColor = $cPanel
+    $lt.SetBounds(48, 8, 650, 22); $lt.ForeColor = $cText; $lt.BackColor = [System.Drawing.Color]::Transparent
     $row.Controls.Add($lt)
     $ld = New-Object System.Windows.Forms.Label
     $ld.Text = $Tw.Desc; $ld.Font = $fontSmall; $ld.AutoSize = $false
-    $ld.SetBounds(48, 30, 650, 24); $ld.ForeColor = $cDim; $ld.BackColor = $cPanel
+    $ld.SetBounds(48, 31, 650, 40); $ld.ForeColor = $cDim; $ld.BackColor = [System.Drawing.Color]::Transparent
     $row.Controls.Add($ld)
-    $toggle = { $c = $this.Parent.Controls | Where-Object { $_ -is [System.Windows.Forms.CheckBox] } | Select-Object -First 1; $c.Checked = -not $c.Checked }
-    $lt.Add_Click($toggle); $ld.Add_Click($toggle)
+    $toggle = { $cb.Checked = -not $cb.Checked }.GetNewClosure()
+    $lt.Add_Click($toggle); $ld.Add_Click($toggle); $row.Add_Click($toggle)
+    $row.Add_MouseEnter({ $this.Tag.Target = 1 }); $row.Add_MouseLeave({ $this.Tag.Target = 0 })
+    $lt.Add_MouseEnter({ $this.Parent.Tag.Target = 1 }); $ld.Add_MouseEnter({ $this.Parent.Tag.Target = 1 })
     $lt.Cursor = [System.Windows.Forms.Cursors]::Hand; $ld.Cursor = [System.Windows.Forms.Cursors]::Hand
     Set-Round $row 8
     $list.Controls.Add($row)
     $script:Rows[$Tw.Id] = $cb
-    $script:y += 64
+    $script:y += 82
 }
 Add-GroupLabel 'РЕКОМЕНДУЕМЫЕ'
 foreach ($t in $script:Tweaks) { if ($t.Group -eq 'rec') { Add-TweakRow $t } }
@@ -585,7 +618,7 @@ $btnAll = New-Button 'Все / никакие' 572 396 182 54 $cPanel2 $cLine $f
 $pageOpt.Controls.Add($btnAll)
 
 $barBack = New-Object System.Windows.Forms.Panel
-$barBack.SetBounds(22, 462, 732, 8); $barBack.BackColor = $cPanel2
+$barBack.SetBounds(22, 462, 732, 8); $barBack.BackColor = $cPanel2; $barBack.Visible = $false
 $pageOpt.Controls.Add($barBack)
 $barFill = New-Object System.Windows.Forms.Panel
 $barFill.SetBounds(0, 0, 0, 8); $barFill.BackColor = $cAccent
@@ -645,7 +678,7 @@ $btnApply.Add_Click({
     $r = [System.Windows.Forms.MessageBox]::Show($msg, 'XEOKA PACK', 'YesNo', 'Question')
     if ($r -ne 'Yes') { return }
     Set-Busy $true
-    $logBox.Clear(); Set-Progress 0
+    $logBox.Clear(); $barBack.Visible = $true; Set-Progress 0
     try {
         New-RunState
         Write-Log 'Создаю точку восстановления...' 'head'
@@ -671,7 +704,7 @@ $btnApply.Add_Click({
         if ($rr -eq 'Yes') { Start-Process shutdown.exe -ArgumentList '/r /t 5 /c "XEOKA PACK"' -WindowStyle Hidden }
     } catch {
         Write-Log ('Критическая ошибка: ' + $_.Exception.Message) 'err'
-    } finally { Set-Busy $false }
+    } finally { Set-Busy $false; $barBack.Visible = $false }
 })
 
 $btnRevert.Add_Click({
@@ -681,6 +714,41 @@ $btnRevert.Add_Click({
     Set-Busy $true
     try { Invoke-Revert } catch { Write-Log ('Ошибка отката: ' + $_.Exception.Message) 'err' } finally { Set-Busy $false }
 })
+
+# ---- анимации
+function Mix-Color {
+    param($A, $B, [double]$K)
+    $r = [int]($A.R + ($B.R - $A.R) * $K); $g = [int]($A.G + ($B.G - $A.G) * $K); $bl = [int]($A.B + ($B.B - $A.B) * $K)
+    return [System.Drawing.Color]::FromArgb($r, $g, $bl)
+}
+$cRowHover = [System.Drawing.ColorTranslator]::FromHtml('#212A3B')
+$cCyan = [System.Drawing.ColorTranslator]::FromHtml('#5CD6FF')
+$script:Phase = 0.0
+$script:Slide = $null
+$animTimer = New-Object System.Windows.Forms.Timer
+$animTimer.Interval = 30
+$animTimer.Add_Tick({
+    $script:Phase += 0.06
+    $k = ([Math]::Sin($script:Phase) + 1) / 2
+    if ($form.Opacity -lt 1) { $form.Opacity = [Math]::Min(1.0, $form.Opacity + 0.09) }
+    if ($btnApply.Enabled) { $btnApply.BackColor = Mix-Color $cAccent $cAccent2 $k }
+    $lblLogo2.ForeColor = Mix-Color $cAccent2 $cCyan ($k * 0.7)
+    $lnkTg.LinkColor = Mix-Color $cAccent2 $cText ($k * 0.35)
+    foreach ($rp in @($list.Controls | Where-Object { $_.Tag -is [hashtable] })) {
+        $st = $rp.Tag
+        $tgt = [double]$st.Target
+        if ([Math]::Abs($st.T - $tgt) -gt 0.001) {
+            if ($st.T -lt $tgt) { $st.T = [Math]::Min($tgt, $st.T + 0.18) } else { $st.T = [Math]::Max($tgt, $st.T - 0.18) }
+            $rp.BackColor = Mix-Color $cPanel $cRowHover $st.T
+        }
+    }
+    if ($script:Slide) {
+        $dx = $script:Slide.Left - 190
+        if ($dx -le 1) { $script:Slide.Left = 190; $script:Slide = $null }
+        else { $script:Slide.Left = 190 + [int]($dx * 0.62) }
+    }
+})
+$form.Add_FormClosed({ $animTimer.Stop() })
 
 # ---- страница: инструменты
 $pageTools = New-Object System.Windows.Forms.Panel
@@ -779,4 +847,5 @@ $pageAbout.Controls.Add($lnkTg2)
 
 Show-Page 'opt'
 Write-Log 'Выберите твики и нажмите «ОПТИМИЗИРОВАТЬ».' 'dim'
+$animTimer.Start()
 [void]$form.ShowDialog()
