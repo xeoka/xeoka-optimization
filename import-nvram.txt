@@ -1,0 +1,46 @@
+// Script File Name : nvram.txt
+// Created on 10/28/26 at 02:20:51    
+// AMISCE Utility. Ver 5.05.01.0002
+// Copyright (c) 2021 AMI. All rights reserved.
+HIICrc32= F69A9A7C
+
+Setup Question	= SVM Enable
+Help String	= Enable or Disable VM_CR[SvmeDisable]
+Token	=2B	// Do NOT change this line
+Offset	=378
+Width	=01
+BIOS Default	=[FF]Auto 
+Options	=[01]Enabled	// Move "*" to the desired Option
+         *[00]Disabled
+         [FF]Auto
+
+Setup Question	= IOMMU
+Help String	= Enable/Disable IOMMU
+Token	=7033	// Do NOT change this line
+Offset	=3D
+Width	=01
+BIOS Default	=[0F]Auto 
+Options	=*[00]Disabled	// Move "*" to the desired Option
+         [01]Enabled
+         [0F]Auto
+
+Setup Question	= PCIe ARI Support
+Help String	= Enable/Disable ARI
+Token	=E4	// Do NOT change this line
+Offset	=41
+Width	=01
+BIOS Default	=[0F]Auto 
+Options	=*[00]Disabled	// Move "*" to the desired Option
+         [01]Enabled
+         [0F]Auto
+
+Setup Question	= IOMMU
+Help String	= Enable/Disable IOMMU Support
+Token	=172	// Do NOT change this line
+Offset	=1A3
+Width	=01
+BIOS Default	=[0F]Auto 
+Options	=[0F]Auto	// Move "*" to the desired Option
+         *[00]Disabled
+         [01]Enabled
+

@@ -1,0 +1,3 @@
+Воспользуйтесь RESET-DISABLE-POWERSAVING, не забудьте поменять путь в .reg файле на свой
+
+Свой путь сетевого адаптера можно узнать через find_network_adapter_path.bat

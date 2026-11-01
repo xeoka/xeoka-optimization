@@ -1,0 +1,10 @@
+Windows Registry Editor Version 5.00
+
+; ТГ: https://t.me/CMEPT0HOCHbIU
+
+[HKEY_CURRENT_USER\System\GameConfigStore]
+"GameDVR_DXGIHonorFSEWindowsCompatible"=dword:00000000
+"GameDVR_HonorUserFSEBehaviorMode"=dword:00000000
+"GameDVR_FSEBehaviorMode"=dword:00000000
+"GameDVR_FSEBehavior"=dword:00000000
+"GameDVR_DSEBehavior"=dword:00000000
