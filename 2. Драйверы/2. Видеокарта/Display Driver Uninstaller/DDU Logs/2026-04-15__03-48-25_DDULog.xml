@@ -1,0 +1,492 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<DisplayDriverUninstaller Version="18.1.4.3">
+	<LogEntries>
+		<Event>
+			<Time>4/15/2026 3:48:25 AM</Time>
+			<Message>The following paths are detected.</Message>
+			<Values Separator=" = ">
+				<KvP>
+					<Key>[Found] AppExeFile</Key>
+					<Value>C:\Users\mikayo\Desktop\LLC Pack\2. Драйверы\2. Видеокарта\Display Driver Uninstaller\Display Driver Uninstaller.exe</Value>
+				</KvP>
+				<KvP>
+					<Key>[Found] AppBase</Key>
+					<Value>C:\Users\mikayo\Desktop\LLC Pack\2. Драйверы\2. Видеокарта\Display Driver Uninstaller\</Value>
+				</KvP>
+				<KvP>
+					<Key>[Found] Settings</Key>
+					<Value>C:\Users\mikayo\Desktop\LLC Pack\2. Драйверы\2. Видеокарта\Display Driver Uninstaller\Settings\</Value>
+				</KvP>
+				<KvP>
+					<Key>[Found] Logs</Key>
+					<Value>C:\Users\mikayo\Desktop\LLC Pack\2. Драйверы\2. Видеокарта\Display Driver Uninstaller\DDU Logs\</Value>
+				</KvP>
+				<KvP>
+					<Key>[Found] Language</Key>
+					<Value>C:\Users\mikayo\Desktop\LLC Pack\2. Драйверы\2. Видеокарта\Display Driver Uninstaller\Settings\Languages\</Value>
+				</KvP>
+				<KvP />
+				<KvP>
+					<Key>[Found] ProgramFiles</Key>
+					<Value>C:\Program Files\</Value>
+				</KvP>
+				<KvP>
+					<Key>[Found] ProgramFilesx86</Key>
+					<Value>C:\Program Files (x86)\</Value>
+				</KvP>
+				<KvP />
+				<KvP>
+					<Key>[Found] Roaming</Key>
+					<Value>C:\ProgramData\</Value>
+				</KvP>
+				<KvP>
+					<Key>[Not found] AppBaseRoaming</Key>
+					<Value>C:\ProgramData\DisplayDriverUninstaller\</Value>
+				</KvP>
+				<KvP />
+				<KvP>
+					<Key>[Found] SystemDrive</Key>
+					<Value>C:\</Value>
+				</KvP>
+				<KvP>
+					<Key>[Found] WinDir</Key>
+					<Value>C:\WINDOWS\</Value>
+				</KvP>
+				<KvP>
+					<Key>[Found] UserPath</Key>
+					<Value>C:\Users\</Value>
+				</KvP>
+				<KvP>
+					<Key>[Found] System32</Key>
+					<Value>C:\WINDOWS\system32\</Value>
+				</KvP>
+				<KvP>
+					<Key>[Found] SysWOW64</Key>
+					<Value>C:\WINDOWS\SysWOW64\</Value>
+				</KvP>
+			</Values>
+		</Event>
+		<Event>
+			<Time>4/15/2026 3:48:30 AM</Time>
+			<Message>System Information</Message>
+			<Values Separator=" : ">
+				<KvP>
+					<Key>DDU Version</Key>
+					<Value>18.1.4.3</Value>
+				</KvP>
+				<KvP>
+					<Key>OS</Key>
+					<Value>Windows 11</Value>
+				</KvP>
+				<KvP>
+					<Key>Build</Key>
+					<Value>26200.8037</Value>
+				</KvP>
+				<KvP>
+					<Key>Win 10 1809+ ?</Key>
+					<Value>True</Value>
+				</KvP>
+				<KvP>
+					<Key>NVIDIA App installed ?</Key>
+					<Value>False</Value>
+				</KvP>
+				<KvP>
+					<Key>NVIDIA Broadcast ?</Key>
+					<Value>False</Value>
+				</KvP>
+				<KvP>
+					<Key>Intel NPU Present ?</Key>
+					<Value>False</Value>
+				</KvP>
+				<KvP>
+					<Key>Architecture</Key>
+					<Value>x64</Value>
+				</KvP>
+				<KvP>
+					<Key>UserRights</Key>
+					<Value>Admin</Value>
+				</KvP>
+				<KvP>
+					<Key>Arguments</Key>
+					<Value>&lt;empty&gt;</Value>
+				</KvP>
+				<KvP />
+				<KvP>
+					<Key>GPU #0000</Key>
+					<Value>NVIDIA GeForce RTX 5070</Value>
+				</KvP>
+				<KvP>
+					<Key>GPU DeviceID</Key>
+					<Value>pci\ven_10de&amp;dev_2f04</Value>
+				</KvP>
+				<KvP>
+					<Key>Vbios</Key>
+					<Value>Version98 05.4a.00.5d</Value>
+				</KvP>
+				<KvP>
+					<Key>Detected Driver(s) Version(s)</Key>
+					<Value>32.0.15.7688</Value>
+				</KvP>
+				<KvP>
+					<Key>INF name</Key>
+					<Value>oem3.inf</Value>
+				</KvP>
+				<KvP>
+					<Key>INF section</Key>
+					<Value>Section097</Value>
+				</KvP>
+				<KvP />
+			</Values>
+		</Event>
+		<Warning>
+			<Time>4/15/2026 3:48:30 AM</Time>
+			<Message>We are not in Safe Mode</Message>
+		</Warning>
+		<Event>
+			<Time>4/15/2026 3:48:30 AM</Time>
+			<Message>The following third-party driver packages are installed on this computer</Message>
+			<Values Separator=" = ">
+				<KvP>
+					<Value>C:\WINDOWS\inf\oem0.inf</Value>
+				</KvP>
+				<KvP>
+					<Key>Provider</Key>
+					<Value>Microsoft</Value>
+				</KvP>
+				<KvP>
+					<Key>Class</Key>
+					<Value>Printer</Value>
+				</KvP>
+				<KvP />
+				<KvP>
+					<Value>C:\WINDOWS\inf\oem1.inf</Value>
+				</KvP>
+				<KvP>
+					<Key>Provider</Key>
+					<Value>Advanced Micro Devices, Inc</Value>
+				</KvP>
+				<KvP>
+					<Key>Class</Key>
+					<Value>System</Value>
+				</KvP>
+				<KvP />
+				<KvP>
+					<Value>C:\WINDOWS\inf\oem10.inf</Value>
+				</KvP>
+				<KvP>
+					<Key>Provider</Key>
+					<Value>Realtek</Value>
+				</KvP>
+				<KvP>
+					<Key>Class</Key>
+					<Value>Net</Value>
+				</KvP>
+				<KvP />
+				<KvP>
+					<Value>C:\WINDOWS\inf\oem11.inf</Value>
+				</KvP>
+				<KvP>
+					<Key>Provider</Key>
+					<Value>Realtek</Value>
+				</KvP>
+				<KvP>
+					<Key>Class</Key>
+					<Value>Net</Value>
+				</KvP>
+				<KvP />
+				<KvP>
+					<Value>C:\WINDOWS\inf\oem12.inf</Value>
+				</KvP>
+				<KvP>
+					<Key>Provider</Key>
+					<Value>Realtek</Value>
+				</KvP>
+				<KvP>
+					<Key>Class</Key>
+					<Value>Net</Value>
+				</KvP>
+				<KvP />
+				<KvP>
+					<Value>C:\WINDOWS\inf\oem13.inf</Value>
+				</KvP>
+				<KvP>
+					<Key>Provider</Key>
+					<Value>Realtek</Value>
+				</KvP>
+				<KvP>
+					<Key>Class</Key>
+					<Value>Net</Value>
+				</KvP>
+				<KvP />
+				<KvP>
+					<Value>C:\WINDOWS\inf\oem14.inf</Value>
+				</KvP>
+				<KvP>
+					<Key>Provider</Key>
+					<Value>Realtek</Value>
+				</KvP>
+				<KvP>
+					<Key>Class</Key>
+					<Value>Net</Value>
+				</KvP>
+				<KvP />
+				<KvP>
+					<Value>C:\WINDOWS\inf\oem15.inf</Value>
+				</KvP>
+				<KvP>
+					<Key>Provider</Key>
+					<Value>Realtek</Value>
+				</KvP>
+				<KvP>
+					<Key>Class</Key>
+					<Value>Net</Value>
+				</KvP>
+				<KvP />
+				<KvP>
+					<Value>C:\WINDOWS\inf\oem2.inf</Value>
+				</KvP>
+				<KvP>
+					<Key>Provider</Key>
+					<Value>Microsoft Corporation</Value>
+				</KvP>
+				<KvP>
+					<Key>Class</Key>
+					<Value>AudioProcessingObject</Value>
+				</KvP>
+				<KvP />
+				<KvP>
+					<Value>C:\WINDOWS\inf\oem3.inf</Value>
+				</KvP>
+				<KvP>
+					<Key>Provider</Key>
+					<Value>NVIDIA</Value>
+				</KvP>
+				<KvP>
+					<Key>Class</Key>
+					<Value>Display</Value>
+				</KvP>
+				<KvP />
+				<KvP>
+					<Value>C:\WINDOWS\inf\oem4.inf</Value>
+				</KvP>
+				<KvP>
+					<Key>Provider</Key>
+					<Value>NVIDIA Corporation</Value>
+				</KvP>
+				<KvP>
+					<Key>Class</Key>
+					<Value>MEDIA</Value>
+				</KvP>
+				<KvP />
+				<KvP>
+					<Value>C:\WINDOWS\inf\oem5.inf</Value>
+				</KvP>
+				<KvP>
+					<Key>Provider</Key>
+					<Value>NVIDIA</Value>
+				</KvP>
+				<KvP>
+					<Key>Class</Key>
+					<Value>SoftwareDevice</Value>
+				</KvP>
+				<KvP />
+				<KvP>
+					<Value>C:\WINDOWS\inf\oem6.inf</Value>
+				</KvP>
+				<KvP>
+					<Key>Provider</Key>
+					<Value>NVIDIA</Value>
+				</KvP>
+				<KvP>
+					<Key>Class</Key>
+					<Value>USB</Value>
+				</KvP>
+				<KvP />
+				<KvP>
+					<Value>C:\WINDOWS\inf\oem7.inf</Value>
+				</KvP>
+				<KvP>
+					<Key>Provider</Key>
+					<Value>Advanced Micro Devices, Inc</Value>
+				</KvP>
+				<KvP>
+					<Key>Class</Key>
+					<Value>System</Value>
+				</KvP>
+				<KvP />
+				<KvP>
+					<Value>C:\WINDOWS\inf\oem8.inf</Value>
+				</KvP>
+				<KvP>
+					<Key>Provider</Key>
+					<Value>Realtek</Value>
+				</KvP>
+				<KvP>
+					<Key>Class</Key>
+					<Value>Net</Value>
+				</KvP>
+				<KvP />
+				<KvP>
+					<Value>C:\WINDOWS\inf\oem9.inf</Value>
+				</KvP>
+				<KvP>
+					<Key>Provider</Key>
+					<Value>Realtek</Value>
+				</KvP>
+				<KvP>
+					<Key>Class</Key>
+					<Value>Net</Value>
+				</KvP>
+				<KvP />
+			</Values>
+		</Event>
+		<Event>
+			<Time>4/15/2026 3:48:31 AM</Time>
+			<Message>Trying to impersonate the SYSTEM account... SUCCESS !</Message>
+			<Values Separator=" : ">
+				<KvP>
+					<Key>Number of process to check</Key>
+					<Value>157</Value>
+				</KvP>
+				<KvP>
+					<Key>svchost</Key>
+					<Value>OpenProcessToken Failed 5, privilege not held</Value>
+				</KvP>
+				<KvP>
+					<Key>svchost</Key>
+					<Value>OpenProcessToken Failed 5, privilege not held</Value>
+				</KvP>
+				<KvP>
+					<Key>svchost</Key>
+					<Value>OpenProcessToken Failed 5, privilege not held</Value>
+				</KvP>
+				<KvP>
+					<Key>svchost</Key>
+					<Value>OpenProcessToken Failed 5, privilege not held</Value>
+				</KvP>
+				<KvP>
+					<Key>svchost</Key>
+					<Value>OpenProcessToken Failed 5, privilege not held</Value>
+				</KvP>
+				<KvP>
+					<Key>svchost</Key>
+					<Value>OpenProcessToken Failed 5, privilege not held</Value>
+				</KvP>
+				<KvP>
+					<Key>svchost</Key>
+					<Value>OpenProcessToken Failed 5, privilege not held</Value>
+				</KvP>
+				<KvP>
+					<Key>svchost</Key>
+					<Value>OpenProcessToken Failed 5, privilege not held</Value>
+				</KvP>
+				<KvP>
+					<Key>NgcIso</Key>
+					<Value>OpenProcessToken Failed 5, privilege not held</Value>
+				</KvP>
+				<KvP>
+					<Key>svchost</Key>
+					<Value>OpenProcessToken Failed 5, privilege not held</Value>
+				</KvP>
+				<KvP>
+					<Key>svchost</Key>
+					<Value>OpenProcessToken Failed 5, privilege not held</Value>
+				</KvP>
+				<KvP>
+					<Key>audiodg</Key>
+					<Value>OpenProcessToken Failed 5, privilege not held</Value>
+				</KvP>
+				<KvP>
+					<Key>svchost</Key>
+					<Value>OpenProcessToken Failed 5, privilege not held</Value>
+				</KvP>
+				<KvP>
+					<Key>svchost</Key>
+					<Value>OpenProcessToken Failed 5, privilege not held</Value>
+				</KvP>
+				<KvP>
+					<Key>svchost</Key>
+					<Value>OpenProcessToken Failed 5, privilege not held</Value>
+				</KvP>
+				<KvP>
+					<Key>fontdrvhost</Key>
+					<Value>OpenProcessToken Failed 5, privilege not held</Value>
+				</KvP>
+				<KvP>
+					<Key>svchost</Key>
+					<Value>Отказано в доступе</Value>
+				</KvP>
+				<KvP>
+					<Key>svchost</Key>
+					<Value>OpenProcessToken Failed 5, privilege not held</Value>
+				</KvP>
+				<KvP>
+					<Key>svchost</Key>
+					<Value>OpenProcessToken Failed 5, privilege not held</Value>
+				</KvP>
+				<KvP>
+					<Key>svchost</Key>
+					<Value>OpenProcessToken Failed 5, privilege not held</Value>
+				</KvP>
+				<KvP>
+					<Key>ShellHost</Key>
+					<Value>Skipping : S-1-5-21-1845787714-2243593731-276917642-1001</Value>
+				</KvP>
+				<KvP>
+					<Key>sihost</Key>
+					<Value>Skipping : S-1-5-21-1845787714-2243593731-276917642-1001</Value>
+				</KvP>
+				<KvP>
+					<Key>AggregatorHost</Key>
+					<Value>OpenProcessToken Failed 5, privilege not held</Value>
+				</KvP>
+				<KvP>
+					<Key>svchost</Key>
+					<Value>OpenProcessToken Failed 5, privilege not held</Value>
+				</KvP>
+				<KvP>
+					<Key>svchost</Key>
+					<Value>OpenProcessToken Failed 5, privilege not held</Value>
+				</KvP>
+				<KvP>
+					<Key>chrome</Key>
+					<Value>Skipping : S-1-5-21-1845787714-2243593731-276917642-1001</Value>
+				</KvP>
+				<KvP>
+					<Key>svchost</Key>
+					<Value>Skipping : S-1-5-21-1845787714-2243593731-276917642-1001</Value>
+				</KvP>
+				<KvP>
+					<Key>svchost</Key>
+					<Value>OpenProcessToken Failed 5, privilege not held</Value>
+				</KvP>
+				<KvP>
+					<Key>NVDisplay.Container</Key>
+					<Value>S-1-5-18</Value>
+				</KvP>
+				<KvP>
+					<Key>NVDisplay.Container</Key>
+					<Value>SYSTEM token obtained: SUCCESS</Value>
+				</KvP>
+			</Values>
+		</Event>
+		<Event>
+			<Time>4/15/2026 3:48:31 AM</Time>
+			<Message>Reverting the Impersonalisation is successful !</Message>
+		</Event>
+		<Event>
+			<Time>4/15/2026 3:48:34 AM</Time>
+			<Message>Trying to disable search for Windows Updates</Message>
+			<Values Separator=" : ">
+				<KvP>
+					<Key>Version</Key>
+					<Value>6.4</Value>
+				</KvP>
+			</Values>
+		</Event>
+		<Event>
+			<Time>4/15/2026 3:48:39 AM</Time>
+			<Message>&gt;&gt; Successfully saved log to file!</Message>
+		</Event>
+	</LogEntries>
+</DisplayDriverUninstaller>

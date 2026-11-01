@@ -1,6 +1,6 @@
 @echo off
 setlocal EnableExtensions
-set "SCRIPT=%~dp0DEVICE-TWEAKER-XEOKA.ps1"
+set "SCRIPT=%~dp0DEVICE-TWEAKER-UPDATE-2026-XEOKA-UPDATED.ps1"
 set "PS=%SystemRoot%\System32\WindowsPowerShell\v1.0\powershell.exe"
 if not exist "%SCRIPT%" (
   echo [ERROR] PowerShell script not found:

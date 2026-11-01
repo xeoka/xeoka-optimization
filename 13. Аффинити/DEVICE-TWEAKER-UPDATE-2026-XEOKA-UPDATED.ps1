@@ -1,4 +1,4 @@
-﻿param(
+param(
     [switch]$verbose,
     [switch]$AutoOptimize,
     [switch]$SecretOptimize,
