@@ -61,6 +61,30 @@ function Find-PackFile {
     return $null
 }
 
+function Test-PackRoot {
+    param([string]$Path)
+    if (-not $Path -or -not (Test-Path -LiteralPath $Path)) { return $false }
+    $n = @(Get-ChildItem -LiteralPath $Path -Directory -ErrorAction SilentlyContinue | Where-Object { $_.Name -match '^\d+\.' }).Count
+    return ($n -ge 5)
+}
+function Resolve-PackRoot {
+    param([string]$Start)
+    $cands = New-Object System.Collections.ArrayList
+    [void]$cands.Add($Start)
+    $par = $null
+    try { $par = Split-Path -Parent $Start } catch { }
+    if ($par) { [void]$cands.Add($par) }
+    foreach ($b in @($Start, $par)) {
+        if (-not $b) { continue }
+        foreach ($d in @(Get-ChildItem -LiteralPath $b -Directory -ErrorAction SilentlyContinue | Where-Object { $_.Name -match 'xeoka|pack' })) { [void]$cands.Add($d.FullName) }
+    }
+    $saved = Join-Path $script:DataDir 'root.txt'
+    if (Test-Path $saved) { try { [void]$cands.Add(((Get-Content -Path $saved -Raw -Encoding UTF8).Trim())) } catch { } }
+    foreach ($c in $cands) { if (Test-PackRoot $c) { return $c } }
+    return $Start
+}
+$script:Root = Resolve-PackRoot $script:Root
+
 # ---------------------------------------------------------------- реестр: разбор .reg, запись, бэкап
 function Read-RegFile {
     param([string]$Path)
@@ -672,6 +696,10 @@ $btnAll.Add_Click({
 
 $btnApply.Add_Click({
     if ($script:Busy) { return }
+    if (-not (Test-PackRoot $script:Root)) {
+        [System.Windows.Forms.MessageBox]::Show("Папка пака не найдена рядом с программой. Положите XEOKA-PACK.ps1 в корень пака (рядом с папками «1. База», «2. Драйверы» и т.д.) или нажмите «Указать папку пака».", 'XEOKA PACK', 'OK', 'Warning') | Out-Null
+        return
+    }
     $sel = @($script:Tweaks | Where-Object { $script:Rows[$_.Id].Checked })
     if ($sel.Count -eq 0) { Write-Log 'Ничего не выбрано.' 'warn'; return }
     $msg = "Будет применено твиков: $($sel.Count).`n`nПеред этим создаётся точка восстановления. Изменения реестра можно откатить кнопкой «Откатить последнее».`n`nПродолжить?"
@@ -734,7 +762,7 @@ $animTimer.Add_Tick({
     if ($btnApply.Enabled) { $btnApply.BackColor = Mix-Color $cAccent $cAccent2 $k }
     $lblLogo2.ForeColor = Mix-Color $cAccent2 $cCyan ($k * 0.7)
     $lnkTg.LinkColor = Mix-Color $cAccent2 $cText ($k * 0.35)
-    foreach ($rp in @($list.Controls | Where-Object { $_.Tag -is [hashtable] })) {
+    foreach ($rp in @(@($list.Controls) + @($pageTools.Controls) | Where-Object { $_.Tag -is [hashtable] })) {
         $st = $rp.Tag
         $tgt = [double]$st.Target
         if ([Math]::Abs($st.T - $tgt) -gt 0.001) {
@@ -779,36 +807,95 @@ $tools = @(
     @{ T = 'Autoruns'; D = 'Автозагрузка'; P = '8.'; F = 'Autoruns.exe' },
     @{ T = 'Службы (PowerRun)'; D = 'Отключение служб. Осторожно'; P = '10.'; F = 'DISABLE-SERVICES.reg' }
 )
+function Invoke-ToolCard {
+    param($Tool)
+    $p = Find-PackFile $Tool.P $Tool.F
+    if (-not $p) {
+        [System.Windows.Forms.MessageBox]::Show("Файл «$($Tool.F)» не найден. Положите XEOKA-PACK.ps1 в корень пака или нажмите «Указать папку пака».", 'XEOKA PACK', 'OK', 'Warning') | Out-Null
+        return
+    }
+    try {
+        if ($Tool.F -eq 'DISABLE-SERVICES.reg') {
+            $warn = "Будут отключены службы: DPS, Themes, Spooler (печать), WSearch (поиск), LanmanWorkstation и Netlogon (сетевые папки, домен), SessionEnv (удалённый рабочий стол), edgeupdate, GameInputSvc и другие.`n`nОтключение Themes может испортить внешний вид Windows, без Spooler не будет печати. Откат кнопкой отката не поддерживается.`n`nПродолжить?"
+            $r = [System.Windows.Forms.MessageBox]::Show($warn, 'Службы', 'YesNo', 'Warning')
+            if ($r -ne 'Yes') { return }
+            $pr = Find-PackFile '10.' 'PowerRun_x64.exe'
+            if (-not $pr) { [System.Windows.Forms.MessageBox]::Show('PowerRun_x64.exe не найден.') | Out-Null; return }
+            Start-Process -FilePath $pr -ArgumentList ('regedit.exe /s "{0}"' -f $p) -WorkingDirectory (Split-Path $pr)
+            return
+        }
+        Start-Process -FilePath $p -WorkingDirectory (Split-Path $p)
+    } catch { [System.Windows.Forms.MessageBox]::Show("Не удалось запустить: $($_.Exception.Message)") | Out-Null }
+}
+
+$script:ToolCards = New-Object System.Collections.ArrayList
 $tx = 22; $ty = 78; $col = 0
 foreach ($tool in $tools) {
-    $path = Find-PackFile $tool.P $tool.F
-    $b = New-Button ($tool.T + "`n" + $tool.D) ($tx + $col * 370) $ty 360 54 $cPanel $cPanel2 $fontSmall
-    $b.TextAlign = 'MiddleLeft'; $b.Padding = New-Object System.Windows.Forms.Padding(14, 0, 0, 0)
-    $b.Tag = @{ Path = $path; Name = $tool.T; File = $tool.F }
-    if (-not $path) { $b.Enabled = $false; $b.ForeColor = $cDim; $b.Text = ($tool.T + "`nфайл не найден в паке") }
-    $b.Add_Click({
-        $info = $this.Tag
-        $p = $info.Path
-        try {
-            if ($info.File -eq 'DISABLE-SERVICES.reg') {
-                $warn = "Будут отключены службы: DPS, Themes, Spooler (печать), WSearch (поиск), LanmanWorkstation и Netlogon (сетевые папки, домен), SessionEnv (удалённый рабочий стол), edgeupdate, GameInputSvc и другие.`n`nОтключение Themes может испортить внешний вид Windows, без Spooler не будет печати. Откат кнопкой отката не поддерживается.`n`nПродолжить?"
-                $r = [System.Windows.Forms.MessageBox]::Show($warn, 'Службы', 'YesNo', 'Warning')
-                if ($r -ne 'Yes') { return }
-                $pr = Find-PackFile '10.' 'PowerRun_x64.exe'
-                if (-not $pr) { [System.Windows.Forms.MessageBox]::Show('PowerRun_x64.exe не найден.') | Out-Null; return }
-                Start-Process -FilePath $pr -ArgumentList ('regedit.exe /s "{0}"' -f $p) -WorkingDirectory (Split-Path $pr)
-                return
-            }
-            Start-Process -FilePath $p -WorkingDirectory (Split-Path $p)
-        } catch { [System.Windows.Forms.MessageBox]::Show("Не удалось запустить: $($_.Exception.Message)") | Out-Null }
-    })
-    $pageTools.Controls.Add($b)
-    $col++; if ($col -ge 2) { $col = 0; $ty += 62 }
+    $card = New-Object System.Windows.Forms.Panel
+    $card.SetBounds(($tx + $col * 370), $ty, 360, 56)
+    $card.BackColor = $cPanel; $card.Tag = @{ T = 0.0; Target = 0 }
+    $card.Cursor = [System.Windows.Forms.Cursors]::Hand
+    $ct = New-Object System.Windows.Forms.Label
+    $ct.Text = $tool.T; $ct.Font = $fontBold; $ct.AutoSize = $false
+    $ct.SetBounds(16, 7, 330, 22); $ct.ForeColor = $cText; $ct.BackColor = [System.Drawing.Color]::Transparent
+    $cd = New-Object System.Windows.Forms.Label
+    $cd.Text = $tool.D; $cd.Font = $fontSmall; $cd.AutoSize = $false
+    $cd.SetBounds(16, 30, 330, 22); $cd.ForeColor = $cDim; $cd.BackColor = [System.Drawing.Color]::Transparent
+    $card.Controls.Add($ct); $card.Controls.Add($cd)
+    $click = { Invoke-ToolCard $tool }.GetNewClosure()
+    $card.Add_Click($click); $ct.Add_Click($click); $cd.Add_Click($click)
+    $card.Add_MouseEnter({ $this.Tag.Target = 1 }); $card.Add_MouseLeave({ $this.Tag.Target = 0 })
+    $ct.Add_MouseEnter({ $this.Parent.Tag.Target = 1 }); $cd.Add_MouseEnter({ $this.Parent.Tag.Target = 1 })
+    Set-Round $card 8
+    $pageTools.Controls.Add($card)
+    [void]$script:ToolCards.Add(@{ Tool = $tool; Title = $ct; Desc = $cd })
+    $col++; if ($col -ge 2) { $col = 0; $ty += 64 }
 }
 $btnFolder = New-Button 'Открыть папку пака' 22 ($ty + 14) 220 42 $cPanel2 $cLine $fontBold
 $btnFolder.Add_Click({ Start-Process explorer.exe -ArgumentList ('"' + $script:Root + '"') })
-if ($col -ne 0) { $btnFolder.Top = $ty + 76 }
+if ($col -ne 0) { $btnFolder.Top = $ty + 78 }
 $pageTools.Controls.Add($btnFolder)
+
+# ---- выбор папки пака, если программа лежит не в паке
+$lblWarnOpt = New-Object System.Windows.Forms.Label
+$lblWarnOpt.Text = 'Папка пака не найдена рядом с программой'
+$lblWarnOpt.Font = $fontSmall; $lblWarnOpt.ForeColor = $cWarn; $lblWarnOpt.AutoSize = $false
+$lblWarnOpt.TextAlign = 'MiddleRight'; $lblWarnOpt.SetBounds(220, 16, 320, 28)
+$pageOpt.Controls.Add($lblWarnOpt)
+$btnPickOpt = New-Button 'Указать папку пака' 550 12 204 34 $cPanel2 $cLine $fontSmall
+$pageOpt.Controls.Add($btnPickOpt)
+$lblWarnTools = New-Object System.Windows.Forms.Label
+$lblWarnTools.Text = 'Папка пака не найдена рядом с программой'
+$lblWarnTools.Font = $fontSmall; $lblWarnTools.ForeColor = $cWarn; $lblWarnTools.AutoSize = $false
+$lblWarnTools.TextAlign = 'MiddleRight'; $lblWarnTools.SetBounds(300, 16, 240, 28)
+$pageTools.Controls.Add($lblWarnTools)
+$btnPickTools = New-Button 'Указать папку пака' 550 12 204 34 $cPanel2 $cLine $fontSmall
+$pageTools.Controls.Add($btnPickTools)
+
+function Update-PackState {
+    $ok = Test-PackRoot $script:Root
+    foreach ($c in @($lblWarnOpt, $btnPickOpt, $lblWarnTools, $btnPickTools)) { $c.Visible = (-not $ok) }
+    foreach ($ci in $script:ToolCards) {
+        $path = Find-PackFile $ci.Tool.P $ci.Tool.F
+        if ($path) { $ci.Desc.Text = $ci.Tool.D; $ci.Desc.ForeColor = $cDim; $ci.Title.ForeColor = $cText }
+        else { $ci.Desc.Text = 'файл не найден: укажите папку пака'; $ci.Desc.ForeColor = $cWarn; $ci.Title.ForeColor = $cDim }
+    }
+}
+$pickHandler = {
+    $dlg = New-Object System.Windows.Forms.FolderBrowserDialog
+    $dlg.Description = 'Выберите корневую папку пака (где лежат папки «1. База», «2. Драйверы» и т.д.)'
+    if ($dlg.ShowDialog() -eq 'OK') {
+        if (Test-PackRoot $dlg.SelectedPath) {
+            $script:Root = $dlg.SelectedPath
+            try { Set-Content -Path (Join-Path $script:DataDir 'root.txt') -Value $script:Root -Encoding UTF8 } catch { }
+            Update-PackState
+        } else {
+            [System.Windows.Forms.MessageBox]::Show('В этой папке не найдены папки пака (1. База, 2. Драйверы ...).', 'XEOKA PACK', 'OK', 'Warning') | Out-Null
+        }
+    }
+}
+$btnPickOpt.Add_Click($pickHandler); $btnPickTools.Add_Click($pickHandler)
+Update-PackState
 
 # ---- страница: о программе
 $pageAbout = New-Object System.Windows.Forms.Panel
