@@ -4,6 +4,20 @@
 param([switch]$NoElevate)
 
 $ErrorActionPreference = 'Stop'
+
+trap {
+    $m = $_.Exception.Message + "`r`n`r`n" + $_.InvocationInfo.PositionMessage
+    try {
+        $d = Join-Path $env:ProgramData 'XEOKA-Pack'
+        if (-not (Test-Path $d)) { New-Item -ItemType Directory -Path $d -Force | Out-Null }
+        Set-Content -Path (Join-Path $d 'error.txt') -Value $m -Encoding UTF8
+    } catch { }
+    try {
+        Add-Type -AssemblyName System.Windows.Forms
+        [System.Windows.Forms.MessageBox]::Show($m, 'XEOKA PACK: ошибка') | Out-Null
+    } catch { }
+    exit 1
+}
 $script:Version  = '1.0'
 $script:TgUrl    = 'https://t.me/CMEPT0HOCHbIU'
 $script:TgLabel  = 't.me/CMEPT0HOCHbIU'
@@ -28,6 +42,11 @@ if (-not (Test-Admin)) {
 Add-Type -AssemblyName System.Windows.Forms
 Add-Type -AssemblyName System.Drawing
 [System.Windows.Forms.Application]::EnableVisualStyles()
+[System.Windows.Forms.Application]::SetUnhandledExceptionMode([System.Windows.Forms.UnhandledExceptionMode]::CatchException)
+[System.Windows.Forms.Application]::add_ThreadException({
+    param($sender, $e)
+    try { [System.Windows.Forms.MessageBox]::Show($e.Exception.Message, 'XEOKA PACK: ошибка') | Out-Null } catch { }
+})
 
 if (-not (Test-Path $script:DataDir)) { New-Item -ItemType Directory -Path $script:DataDir -Force | Out-Null }
 
@@ -519,7 +538,7 @@ function Add-GroupLabel {
     param([string]$Text)
     $l = New-Object System.Windows.Forms.Label
     $l.Text = $Text; $l.Font = $fontSmall; $l.ForeColor = $cDim; $l.AutoSize = $true
-    $l.Location = New-Object System.Drawing.Point(6, $script:y + 4)
+    $l.Location = New-Object System.Drawing.Point(6, ($script:y + 4))
     $list.Controls.Add($l)
     $script:y += 28
 }
