@@ -19,7 +19,7 @@ trap {
     exit 1
 }
 
-$script:Version  = '3.0'
+$script:Version  = '3.1'
 $script:TgUrl    = 'https://t.me/CMEPT0HOCHbIU'
 $script:TgLabel  = 't.me/CMEPT0HOCHbIU'
 $script:Root     = if ($PSScriptRoot) { $PSScriptRoot } else { Split-Path -Parent $MyInvocation.MyCommand.Path }
@@ -518,10 +518,7 @@ $script:Tweaks = @(
        Run = { Invoke-Tweak-DevicePower } },
     @{ Id = 'fso';     Group = 'opt'; Default = $false; Title = 'Полноэкранный режим: FSO (оптимизации включены)';
        Desc = 'Вариант вместо FSE. Включайте только один из двух.';
-       Run = { Invoke-Tweak-Fso } },
-    @{ Id = 'nvidia';  Group = 'opt'; Default = $false; Title = 'Профиль NVIDIA (XEOKA-OPTIMIZED-V2.nip)';
-       Desc = 'Открывает XEOKA-OPTIMIZED-V2.nip в Profile Inspector, останется подтвердить в окне. Только NVIDIA. Не откатывается.';
-       Run = { Invoke-Tweak-Nvidia } }
+       Run = { Invoke-Tweak-Fso } }
 )
 
 # ---------------------------------------------------------------- откат
