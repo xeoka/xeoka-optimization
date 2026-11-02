@@ -19,7 +19,7 @@ trap {
     exit 1
 }
 
-$script:Version  = '2.2'
+$script:Version  = '2.3'
 $script:TgUrl    = 'https://t.me/CMEPT0HOCHbIU'
 $script:TgLabel  = 't.me/CMEPT0HOCHbIU'
 $script:Root     = if ($PSScriptRoot) { $PSScriptRoot } else { Split-Path -Parent $MyInvocation.MyCommand.Path }
@@ -554,7 +554,7 @@ function Invoke-Revert {
 
 # ================================================================ интерфейс
 function C { param([string]$Hex) return [System.Drawing.ColorTranslator]::FromHtml($Hex) }
-$cBg       = C '#080511'
+$cBg       = C '#04020A'
 $cPanel    = C '#120B22'
 $cPanel2   = C '#1A1030'
 $cLine     = C '#2E2152'
@@ -564,10 +564,10 @@ $cAccent   = C '#8B5CF6'
 $cAccent2  = C '#A78BFA'
 $cMagenta  = C '#C084FC'
 $cRowHover = C '#22163F'
-$cHeadA    = C '#26124D'
-$cHeadB    = C '#080511'
-$cNavA     = C '#160B2D'
-$cNavB     = C '#07040E'
+$cHeadA    = C '#6330D0'
+$cHeadB    = C '#1A0B3A'
+$cNavA     = C '#2A1260'
+$cNavB     = C '#05030B'
 $cTgA      = C '#46C3FF'
 $cTgB      = C '#1E8FD8'
 $cPill1    = C '#38197F'
@@ -726,37 +726,7 @@ public class XeokaWheelFilter : IMessageFilter {
     $script:WheelFilter = New-Object XeokaWheelFilter
 } catch { $script:WheelFilter = $null }
 
-# ---------------------------------------------------------------- звук и прокрутка журнала
-$script:SndSwipe = $null; $script:SndTick = $null
-function New-WavPlayer {
-    param([double]$F1, [double]$F2, [double]$Dur, [double]$Vol)
-    $rate = 22050; $n = [int]($rate * $Dur)
-    $ms = New-Object System.IO.MemoryStream
-    $bw = New-Object System.IO.BinaryWriter($ms)
-    $bw.Write([System.Text.Encoding]::ASCII.GetBytes('RIFF')); $bw.Write([int](36 + $n * 2))
-    $bw.Write([System.Text.Encoding]::ASCII.GetBytes('WAVEfmt ')); $bw.Write([int]16); $bw.Write([int16]1); $bw.Write([int16]1)
-    $bw.Write([int]$rate); $bw.Write([int]($rate * 2)); $bw.Write([int16]2); $bw.Write([int16]16)
-    $bw.Write([System.Text.Encoding]::ASCII.GetBytes('data')); $bw.Write([int]($n * 2))
-    $ph = 0.0
-    for ($i = 0; $i -lt $n; $i++) {
-        $t = $i / [double]$n
-        $f = $F1 + ($F2 - $F1) * $t * $t
-        $ph += 2 * [Math]::PI * $f / $rate
-        $env = [Math]::Sin([Math]::PI * [Math]::Pow($t, 0.45)) * [Math]::Exp(-2.2 * $t)
-        $v = ([Math]::Sin($ph) + 0.35 * [Math]::Sin(2 * $ph) + 0.12 * [Math]::Sin(3 * $ph)) / 1.47
-        $bw.Write([int16]($v * $env * $Vol * 32000))
-    }
-    $bw.Flush(); $ms.Position = 0
-    $pl = New-Object System.Media.SoundPlayer($ms)
-    $pl.Load()
-    return $pl
-}
-try { $script:SndSwipe = New-WavPlayer 420 980 0.32 0.32 } catch { $script:SndSwipe = $null }
-try { $script:SndTick = New-WavPlayer 1180 1500 0.09 0.22 } catch { $script:SndTick = $null }
-function Play-Snd {
-    param($Pl)
-    if ($Pl) { try { $Pl.Play() } catch { } }
-}
+# ---------------------------------------------------------------- прокрутка журнала
 $script:Win32Ok = $false
 try {
     Add-Type -TypeDefinition @'
@@ -770,31 +740,39 @@ public static class XeokaNative {
 } catch { }
 
 # ---------------------------------------------------------------- переливающийся фон
+$script:BgBmp = $null
+function Build-Bg {
+    $W = [Math]::Max(200, $form.ClientSize.Width); $H = [Math]::Max(200, $form.ClientSize.Height)
+    $bmp = New-Object System.Drawing.Bitmap($W, $H)
+    $g = [System.Drawing.Graphics]::FromImage($bmp)
+    $g.SmoothingMode = 'AntiAlias'
+    $g.Clear((C '#04020A'))
+    $glows = @(
+        @{ X = 0.50; Y = 0.00; RX = 0.75; RY = 0.55; C = (C '#7C3AED'); A = 95 },
+        @{ X = 0.10; Y = 0.08; RX = 0.40; RY = 0.40; C = (C '#A855F7'); A = 55 },
+        @{ X = 0.95; Y = 1.00; RX = 0.55; RY = 0.50; C = (C '#6D28D9'); A = 60 },
+        @{ X = 0.05; Y = 1.00; RX = 0.35; RY = 0.35; C = (C '#9333EA'); A = 38 }
+    )
+    foreach ($b in $glows) {
+        $cx = $b.X * $W; $cy = $b.Y * $H; $rx = $b.RX * $W; $ry = $b.RY * $H
+        $gp = New-Object System.Drawing.Drawing2D.GraphicsPath
+        $gp.AddEllipse([single]($cx - $rx), [single]($cy - $ry), [single]($rx * 2), [single]($ry * 2))
+        $pg = New-Object System.Drawing.Drawing2D.PathGradientBrush($gp)
+        $pg.CenterColor = Alpha-Color $b.C $b.A
+        $pg.SurroundColors = [System.Drawing.Color[]]@([System.Drawing.Color]::FromArgb(0, $b.C.R, $b.C.G, $b.C.B))
+        $g.FillPath($pg, $gp); $pg.Dispose(); $gp.Dispose()
+    }
+    $g.Dispose()
+    if ($script:BgBmp) { $script:BgBmp.Dispose() }
+    $script:BgBmp = $bmp
+}
 function Paint-Bg {
     param($G, $Ctrl)
     try {
+        if (-not $script:BgBmp -or $script:BgBmp.Width -ne [Math]::Max(200, $form.ClientSize.Width) -or $script:BgBmp.Height -ne [Math]::Max(200, $form.ClientSize.Height)) { Build-Bg }
         $o = $Ctrl.PointToScreen([System.Drawing.Point]::Empty)
         $f = $form.PointToScreen([System.Drawing.Point]::Empty)
-        $ox = $o.X - $f.X; $oy = $o.Y - $f.Y
-        $W = [double]$form.ClientSize.Width; $H = [double]$form.ClientSize.Height
-        $t = $script:Sec
-        $G.SmoothingMode = 'AntiAlias'
-        $G.Clear($cBg)
-        $blobs = @(
-            @{ X = 0.25 + 0.20 * [Math]::Sin($t * 0.21);       Y = 0.30 + 0.25 * [Math]::Cos($t * 0.17); R = 0.55; C = $cAccent;   A = 46 },
-            @{ X = 0.78 + 0.16 * [Math]::Cos($t * 0.19 + 1.0); Y = 0.70 + 0.20 * [Math]::Sin($t * 0.23 + 2.0); R = 0.60; C = $cMagenta;  A = 34 },
-            @{ X = 0.55 + 0.30 * [Math]::Sin($t * 0.13 + 3.0); Y = 0.15 + 0.15 * [Math]::Cos($t * 0.29 + 0.5); R = 0.45; C = (C '#5B21B6'); A = 50 }
-        )
-        foreach ($b in $blobs) {
-            $rad = $b.R * [Math]::Max($W, $H)
-            $cx = $b.X * $W - $ox; $cy = $b.Y * $H - $oy
-            $gp = New-Object System.Drawing.Drawing2D.GraphicsPath
-            $gp.AddEllipse([single]($cx - $rad), [single]($cy - $rad), [single]($rad * 2), [single]($rad * 2))
-            $pg = New-Object System.Drawing.Drawing2D.PathGradientBrush($gp)
-            $pg.CenterColor = Alpha-Color $b.C $b.A
-            $pg.SurroundColors = [System.Drawing.Color[]]@([System.Drawing.Color]::FromArgb(0, $b.C.R, $b.C.G, $b.C.B))
-            $G.FillPath($pg, $gp); $pg.Dispose(); $gp.Dispose()
-        }
+        $G.DrawImageUnscaled($script:BgBmp, ($f.X - $o.X), ($f.Y - $o.Y))
     } catch { $script:PaintErr = $_.Exception.Message }
 }
 
@@ -1094,7 +1072,6 @@ $pages = @{}
 $script:Slide = $null
 function Show-Page {
     param([string]$Name)
-    if ($script:NavSel -ne $Name -or -not $form.Visible) { if ($form.Visible) { Play-Snd $script:SndSwipe } }
     $script:NavSel = $Name
     foreach ($k in $pages.Keys) { $pages[$k].Visible = ($k -eq $Name) }
     if ($pages[$Name] -and $form.Visible) { $pages[$Name].Left = 190 + 48; $script:Slide = $pages[$Name] }
@@ -1314,7 +1291,7 @@ $listHost.Add_MouseDown({
         return
     }
     $hit = Get-ListHit $e.X $e.Y
-    if ($hit) { Play-Snd $script:SndTick; Set-Sel $hit.Tw.Id (-not $script:Sel[$hit.Tw.Id]) }
+    if ($hit) { Set-Sel $hit.Tw.Id (-not $script:Sel[$hit.Tw.Id]) }
 })
 $listHost.Add_MouseUp({ $script:SbDrag = $false })
 $listHost.Add_MouseWheel({ Set-ScrollTarget ($script:ScrollT - $_.Delta * 0.7) })
@@ -1894,12 +1871,6 @@ $animTimer.Add_Tick({
             if ($chT) { $toolsHost.Invalidate() }
         }
         if ($pageAbout.Visible) { $aboutHost.Invalidate((New-Object System.Drawing.Rectangle(0, 0, 200, 200))); if ($script:AboutL) { $aboutHost.Invalidate([System.Drawing.Rectangle]::Round($script:AboutL.Banner)) } }
-
-        # переливание фона (медленно, ~12 кадров/с)
-        $script:BgTick++
-        if (($script:BgTick % 5) -eq 0) {
-            foreach ($pg in @($pageOpt, $pageTools, $pageAbout)) { if ($pg.Visible) { $pg.Invalidate($true) } }
-        }
 
         # кнопки-пилюли
         foreach ($pl in $script:Pills) {
