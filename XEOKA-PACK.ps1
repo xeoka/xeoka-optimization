@@ -19,7 +19,7 @@ trap {
     exit 1
 }
 
-$script:Version  = '2.7'
+$script:Version  = '2.8'
 $script:TgUrl    = 'https://t.me/CMEPT0HOCHbIU'
 $script:TgLabel  = 't.me/CMEPT0HOCHbIU'
 $script:Root     = if ($PSScriptRoot) { $PSScriptRoot } else { Split-Path -Parent $MyInvocation.MyCommand.Path }
@@ -1129,7 +1129,8 @@ function Show-Page {
     param([string]$Name)
     $script:NavSel = $Name
     foreach ($k in $pages.Keys) { $pages[$k].Visible = ($k -eq $Name) }
-    if ($pages[$Name] -and $form.Visible) { $pages[$Name].Left = 190 + 48; $script:Slide = $pages[$Name] }
+    foreach ($k in $pages.Keys) { if ($k -eq $Name) { $pages[$k].Left = 190 } }
+    $script:Slide = $null
     $nav.Invalidate()
 }
 function Paint-PageDeco {
