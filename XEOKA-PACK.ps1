@@ -761,7 +761,6 @@ function Build-Bg {
         @{ X = 0.08; Y = 0.72; RX = 0.18; RY = 0.22; C = (C '#4F46E5'); A = 26 },
         @{ X = 0.62; Y = 0.98; RX = 0.30; RY = 0.14; C = (C '#8B5CF6'); A = 30 }
     )
-)
     foreach ($b in $glows) {
         $cx = $b.X * $W; $cy = $b.Y * $H; $rx = $b.RX * $W; $ry = $b.RY * $H
         $gp = New-Object System.Drawing.Drawing2D.GraphicsPath
