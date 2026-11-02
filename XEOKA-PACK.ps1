@@ -19,7 +19,7 @@ trap {
     exit 1
 }
 
-$script:Version  = '2.1'
+$script:Version  = '2.2'
 $script:TgUrl    = 'https://t.me/CMEPT0HOCHbIU'
 $script:TgLabel  = 't.me/CMEPT0HOCHbIU'
 $script:Root     = if ($PSScriptRoot) { $PSScriptRoot } else { Split-Path -Parent $MyInvocation.MyCommand.Path }
@@ -726,6 +726,78 @@ public class XeokaWheelFilter : IMessageFilter {
     $script:WheelFilter = New-Object XeokaWheelFilter
 } catch { $script:WheelFilter = $null }
 
+# ---------------------------------------------------------------- звук и прокрутка журнала
+$script:SndSwipe = $null; $script:SndTick = $null
+function New-WavPlayer {
+    param([double]$F1, [double]$F2, [double]$Dur, [double]$Vol)
+    $rate = 22050; $n = [int]($rate * $Dur)
+    $ms = New-Object System.IO.MemoryStream
+    $bw = New-Object System.IO.BinaryWriter($ms)
+    $bw.Write([System.Text.Encoding]::ASCII.GetBytes('RIFF')); $bw.Write([int](36 + $n * 2))
+    $bw.Write([System.Text.Encoding]::ASCII.GetBytes('WAVEfmt ')); $bw.Write([int]16); $bw.Write([int16]1); $bw.Write([int16]1)
+    $bw.Write([int]$rate); $bw.Write([int]($rate * 2)); $bw.Write([int16]2); $bw.Write([int16]16)
+    $bw.Write([System.Text.Encoding]::ASCII.GetBytes('data')); $bw.Write([int]($n * 2))
+    $ph = 0.0
+    for ($i = 0; $i -lt $n; $i++) {
+        $t = $i / [double]$n
+        $f = $F1 + ($F2 - $F1) * $t * $t
+        $ph += 2 * [Math]::PI * $f / $rate
+        $env = [Math]::Sin([Math]::PI * [Math]::Pow($t, 0.45)) * [Math]::Exp(-2.2 * $t)
+        $v = ([Math]::Sin($ph) + 0.35 * [Math]::Sin(2 * $ph) + 0.12 * [Math]::Sin(3 * $ph)) / 1.47
+        $bw.Write([int16]($v * $env * $Vol * 32000))
+    }
+    $bw.Flush(); $ms.Position = 0
+    $pl = New-Object System.Media.SoundPlayer($ms)
+    $pl.Load()
+    return $pl
+}
+try { $script:SndSwipe = New-WavPlayer 420 980 0.32 0.32 } catch { $script:SndSwipe = $null }
+try { $script:SndTick = New-WavPlayer 1180 1500 0.09 0.22 } catch { $script:SndTick = $null }
+function Play-Snd {
+    param($Pl)
+    if ($Pl) { try { $Pl.Play() } catch { } }
+}
+$script:Win32Ok = $false
+try {
+    Add-Type -TypeDefinition @'
+using System;
+using System.Runtime.InteropServices;
+public static class XeokaNative {
+    [DllImport("user32.dll")] public static extern IntPtr SendMessage(IntPtr h, int m, IntPtr w, IntPtr l);
+}
+'@
+    $script:Win32Ok = $true
+} catch { }
+
+# ---------------------------------------------------------------- переливающийся фон
+function Paint-Bg {
+    param($G, $Ctrl)
+    try {
+        $o = $Ctrl.PointToScreen([System.Drawing.Point]::Empty)
+        $f = $form.PointToScreen([System.Drawing.Point]::Empty)
+        $ox = $o.X - $f.X; $oy = $o.Y - $f.Y
+        $W = [double]$form.ClientSize.Width; $H = [double]$form.ClientSize.Height
+        $t = $script:Sec
+        $G.SmoothingMode = 'AntiAlias'
+        $G.Clear($cBg)
+        $blobs = @(
+            @{ X = 0.25 + 0.20 * [Math]::Sin($t * 0.21);       Y = 0.30 + 0.25 * [Math]::Cos($t * 0.17); R = 0.55; C = $cAccent;   A = 46 },
+            @{ X = 0.78 + 0.16 * [Math]::Cos($t * 0.19 + 1.0); Y = 0.70 + 0.20 * [Math]::Sin($t * 0.23 + 2.0); R = 0.60; C = $cMagenta;  A = 34 },
+            @{ X = 0.55 + 0.30 * [Math]::Sin($t * 0.13 + 3.0); Y = 0.15 + 0.15 * [Math]::Cos($t * 0.29 + 0.5); R = 0.45; C = (C '#5B21B6'); A = 50 }
+        )
+        foreach ($b in $blobs) {
+            $rad = $b.R * [Math]::Max($W, $H)
+            $cx = $b.X * $W - $ox; $cy = $b.Y * $H - $oy
+            $gp = New-Object System.Drawing.Drawing2D.GraphicsPath
+            $gp.AddEllipse([single]($cx - $rad), [single]($cy - $rad), [single]($rad * 2), [single]($rad * 2))
+            $pg = New-Object System.Drawing.Drawing2D.PathGradientBrush($gp)
+            $pg.CenterColor = Alpha-Color $b.C $b.A
+            $pg.SurroundColors = [System.Drawing.Color[]]@([System.Drawing.Color]::FromArgb(0, $b.C.R, $b.C.G, $b.C.B))
+            $G.FillPath($pg, $gp); $pg.Dispose(); $gp.Dispose()
+        }
+    } catch { $script:PaintErr = $_.Exception.Message }
+}
+
 # ---------------------------------------------------------------- окно
 $form = New-Object System.Windows.Forms.Form
 $form.Text = 'XEOKA PACK'
@@ -1022,6 +1094,7 @@ $pages = @{}
 $script:Slide = $null
 function Show-Page {
     param([string]$Name)
+    if ($script:NavSel -ne $Name -or -not $form.Visible) { if ($form.Visible) { Play-Snd $script:SndSwipe } }
     $script:NavSel = $Name
     foreach ($k in $pages.Keys) { $pages[$k].Visible = ($k -eq $Name) }
     if ($pages[$Name] -and $form.Visible) { $pages[$Name].Left = 190 + 48; $script:Slide = $pages[$Name] }
@@ -1031,6 +1104,7 @@ function New-Page {
     $pg = New-Object System.Windows.Forms.Panel
     $pg.SetBounds(190, 96, 990, 664); $pg.BackColor = $cBg
     Enable-DoubleBuffer $pg
+    $pg.Add_Paint({ Paint-Bg $_.Graphics $this })
     $form.Controls.Add($pg)
     return $pg
 }
@@ -1070,7 +1144,7 @@ function Paint-Pill {
 function New-Pill {
     param([string]$Text, [string]$Kind, [scriptblock]$OnClick, $Font)
     $p = New-Object System.Windows.Forms.Panel
-    $p.BackColor = $cBg
+    $p.BackColor = $cClear
     Enable-DoubleBuffer $p
     $p.Cursor = [System.Windows.Forms.Cursors]::Hand
     $p.Tag = @{ Text = $Text; Kind = $Kind; Font = $Font; T = 0.0; Target = 0; Enabled = $true; Pulse = 0.0; Down = $false; OnClick = $OnClick }
@@ -1091,7 +1165,7 @@ function New-Pill {
 $pageOpt = New-Page; $pages['opt'] = $pageOpt
 
 $lblH1 = New-Object System.Windows.Forms.Label
-$lblH1.Text = 'Что применить'; $lblH1.Font = $fontH1; $lblH1.ForeColor = $cText; $lblH1.BackColor = $cBg
+$lblH1.Text = 'Что применить'; $lblH1.Font = $fontH1; $lblH1.ForeColor = $cText; $lblH1.BackColor = $cClear
 $lblH1.AutoSize = $true; $lblH1.Location = New-Object System.Drawing.Point(22, 14)
 $pageOpt.Controls.Add($lblH1)
 
@@ -1103,7 +1177,7 @@ $script:SbT = 0.0; $script:SbTarget = 0; $script:SbDrag = $false; $script:SbGrab
 $script:Thumb = @{ X = 0.0; Y = 0.0; H = 0.0 }
 
 $listHost = New-Object System.Windows.Forms.Panel
-$listHost.SetBounds(22, 54, 940, 400); $listHost.BackColor = $cBg
+$listHost.SetBounds(22, 54, 940, 400); $listHost.BackColor = $cClear
 Enable-DoubleBuffer $listHost
 $pageOpt.Controls.Add($listHost)
 
@@ -1240,7 +1314,7 @@ $listHost.Add_MouseDown({
         return
     }
     $hit = Get-ListHit $e.X $e.Y
-    if ($hit) { Set-Sel $hit.Tw.Id (-not $script:Sel[$hit.Tw.Id]) }
+    if ($hit) { Play-Snd $script:SndTick; Set-Sel $hit.Tw.Id (-not $script:Sel[$hit.Tw.Id]) }
 })
 $listHost.Add_MouseUp({ $script:SbDrag = $false })
 $listHost.Add_MouseWheel({ Set-ScrollTarget ($script:ScrollT - $_.Delta * 0.7) })
@@ -1255,7 +1329,7 @@ foreach ($b in @($btnApply, $btnRevert, $btnAll)) { $pageOpt.Controls.Add($b) }
 # прогресс
 $script:ProgCur = 0.0; $script:ProgTarget = 0.0
 $barHost = New-Object System.Windows.Forms.Panel
-$barHost.SetBounds(22, 520, 940, 10); $barHost.BackColor = $cBg; $barHost.Visible = $false
+$barHost.SetBounds(22, 520, 940, 10); $barHost.BackColor = $cClear; $barHost.Visible = $false
 Enable-DoubleBuffer $barHost
 $barHost.Add_Paint({
     try {
@@ -1270,7 +1344,7 @@ $pageOpt.Controls.Add($barHost)
 
 # журнал
 $logHost = New-Object System.Windows.Forms.Panel
-$logHost.SetBounds(22, 540, 940, 100); $logHost.BackColor = $cBg
+$logHost.SetBounds(22, 540, 940, 100); $logHost.BackColor = $cClear
 Enable-DoubleBuffer $logHost
 $logHost.Add_Paint({
     try {
@@ -1284,6 +1358,12 @@ $logBox.SetBounds(16, 10, 908, 80)
 $logBox.BackColor = $cPanel; $logBox.ForeColor = $cText; $logBox.Font = $fontMono
 $logBox.ReadOnly = $true; $logBox.BorderStyle = 'None'; $logBox.ScrollBars = 'None'
 $logBox.Add_MouseEnter({ $this.Focus() })
+$logBox.Add_MouseWheel({
+    if ($script:Win32Ok) {
+        $lines = [int](-[Math]::Sign($_.Delta) * 3)
+        [void][XeokaNative]::SendMessage($this.Handle, 0x00B6, [IntPtr]0, [IntPtr]$lines)
+    }
+})
 $logHost.Controls.Add($logBox)
 
 $script:LogFile = Join-Path $script:DataDir ('log-' + (Get-Date -Format 'yyyyMMdd') + '.txt')
@@ -1371,7 +1451,7 @@ function Invoke-RevertClick {
 # выбор папки пака
 $lblWarn = New-Object System.Windows.Forms.Label
 $lblWarn.Text = 'Папка пака не найдена'
-$lblWarn.Font = $fontSmall; $lblWarn.ForeColor = $cWarn; $lblWarn.BackColor = $cBg; $lblWarn.AutoSize = $false
+$lblWarn.Font = $fontSmall; $lblWarn.ForeColor = $cWarn; $lblWarn.BackColor = $cClear; $lblWarn.AutoSize = $false
 $lblWarn.TextAlign = 'MiddleRight'; $lblWarn.SetBounds(400, 14, 280, 30)
 $pageOpt.Controls.Add($lblWarn)
 $btnPick = New-Pill 'Указать папку пака' 'ghost' { Invoke-PickFolder } $fontSmall
@@ -1381,12 +1461,12 @@ $pageOpt.Controls.Add($btnPick)
 # ---------------------------------------------------------------- страница: инструменты
 $pageTools = New-Page; $pageTools.Visible = $false; $pages['tools'] = $pageTools
 $lblT = New-Object System.Windows.Forms.Label
-$lblT.Text = 'Инструменты пака'; $lblT.Font = $fontH1; $lblT.ForeColor = $cText; $lblT.BackColor = $cBg
+$lblT.Text = 'Инструменты пака'; $lblT.Font = $fontH1; $lblT.ForeColor = $cText; $lblT.BackColor = $cClear
 $lblT.AutoSize = $true; $lblT.Location = New-Object System.Drawing.Point(22, 14)
 $pageTools.Controls.Add($lblT)
 $lblT2 = New-Object System.Windows.Forms.Label
 $lblT2.Text = 'Запускаются отдельно: то, что нельзя безопасно применить одной кнопкой.'
-$lblT2.Font = $fontSmall; $lblT2.ForeColor = $cDim; $lblT2.BackColor = $cBg; $lblT2.AutoSize = $true
+$lblT2.Font = $fontSmall; $lblT2.ForeColor = $cDim; $lblT2.BackColor = $cClear; $lblT2.AutoSize = $true
 $lblT2.Location = New-Object System.Drawing.Point(24, 46)
 $pageTools.Controls.Add($lblT2)
 
@@ -1430,7 +1510,7 @@ $script:ToolItems = New-Object System.Collections.ArrayList
 foreach ($tl in $tools) { [void]$script:ToolItems.Add(@{ Tool = $tl; X = 0.0; Y = 0.0; W = 0.0; H = 80.0; T = 0.0; Target = 0; Path = $null }) }
 
 $toolsHost = New-Object System.Windows.Forms.Panel
-$toolsHost.SetBounds(22, 84, 940, 440); $toolsHost.BackColor = $cBg
+$toolsHost.SetBounds(22, 84, 940, 440); $toolsHost.BackColor = $cClear
 Enable-DoubleBuffer $toolsHost
 $pageTools.Controls.Add($toolsHost)
 
@@ -1505,7 +1585,7 @@ $pageTools.Controls.Add($btnFolder)
 
 $lblWarn2 = New-Object System.Windows.Forms.Label
 $lblWarn2.Text = 'Папка пака не найдена'
-$lblWarn2.Font = $fontSmall; $lblWarn2.ForeColor = $cWarn; $lblWarn2.BackColor = $cBg; $lblWarn2.AutoSize = $false
+$lblWarn2.Font = $fontSmall; $lblWarn2.ForeColor = $cWarn; $lblWarn2.BackColor = $cClear; $lblWarn2.AutoSize = $false
 $lblWarn2.TextAlign = 'MiddleRight'; $lblWarn2.SetBounds(400, 14, 280, 30)
 $pageTools.Controls.Add($lblWarn2)
 $btnPick2 = New-Pill 'Указать папку пака' 'ghost' { Invoke-PickFolder } $fontSmall
@@ -1537,7 +1617,7 @@ function Invoke-PickFolder {
 # ---------------------------------------------------------------- страница: о программе
 $pageAbout = New-Page; $pageAbout.Visible = $false; $pages['about'] = $pageAbout
 $lblA = New-Object System.Windows.Forms.Label
-$lblA.Text = 'О программе'; $lblA.Font = $fontH1; $lblA.ForeColor = $cText; $lblA.BackColor = $cBg
+$lblA.Text = 'О программе'; $lblA.Font = $fontH1; $lblA.ForeColor = $cText; $lblA.BackColor = $cClear
 $lblA.AutoSize = $true; $lblA.Location = New-Object System.Drawing.Point(22, 14)
 $pageAbout.Controls.Add($lblA)
 
@@ -1619,7 +1699,7 @@ function Paint-AboutIcon {
 }
 
 $aboutHost = New-Object System.Windows.Forms.Panel
-$aboutHost.SetBounds(0, 0, 990, 664); $aboutHost.BackColor = $cBg
+$aboutHost.SetBounds(0, 0, 990, 664); $aboutHost.BackColor = $cClear
 Enable-DoubleBuffer $aboutHost
 $pageAbout.Controls.Add($aboutHost)
 $lblA.BringToFront()
@@ -1641,7 +1721,7 @@ $aboutHost.Add_Paint({
         $g.DrawPath($hpn, $hp); $hpn.Dispose(); $hp.Dispose()
         $xw = (Measure-W 'XEOKA' $fontHero)
         Draw-Text $g 'XEOKA' $fontHero $cText ($h.X + 30) ($h.Y + 14) 260 46 $tfL
-        Draw-Text $g 'PACK' $fontHero (Mix-Color $cAccent2 $cMagenta 0.5) ($h.X + 30 + $xw + 12) ($h.Y + 14) 220 46 $tfL
+        Draw-Text $g 'PACK' $fontHero (Mix-Color $cAccent2 $cMagenta 0.5) ($h.X + 30 + $xw - 4) ($h.Y + 14) 220 46 $tfL
         Draw-Text $g ('Оптимизация Windows одной кнопкой   -   версия ' + $script:Version) $fontDesc $cDim ($h.X + 32) ($h.Y + 62) ($h.Width - 64) 22 $tfL
         $cx = $h.X + 32
         foreach ($chip in @('Точка восстановления', 'Откат изменений', 'Автопоиск пака')) { $cwid = Draw-Chip $g $chip $cx ($h.Y + 90); $cx += $cwid + 10 }
@@ -1679,11 +1759,11 @@ $aboutHost.Add_Paint({
 })
 $btnTg = New-Pill 'Открыть Telegram' 'primary' { Open-Url $script:TgUrl } $fontBtn
 $btnTg.SetBounds(700, 70, 230, 58)
-$pageAbout.Controls.Add($btnTg); $btnTg.BringToFront()
+$aboutHost.Controls.Add($btnTg)
 $btnLogs = New-Pill 'Открыть журнал' 'ghost' { if (Test-Path $script:DataDir) { Start-Process explorer.exe -ArgumentList ('"' + $script:DataDir + '"') } } $fontSmall
-$pageAbout.Controls.Add($btnLogs); $btnLogs.BringToFront()
+$aboutHost.Controls.Add($btnLogs)
 $btnPackFolder = New-Pill 'Открыть папку пака' 'ghost' { Start-Process explorer.exe -ArgumentList ('"' + $script:Root + '"') } $fontSmall
-$pageAbout.Controls.Add($btnPackFolder); $btnPackFolder.BringToFront()
+$aboutHost.Controls.Add($btnPackFolder)
 
 # ---------------------------------------------------------------- адаптивная раскладка
 function Update-Layout {
@@ -1729,6 +1809,7 @@ function Update-Layout {
 $form.Add_Resize({ Update-Layout })
 
 # ---------------------------------------------------------------- анимации (по времени, ~60 кадров/с)
+$script:BgTick = 0
 $script:Sw = [System.Diagnostics.Stopwatch]::StartNew()
 $script:LastMs = 0
 $animTimer = New-Object System.Windows.Forms.Timer
@@ -1813,6 +1894,12 @@ $animTimer.Add_Tick({
             if ($chT) { $toolsHost.Invalidate() }
         }
         if ($pageAbout.Visible) { $aboutHost.Invalidate((New-Object System.Drawing.Rectangle(0, 0, 200, 200))); if ($script:AboutL) { $aboutHost.Invalidate([System.Drawing.Rectangle]::Round($script:AboutL.Banner)) } }
+
+        # переливание фона (медленно, ~12 кадров/с)
+        $script:BgTick++
+        if (($script:BgTick % 5) -eq 0) {
+            foreach ($pg in @($pageOpt, $pageTools, $pageAbout)) { if ($pg.Visible) { $pg.Invalidate($true) } }
+        }
 
         # кнопки-пилюли
         foreach ($pl in $script:Pills) {
