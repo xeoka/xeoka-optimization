@@ -19,7 +19,7 @@ trap {
     exit 1
 }
 
-$script:Version  = '2.5'
+$script:Version  = '2.6'
 $script:TgUrl    = 'https://t.me/CMEPT0HOCHbIU'
 $script:TgLabel  = 't.me/CMEPT0HOCHbIU'
 $script:Root     = if ($PSScriptRoot) { $PSScriptRoot } else { Split-Path -Parent $MyInvocation.MyCommand.Path }
@@ -751,7 +751,7 @@ $script:BgDx = 0.0; $script:BgDy = 0.0
 function Build-Bg {
     $M = $script:BgM
     $W = [Math]::Max(200, $form.ClientSize.Width) + 2 * $M; $H = [Math]::Max(200, $form.ClientSize.Height) + 2 * $M
-    $bmp = New-Object System.Drawing.Bitmap($W, $H)
+    $bmp = New-Object System.Drawing.Bitmap($W, $H, [System.Drawing.Imaging.PixelFormat]::Format32bppPArgb)
     $g = [System.Drawing.Graphics]::FromImage($bmp)
     $g.SmoothingMode = 'AntiAlias'
     $g.Clear((C '#030208'))
@@ -780,7 +780,7 @@ function Build-Streak {
     $H = [Math]::Max(200, $form.ClientSize.Height) + 200
     $sh = 0.445
     $W = [int]($H * $sh) + 560
-    $bmp = New-Object System.Drawing.Bitmap($W, $H)
+    $bmp = New-Object System.Drawing.Bitmap($W, $H, [System.Drawing.Imaging.PixelFormat]::Format32bppPArgb)
     $g = [System.Drawing.Graphics]::FromImage($bmp)
     $g.SmoothingMode = 'AntiAlias'
     $rect = New-Object System.Drawing.RectangleF(0, 0, 520, [single]$H)
@@ -796,20 +796,38 @@ function Build-Streak {
     if ($script:StreakBmp) { $script:StreakBmp.Dispose() }
     $script:StreakBmp = $bmp
 }
+$script:BgMs = 0.0; $script:BgN = 0
+$script:BgSw = [System.Diagnostics.Stopwatch]::new()
+function Draw-Part {
+    param($G, $Bmp, [int]$ImgX, [int]$ImgY, [int]$CX, [int]$CY, [int]$CW, [int]$CH)
+    # рисуем только видимую часть картинки (без масштабирования)
+    $x0 = [Math]::Max($CX, $ImgX); $y0 = [Math]::Max($CY, $ImgY)
+    $x1 = [Math]::Min($CX + $CW, $ImgX + $Bmp.Width); $y1 = [Math]::Min($CY + $CH, $ImgY + $Bmp.Height)
+    if ($x1 -le $x0 -or $y1 -le $y0) { return }
+    $G.DrawImage($Bmp, (New-Object System.Drawing.Rectangle($x0, $y0, ($x1 - $x0), ($y1 - $y0))), ($x0 - $ImgX), ($y0 - $ImgY), ($x1 - $x0), ($y1 - $y0), [System.Drawing.GraphicsUnit]::Pixel)
+}
 function Paint-Bg {
     param($G, $Ctrl)
     try {
+        $script:BgSw.Restart()
         $M = $script:BgM
         if (-not $script:BgBmp -or $script:BgBmp.Width -ne ([Math]::Max(200, $form.ClientSize.Width) + 2 * $M) -or $script:BgBmp.Height -ne ([Math]::Max(200, $form.ClientSize.Height) + 2 * $M)) { Build-Bg }
         $o = $Ctrl.PointToScreen([System.Drawing.Point]::Empty)
         $f = $form.PointToScreen([System.Drawing.Point]::Empty)
         $ox = $f.X - $o.X; $oy = $f.Y - $o.Y
-        $G.DrawImageUnscaled($script:BgBmp, [int]($ox - $M + $script:BgDx), [int]($oy - $M + $script:BgDy))
-        # бегущий блик (готовая текстура)
-        if (-not $script:StreakBmp -or $script:StreakBmp.Height -ne ([Math]::Max(200, $form.ClientSize.Height) + 200)) { Build-Streak }
-        $span = [double]$form.ClientSize.Width + 1400
-        $sx = (($script:Sec * 55) % $span) - 900
-        $G.DrawImageUnscaled($script:StreakBmp, [int]($ox + $sx), [int]($oy - 100))
+        $cb = $G.ClipBounds
+        $cx = [int][Math]::Floor($cb.X); $cy = [int][Math]::Floor($cb.Y)
+        $cw = [int][Math]::Ceiling($cb.Right) - $cx; $ch = [int][Math]::Ceiling($cb.Bottom) - $cy
+        if ($cw -gt 0 -and $ch -gt 0 -and $cw -lt 20000 -and $ch -lt 20000) {
+            $G.CompositingMode = [System.Drawing.Drawing2D.CompositingMode]::SourceCopy
+            Draw-Part $G $script:BgBmp ([int]($ox - $M + $script:BgDx)) ([int]($oy - $M + $script:BgDy)) $cx $cy $cw $ch
+            $G.CompositingMode = [System.Drawing.Drawing2D.CompositingMode]::SourceOver
+            if (-not $script:StreakBmp -or $script:StreakBmp.Height -ne ([Math]::Max(200, $form.ClientSize.Height) + 200)) { Build-Streak }
+            $span = [double]$form.ClientSize.Width + 1400
+            $sx = (($script:Sec * 55) % $span) - 900
+            Draw-Part $G $script:StreakBmp ([int]($ox + $sx)) ([int]($oy - 100)) $cx $cy $cw $ch
+        }
+        $script:BgMs += $script:BgSw.Elapsed.TotalMilliseconds; $script:BgN++
     } catch { $script:PaintErr = $_.Exception.Message }
 }
 
@@ -1978,8 +1996,8 @@ $animTimer.Add_Tick({
 
         $script:PerfN++; $script:PerfSum += ($script:Sw.ElapsedMilliseconds - $tickT0)
         if (($now - $script:PerfT) -ge 5000) {
-            try { Add-Content -Path (Join-Path $script:DataDir 'perf.txt') -Value ((Get-Date -Format 'HH:mm:ss') + ' ticks/5s=' + $script:PerfN + ' avgTickMs=' + [Math]::Round($script:PerfSum / [Math]::Max(1, $script:PerfN), 2) + ' paintErr=' + $script:PaintErr) } catch { }
-            $script:PerfN = 0; $script:PerfSum = 0; $script:PerfT = $now
+            try { Add-Content -Path (Join-Path $script:DataDir 'perf.txt') -Value ((Get-Date -Format 'HH:mm:ss') + ' ticks/5s=' + $script:PerfN + ' avgTickMs=' + [Math]::Round($script:PerfSum / [Math]::Max(1, $script:PerfN), 2) + ' bgPaints=' + $script:BgN + ' bgAvgMs=' + [Math]::Round($script:BgMs / [Math]::Max(1, $script:BgN), 2) + ' paintErr=' + $script:PaintErr) } catch { }
+            $script:PerfN = 0; $script:PerfSum = 0; $script:PerfT = $now; $script:BgN = 0; $script:BgMs = 0.0
         }
         if ($script:PaintErr -and $script:PaintErr -ne $script:PaintErrShown) {
             $script:PaintErrShown = $script:PaintErr
