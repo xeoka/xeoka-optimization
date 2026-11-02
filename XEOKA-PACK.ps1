@@ -19,7 +19,7 @@ trap {
     exit 1
 }
 
-$script:Version  = '2.6'
+$script:Version  = '2.7'
 $script:TgUrl    = 'https://t.me/CMEPT0HOCHbIU'
 $script:TgLabel  = 't.me/CMEPT0HOCHbIU'
 $script:Root     = if ($PSScriptRoot) { $PSScriptRoot } else { Split-Path -Parent $MyInvocation.MyCommand.Path }
@@ -1275,8 +1275,8 @@ function Paint-Toggle {
 }
 
 function Paint-Row {
-    param($G, $It, [double]$Y)
-    $x = $It.X; $w = $It.W; $h = $It.H; $k = $It.K; $t = $It.T
+    param($G, $It, [double]$X, [double]$Y)
+    $x = $X; $w = $It.W; $h = $It.H; $k = $It.K; $t = $It.T
     $fill = Mix-Color $cPanel $cRowHover $t
     $line = Mix-Color (Mix-Color $cLine $cAccent ($k * 0.8)) $cAccent2 ($t * 0.55)
     Draw-Round $G $fill $line 1.2 ($x + 0.5) ($Y + 0.5) ($w - 1) ($h - 1) 14
@@ -1284,6 +1284,32 @@ function Paint-Row {
     Paint-Toggle $G ($x + 22) ($Y + ($h - 26) / 2) $k
     Draw-Text $G $It.Tw.Title $fontRow $cText ($x + 90) ($Y + 11) ($w - 90 - 18) 24 $tfL
     Draw-Text $G $It.Tw.Desc $fontDesc (Mix-Color $cDim $cText ($t * 0.25)) ($x + 90) ($Y + 38) ($w - 90 - 18) ($h - 38 - 8) $tfLT
+}
+
+function Draw-BgAt {
+    param($G2, [int]$FormX, [int]$FormY, [int]$W, [int]$H)
+    $M = $script:BgM
+    if (-not $script:BgBmp) { Build-Bg }
+    $G2.CompositingMode = [System.Drawing.Drawing2D.CompositingMode]::SourceCopy
+    Draw-Part $G2 $script:BgBmp ([int](-$FormX - $M + $script:BgDx)) ([int](-$FormY - $M + $script:BgDy)) 0 0 $W $H
+    $G2.CompositingMode = [System.Drawing.Drawing2D.CompositingMode]::SourceOver
+}
+# готовая картинка карточки: при прокрутке просто выводится, пересобирается только при смене состояния
+function Get-RowBmp {
+    param($It, [double]$Y)
+    $w = [int]$It.W; $h = [int]$It.H
+    if ($It.Bmp -and $It.BW -eq $w -and $It.BH -eq $h -and [Math]::Abs($It.BK - $It.K) -lt 0.004 -and [Math]::Abs($It.BT - $It.T) -lt 0.004) { return $It.Bmp }
+    if ($It.Bmp) { $It.Bmp.Dispose() }
+    $bmp = New-Object System.Drawing.Bitmap($w, $h, [System.Drawing.Imaging.PixelFormat]::Format32bppPArgb)
+    $g2 = [System.Drawing.Graphics]::FromImage($bmp)
+    $o = $listHost.PointToScreen([System.Drawing.Point]::Empty)
+    $f = $form.PointToScreen([System.Drawing.Point]::Empty)
+    Draw-BgAt $g2 ([int]($o.X - $f.X + $It.X)) ([int]($o.Y - $f.Y + $Y)) $w $h
+    $g2.SmoothingMode = 'AntiAlias'
+    Paint-Row $g2 $It 0.0 0.0
+    $g2.Dispose()
+    $It.Bmp = $bmp; $It.BW = $w; $It.BH = $h; $It.BK = $It.K; $It.BT = $It.T
+    return $bmp
 }
 
 $listHost.Add_Paint({
@@ -1299,7 +1325,10 @@ $listHost.Add_Paint({
                 $tw = Measure-W $it.Text $fontGroup
                 $pen = New-Object System.Drawing.Pen($cLine, [single]1)
                 $g.DrawLine($pen, [single]($it.X + $tw + 20), [single]($y + $it.H / 2), [single]($it.X + $it.W), [single]($y + $it.H / 2)); $pen.Dispose()
-            } else { Paint-Row $g $it $y }
+            } else {
+                $bm = Get-RowBmp $it $y
+                $g.DrawImage($bm, (New-Object System.Drawing.Rectangle([int]$it.X, [int]$y, $bm.Width, $bm.Height)), 0, 0, $bm.Width, $bm.Height, [System.Drawing.GraphicsUnit]::Pixel)
+            }
         }
         if ($script:ScrollMax -gt 1) {
             $trackH = $vh - 8.0
