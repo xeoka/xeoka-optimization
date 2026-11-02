@@ -19,7 +19,7 @@ trap {
     exit 1
 }
 
-$script:Version  = '2.4'
+$script:Version  = '2.5'
 $script:TgUrl    = 'https://t.me/CMEPT0HOCHbIU'
 $script:TgLabel  = 't.me/CMEPT0HOCHbIU'
 $script:Root     = if ($PSScriptRoot) { $PSScriptRoot } else { Split-Path -Parent $MyInvocation.MyCommand.Path }
@@ -775,6 +775,27 @@ function Build-Bg {
     if ($script:BgBmp) { $script:BgBmp.Dispose() }
     $script:BgBmp = $bmp
 }
+$script:StreakBmp = $null
+function Build-Streak {
+    $H = [Math]::Max(200, $form.ClientSize.Height) + 200
+    $sh = 0.445
+    $W = [int]($H * $sh) + 560
+    $bmp = New-Object System.Drawing.Bitmap($W, $H)
+    $g = [System.Drawing.Graphics]::FromImage($bmp)
+    $g.SmoothingMode = 'AntiAlias'
+    $rect = New-Object System.Drawing.RectangleF(0, 0, 520, [single]$H)
+    $br = New-Object System.Drawing.Drawing2D.LinearGradientBrush($rect, [System.Drawing.Color]::Black, [System.Drawing.Color]::Black, [single]0)
+    $cb = New-Object System.Drawing.Drawing2D.ColorBlend(3)
+    $cb.Colors = [System.Drawing.Color[]]@([System.Drawing.Color]::FromArgb(0, 167, 139, 250), [System.Drawing.Color]::FromArgb(34, 167, 139, 250), [System.Drawing.Color]::FromArgb(0, 167, 139, 250))
+    $cb.Positions = [single[]]@(0, 0.5, 1)
+    $br.InterpolationColors = $cb
+    $mx = New-Object System.Drawing.Drawing2D.Matrix(1, 0, -$sh, 1, [single]($H * $sh), 0)
+    $g.Transform = $mx
+    $g.FillRectangle($br, $rect)
+    $g.Dispose(); $br.Dispose()
+    if ($script:StreakBmp) { $script:StreakBmp.Dispose() }
+    $script:StreakBmp = $bmp
+}
 function Paint-Bg {
     param($G, $Ctrl)
     try {
@@ -784,23 +805,11 @@ function Paint-Bg {
         $f = $form.PointToScreen([System.Drawing.Point]::Empty)
         $ox = $f.X - $o.X; $oy = $f.Y - $o.Y
         $G.DrawImageUnscaled($script:BgBmp, [int]($ox - $M + $script:BgDx), [int]($oy - $M + $script:BgDy))
-        # бегущий блик
-        $fw = [double]$form.ClientSize.Width
-        $span = $fw + 1400
-        $sx = (($script:Sec * 55) % $span) - 700
-        $rect = New-Object System.Drawing.RectangleF(0, 0, 520, 10)
-        $br = New-Object System.Drawing.Drawing2D.LinearGradientBrush($rect, [System.Drawing.Color]::Black, [System.Drawing.Color]::Black, [single]0)
-        $cb = New-Object System.Drawing.Drawing2D.ColorBlend(3)
-        $cb.Colors = [System.Drawing.Color[]]@([System.Drawing.Color]::FromArgb(0, 167, 139, 250), [System.Drawing.Color]::FromArgb(30, 167, 139, 250), [System.Drawing.Color]::FromArgb(0, 167, 139, 250))
-        $cb.Positions = [single[]]@(0, 0.5, 1)
-        $br.InterpolationColors = $cb
-        $br.WrapMode = 'Clamp'
-        $br.RotateTransform(24)
-        $br.TranslateTransform([single]$sx, [single]-200, 'Append')
-        $G.TranslateTransform([single]$ox, [single]$oy)
-        $G.FillRectangle($br, $G.ClipBounds)
-        $G.ResetTransform()
-        $br.Dispose()
+        # бегущий блик (готовая текстура)
+        if (-not $script:StreakBmp -or $script:StreakBmp.Height -ne ([Math]::Max(200, $form.ClientSize.Height) + 200)) { Build-Streak }
+        $span = [double]$form.ClientSize.Width + 1400
+        $sx = (($script:Sec * 55) % $span) - 900
+        $G.DrawImageUnscaled($script:StreakBmp, [int]($ox + $sx), [int]($oy - 100))
     } catch { $script:PaintErr = $_.Exception.Message }
 }
 
@@ -1821,7 +1830,7 @@ function Update-Layout {
 $form.Add_Resize({ Update-Layout })
 
 # ---------------------------------------------------------------- анимации (по времени, ~60 кадров/с)
-$script:BgTick = 0; $script:ScrollMoving = $false
+$script:PerfN = 0; $script:PerfSum = 0; $script:PerfT = 0; $script:PaintErrShown = $null; $script:BgTick = 0; $script:ScrollMoving = $false
 $script:Sw = [System.Diagnostics.Stopwatch]::StartNew()
 $script:LastMs = 0
 $animTimer = New-Object System.Windows.Forms.Timer
@@ -1863,7 +1872,6 @@ function Invoke-Shimmer {
         foreach ($cd in $L.Cards) { [void]$rects.Add([System.Drawing.Rectangle]::Round($cd.R)) }
         $rg = Get-GapRegion $aboutHost $rects; $aboutHost.Invalidate($rg); $rg.Dispose()
     }
-    foreach ($pl in $script:Pills) { if ($pl.Visible -and -not $pl.Tag.Trans) { $pl.Invalidate() } }
 }
 $animTimer.Add_Tick({
     try {
@@ -1873,6 +1881,7 @@ $animTimer.Add_Tick({
         if ($dt -gt 0.1) { $dt = 0.1 }
         $script:Sec = $now / 1000.0
         $sec = $script:Sec
+        $tickT0 = $now
         $script:BgTick++
         $half = (($script:BgTick % 2) -eq 0)
         $third = (($script:BgTick % 3) -eq 0)
@@ -1958,7 +1967,7 @@ $animTimer.Add_Tick({
         }
 
         # переливание фона
-        if ($half) { Invoke-Shimmer }
+        if ($third) { Invoke-Shimmer }
 
         # кнопки-пилюли
         foreach ($pl in $script:Pills) {
@@ -1967,6 +1976,15 @@ $animTimer.Add_Tick({
             if ($n -ne $st.T) { $st.T = $n; $pl.Invalidate() }
         }
 
+        $script:PerfN++; $script:PerfSum += ($script:Sw.ElapsedMilliseconds - $tickT0)
+        if (($now - $script:PerfT) -ge 5000) {
+            try { Add-Content -Path (Join-Path $script:DataDir 'perf.txt') -Value ((Get-Date -Format 'HH:mm:ss') + ' ticks/5s=' + $script:PerfN + ' avgTickMs=' + [Math]::Round($script:PerfSum / [Math]::Max(1, $script:PerfN), 2) + ' paintErr=' + $script:PaintErr) } catch { }
+            $script:PerfN = 0; $script:PerfSum = 0; $script:PerfT = $now
+        }
+        if ($script:PaintErr -and $script:PaintErr -ne $script:PaintErrShown) {
+            $script:PaintErrShown = $script:PaintErr
+            try { Add-Content -Path (Join-Path $script:DataDir 'paint-error.txt') -Value ((Get-Date -Format 'HH:mm:ss') + ' ' + $script:PaintErr) } catch { }
+        }
         if ($script:Slide) {
             $dx = $script:Slide.Left - 190
             if ($dx -le 1) { $script:Slide.Left = 190; $script:Slide = $null }
