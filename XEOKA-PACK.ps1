@@ -19,7 +19,7 @@ trap {
     exit 1
 }
 
-$script:Version  = '2.0'
+$script:Version  = '2.1'
 $script:TgUrl    = 'https://t.me/CMEPT0HOCHbIU'
 $script:TgLabel  = 't.me/CMEPT0HOCHbIU'
 $script:Root     = if ($PSScriptRoot) { $PSScriptRoot } else { Split-Path -Parent $MyInvocation.MyCommand.Path }
@@ -494,7 +494,7 @@ function Invoke-Tweak-DevicePower {
 
 $script:Tweaks = @(
     @{ Id = 'power';   Group = 'rec'; Default = $true;  Title = 'План питания XEOKA';
-       Desc = 'Импортирует и включает схему питания xeoka.pow (если файл повреждён, создаётся встроенная схема XEOKA Performance). Прежняя схема запоминается для отката.';
+       Desc = 'Включает схему питания XEOKA Performance. Прежняя схема запоминается для отката.';
        Run = { Invoke-Tweak-Power } },
     @{ Id = 'prio';    Group = 'rec'; Default = $true;  Title = 'Приоритет процессов (Win32PrioritySeparation = 0x18)';
        Desc = 'Больше процессорного времени активному окну (игре).';
@@ -568,27 +568,54 @@ $cHeadA    = C '#26124D'
 $cHeadB    = C '#080511'
 $cNavA     = C '#160B2D'
 $cNavB     = C '#07040E'
-$cTgBlue   = C '#2AABEE'
+$cTgA      = C '#46C3FF'
+$cTgB      = C '#1E8FD8'
+$cPill1    = C '#38197F'
+$cPill2    = C '#1A0D3A'
+$cAmberA   = C '#FFC15A'
+$cAmberB   = C '#F2711C'
 $cOk       = C '#3DDC97'
 $cWarn     = C '#FFB547'
 $cErr      = C '#FF5C6C'
+$cWhite    = [System.Drawing.Color]::White
 $cClear    = [System.Drawing.Color]::Transparent
 
 $fontUi    = New-Object System.Drawing.Font('Segoe UI', 10)
 $fontBold  = New-Object System.Drawing.Font('Segoe UI Semibold', 10.5)
 $fontSmall = New-Object System.Drawing.Font('Segoe UI', 9)
+$fontTiny  = New-Object System.Drawing.Font('Segoe UI', 8)
+$fontRow   = New-Object System.Drawing.Font('Segoe UI Semibold', 11)
+$fontDesc  = New-Object System.Drawing.Font('Segoe UI', 9.5)
+$fontGroup = New-Object System.Drawing.Font('Segoe UI Semibold', 8.5)
 $fontTitle = New-Object System.Drawing.Font('Segoe UI Black', 24)
 $fontBtn   = New-Object System.Drawing.Font('Segoe UI Semibold', 13)
 $fontMono  = New-Object System.Drawing.Font('Consolas', 9.5)
 $fontH1    = New-Object System.Drawing.Font('Segoe UI Semibold', 15)
+$fontHero  = New-Object System.Drawing.Font('Segoe UI Black', 28)
+$fontBig   = New-Object System.Drawing.Font('Segoe UI Semibold', 16)
+$fontGlyph = New-Object System.Drawing.Font('Segoe UI Black', 9)
 
+$tfL    = [System.Windows.Forms.TextFormatFlags]'Left, VerticalCenter, SingleLine, EndEllipsis, NoPrefix, NoPadding'
+$tfLT   = [System.Windows.Forms.TextFormatFlags]'Left, Top, WordBreak, EndEllipsis, NoPrefix, NoPadding'
+$tfWrap = [System.Windows.Forms.TextFormatFlags]'Left, Top, WordBreak, NoPrefix, NoPadding'
+$tfC    = [System.Windows.Forms.TextFormatFlags]'HorizontalCenter, VerticalCenter, SingleLine, NoPrefix, NoPadding'
+$tfMeas = [System.Windows.Forms.TextFormatFlags]'Left, Top, SingleLine, NoPrefix, NoPadding'
+
+$script:Sec = 0.0
+$script:PaintErr = $null
+
+# ---------------------------------------------------------------- рисование: помощники
 function Mix-Color {
     param($A, $B, [double]$K)
     if ($K -lt 0) { $K = 0 } elseif ($K -gt 1) { $K = 1 }
     $r = [int]($A.R + ($B.R - $A.R) * $K); $g = [int]($A.G + ($B.G - $A.G) * $K); $bl = [int]($A.B + ($B.B - $A.B) * $K)
     return [System.Drawing.Color]::FromArgb($r, $g, $bl)
 }
-
+function Alpha-Color {
+    param($Col, [double]$A)
+    $a = [int][Math]::Max(0, [Math]::Min(255, $A))
+    return [System.Drawing.Color]::FromArgb($a, $Col.R, $Col.G, $Col.B)
+}
 function Enable-DoubleBuffer {
     param($Ctrl)
     try {
@@ -596,50 +623,113 @@ function Enable-DoubleBuffer {
         $p.SetValue($Ctrl, $true, $null)
     } catch { }
 }
-
-function Set-Round {
-    param($Ctrl, [int]$R)
-    $w = $Ctrl.Width; $h = $Ctrl.Height
-    if ($w -le 2 -or $h -le 2) { return }
+function New-RoundPath {
+    param([single]$X, [single]$Y, [single]$W, [single]$H, [single]$R)
     $gp = New-Object System.Drawing.Drawing2D.GraphicsPath
-    $d = $R * 2
-    $gp.AddArc(0, 0, $d, $d, 180, 90)
-    $gp.AddArc(($w - $d), 0, $d, $d, 270, 90)
-    $gp.AddArc(($w - $d), ($h - $d), $d, $d, 0, 90)
-    $gp.AddArc(0, ($h - $d), $d, $d, 90, 90)
+    $d = [single]([Math]::Min($R * 2, [Math]::Min($W, $H)))
+    if ($d -le 0.5) {
+        $gp.AddRectangle((New-Object System.Drawing.RectangleF($X, $Y, $W, $H)))
+        return $gp
+    }
+    $gp.AddArc($X, $Y, $d, $d, 180, 90)
+    $gp.AddArc(($X + $W - $d), $Y, $d, $d, 270, 90)
+    $gp.AddArc(($X + $W - $d), ($Y + $H - $d), $d, $d, 0, 90)
+    $gp.AddArc($X, ($Y + $H - $d), $d, $d, 90, 90)
     $gp.CloseFigure()
-    $Ctrl.Region = New-Object System.Drawing.Region($gp)
-    $gp.Dispose()
+    return $gp
 }
-
-function Set-RoundAuto {
-    param($Ctrl, [int]$R)
-    Set-Round $Ctrl $R
-    $Ctrl.Add_Resize({ param($s, $e) Set-Round $s $R }.GetNewClosure())
+function Draw-Round {
+    param($G, $Fill, $Line, [double]$LineW, [double]$X, [double]$Y, [double]$W, [double]$H, [double]$R)
+    if ($W -lt 1 -or $H -lt 1) { return }
+    $p = New-RoundPath $X $Y $W $H $R
+    if ($null -ne $Fill) { $b = New-Object System.Drawing.SolidBrush($Fill); $G.FillPath($b, $p); $b.Dispose() }
+    if ($null -ne $Line) { $pn = New-Object System.Drawing.Pen($Line, [single]$LineW); $G.DrawPath($pn, $p); $pn.Dispose() }
+    $p.Dispose()
 }
-
-function New-Button {
-    param([string]$Text, [int]$X, [int]$Y, [int]$W, [int]$H, $Back, $Hover, $Font)
-    $b = New-Object System.Windows.Forms.Button
-    $b.Text = $Text; $b.Left = $X; $b.Top = $Y; $b.Width = $W; $b.Height = $H
-    $b.FlatStyle = 'Flat'; $b.FlatAppearance.BorderSize = 0
-    $b.BackColor = $Back; $b.ForeColor = $cText
-    $b.FlatAppearance.MouseOverBackColor = $Hover
-    $b.FlatAppearance.MouseDownBackColor = $Back
-    $b.Font = $Font; $b.Cursor = [System.Windows.Forms.Cursors]::Hand
-    $b.UseVisualStyleBackColor = $false
-    Set-RoundAuto $b 10
-    return $b
+function Fill-RoundGrad {
+    param($G, $C1, $C2, [double]$X, [double]$Y, [double]$W, [double]$H, [double]$R, [double]$Angle)
+    if ($W -lt 2 -or $H -lt 2) { return }
+    $rect = New-Object System.Drawing.RectangleF([single]$X, [single]$Y, [single]$W, [single]$H)
+    $p = New-RoundPath $X $Y $W $H $R
+    $b = New-Object System.Drawing.Drawing2D.LinearGradientBrush($rect, $C1, $C2, [single]$Angle)
+    $G.FillPath($b, $p); $b.Dispose(); $p.Dispose()
 }
-
+function Draw-Text {
+    param($G, [string]$T, $Font, $Color, [double]$X, [double]$Y, [double]$W, [double]$H, $Flags)
+    if ($W -lt 2 -or $H -lt 2) { return }
+    $r = New-Object System.Drawing.Rectangle([int]$X, [int]$Y, [int]$W, [int]$H)
+    [System.Windows.Forms.TextRenderer]::DrawText($G, $T, $Font, $r, $Color, $Flags)
+}
+function Measure-W {
+    param([string]$T, $Font)
+    return [System.Windows.Forms.TextRenderer]::MeasureText($T, $Font, (New-Object System.Drawing.Size(2000, 100)), $tfMeas).Width
+}
+function Ease-To {
+    param([double]$Cur, [double]$Tgt, [double]$K)
+    $d = $Tgt - $Cur
+    if ([Math]::Abs($d) -lt 0.004) { return $Tgt }
+    return $Cur + $d * $K
+}
 function Open-Url {
     param([string]$Url)
     try { Start-Process $Url } catch { [System.Windows.Forms.MessageBox]::Show("Не удалось открыть ссылку: $Url") | Out-Null }
 }
 
+# бумажный самолётик Telegram (координаты в системе 448x512)
+$script:PlaneBody = @( @(16,252), @(432,70), @(370,420), @(265,342), @(200,395), @(207,290), @(117,284) )
+$script:PlaneFlap = @( @(200,395), @(207,290), @(265,342) )
+function Get-PlanePoints {
+    param($Pts, [double]$Cx, [double]$Cy, [double]$K)
+    $out = New-Object 'System.Collections.Generic.List[System.Drawing.PointF]'
+    foreach ($pt in $Pts) {
+        $out.Add((New-Object System.Drawing.PointF([single]($Cx + ($pt[0] - 231) * $K), [single]($Cy + ($pt[1] - 243) * $K))))
+    }
+    return ,$out.ToArray()
+}
+function Draw-TgBadge {
+    param($G, [double]$Cx, [double]$Cy, [double]$D)
+    $brect = New-Object System.Drawing.RectangleF([single]($Cx - $D / 2), [single]($Cy - $D / 2), [single]$D, [single]$D)
+    $gb = New-Object System.Drawing.Drawing2D.LinearGradientBrush($brect, $cTgA, $cTgB, [single]55)
+    $G.FillEllipse($gb, $brect); $gb.Dispose()
+    $rp = New-Object System.Drawing.Pen((Alpha-Color $cWhite 80), [single]1)
+    $G.DrawEllipse($rp, $brect); $rp.Dispose()
+    $k = ($D * 0.52) / 430.0
+    $pts = Get-PlanePoints $script:PlaneBody ($Cx - 0.8) ($Cy + 0.4) $k
+    $G.FillPolygon([System.Drawing.Brushes]::White, [System.Drawing.PointF[]]$pts)
+    $fl = Get-PlanePoints $script:PlaneFlap ($Cx - 0.8) ($Cy + 0.4) $k
+    $fb = New-Object System.Drawing.SolidBrush((Mix-Color $cWhite $cTgA 0.38))
+    $G.FillPolygon($fb, [System.Drawing.PointF[]]$fl); $fb.Dispose()
+}
+
+# ---------------------------------------------------------------- колесо мыши (необязательно)
+$script:WheelFilter = $null
+try {
+    Add-Type -ReferencedAssemblies System.Windows.Forms, System.Drawing -TypeDefinition @'
+using System;
+using System.Drawing;
+using System.Windows.Forms;
+public class XeokaWheelFilter : IMessageFilter {
+    public Control Host1;
+    public Action<int> On1;
+    public bool PreFilterMessage(ref Message m) {
+        if (m.Msg != 0x020A) return false;
+        int delta = (short)(((long)m.WParam >> 16) & 0xFFFF);
+        Point p = Cursor.Position;
+        Control c = Host1;
+        if (c == null || c.IsDisposed || !c.IsHandleCreated || !c.Visible) return false;
+        if (!c.RectangleToScreen(c.ClientRectangle).Contains(p)) return false;
+        if (On1 != null) On1(delta);
+        return true;
+    }
+}
+'@
+    $script:WheelFilter = New-Object XeokaWheelFilter
+} catch { $script:WheelFilter = $null }
+
+# ---------------------------------------------------------------- окно
 $form = New-Object System.Windows.Forms.Form
 $form.Text = 'XEOKA PACK'
-$form.ClientSize = New-Object System.Drawing.Size(1120, 720)
+$form.ClientSize = New-Object System.Drawing.Size(1180, 760)
 $form.MinimumSize = New-Object System.Drawing.Size(980, 640)
 $form.StartPosition = 'Manual'
 $form.FormBorderStyle = 'None'
@@ -651,23 +741,29 @@ $form.KeyPreview = $true
 Enable-DoubleBuffer $form
 
 $script:LayoutReady = $false
-$script:IsFull = $true
-function Set-FullScreen {
-    param([bool]$On)
-    $script:IsFull = $On
+$script:Mode = 'max'
+function Set-Mode {
+    param([string]$M)
     $scr = [System.Windows.Forms.Screen]::FromPoint([System.Windows.Forms.Cursor]::Position)
-    if ($On) {
+    $script:Mode = $M
+    if ($M -eq 'max') {
+        $form.TopMost = $false
+        $form.Bounds = $scr.WorkingArea
+    } elseif ($M -eq 'full') {
         $form.Bounds = $scr.Bounds
+        $form.TopMost = $true
     } else {
+        $form.TopMost = $false
         $wa = $scr.WorkingArea
-        $w = [Math]::Min(1180, $wa.Width - 60); $h = [Math]::Min(760, $wa.Height - 60)
+        $w = [Math]::Min(1240, $wa.Width - 80); $h = [Math]::Min(800, $wa.Height - 80)
         $form.Bounds = New-Object System.Drawing.Rectangle(($wa.X + [int](($wa.Width - $w) / 2)), ($wa.Y + [int](($wa.Height - $h) / 2)), $w, $h)
     }
+    $header.Invalidate()
 }
 
-# ---- шапка
+# ---------------------------------------------------------------- шапка
 $header = New-Object System.Windows.Forms.Panel
-$header.SetBounds(0, 0, 1120, 96); $header.BackColor = $cHeadB
+$header.SetBounds(0, 0, 1180, 96); $header.BackColor = $cHeadB
 Enable-DoubleBuffer $header
 $form.Controls.Add($header)
 
@@ -686,268 +782,509 @@ $lblSub.Font = $fontSmall; $lblSub.ForeColor = $cDim; $lblSub.AutoSize = $true; 
 $lblSub.Location = New-Object System.Drawing.Point(32, 62)
 $header.Controls.Add($lblSub)
 
-# градиент шапки + кнопка Telegram (рисуется прямо в шапке)
+# кнопки окна (рисуются в шапке)
+$script:WinBtn = @( @{ T = 0.0; Target = 0 }, @{ T = 0.0; Target = 0 }, @{ T = 0.0; Target = 0 } )
+function Get-WinBtnRect {
+    param([int]$I)
+    return New-Object System.Drawing.Rectangle(($header.Width - 46 * (3 - $I)), 0, 46, 38)
+}
+
+# значок Telegram: кружок со свечением, при наведении раскрывается в капсулу
 $script:TgP = 0.0; $script:TgTarget = 0
-$script:TgTextW = [System.Windows.Forms.TextRenderer]::MeasureText($script:TgLabel, $fontBold).Width
+$script:TgL1 = 'Автор в Telegram'
+$script:TgL2 = $script:TgLabel
+$script:TgTextW = [Math]::Max((Measure-W $script:TgL1 $fontTiny), (Measure-W $script:TgL2 $fontBold))
 function Get-TgRect {
-    $ep = $script:TgP * $script:TgP * (3 - 2 * $script:TgP)
-    $w = 44 + [int](($script:TgTextW + 26) * $ep)
-    $x = $header.Width - 26 - $w
-    return New-Object System.Drawing.Rectangle($x, 46, $w, 44)
+    $e = $script:TgP; $e = $e * $e * (3 - 2 * $e)
+    $full = 52 + $script:TgTextW + 34
+    $w = 52 + ($full - 52) * $e
+    return New-Object System.Drawing.RectangleF([single]($header.Width - 26 - $w), [single]42, [single]$w, [single]50)
 }
-$header.Add_Paint({
-    $g = $_.Graphics
-    $g.SmoothingMode = 'AntiAlias'
-    $rc = $this.ClientRectangle
-    if ($rc.Width -le 0 -or $rc.Height -le 0) { return }
-    $br = New-Object System.Drawing.Drawing2D.LinearGradientBrush($rc, $cHeadA, $cHeadB, [System.Drawing.Drawing2D.LinearGradientMode]::Horizontal)
-    $g.FillRectangle($br, $rc); $br.Dispose()
-    $lineRc = New-Object System.Drawing.Rectangle(0, ($rc.Height - 2), $rc.Width, 2)
-    $lb = New-Object System.Drawing.Drawing2D.LinearGradientBrush($lineRc, $cAccent, $cHeadB, [System.Drawing.Drawing2D.LinearGradientMode]::Horizontal)
-    $g.FillRectangle($lb, $lineRc); $lb.Dispose()
-    # Telegram
-    $p = $script:TgP
+function Paint-Telegram {
+    param($G)
     $r = Get-TgRect
-    $path = New-Object System.Drawing.Drawing2D.GraphicsPath
-    $d = $r.Height
-    $path.AddArc($r.X, $r.Y, $d, $d, 90, 180)
-    $path.AddArc(($r.Right - $d), $r.Y, $d, $d, 270, 180)
-    $path.CloseFigure()
-    $fillC = Mix-Color $cPanel2 $cAccent (0.08 + 0.34 * $p)
-    $fb = New-Object System.Drawing.SolidBrush($fillC)
-    $g.FillPath($fb, $path); $fb.Dispose()
-    $pen = New-Object System.Drawing.Pen((Mix-Color $cLine $cAccent2 $p), 1.4)
-    $g.DrawPath($pen, $path); $pen.Dispose(); $path.Dispose()
-    if ($p -gt 0.3) {
-        $a = ($p - 0.3) / 0.7
-        $tr = New-Object System.Drawing.Rectangle(($r.X + 16), $r.Y, ($r.Width - 16 - 48), $r.Height)
-        $g.SetClip($tr)
-        [System.Windows.Forms.TextRenderer]::DrawText($g, $script:TgLabel, $fontBold, $tr, (Mix-Color $fillC $cText $a), ([System.Windows.Forms.TextFormatFlags]'Left, VerticalCenter, NoPadding, SingleLine'))
-        $g.ResetClip()
+    $p = $script:TgP; $e = $p * $p * (3 - 2 * $p)
+    $pulse = ([Math]::Sin($script:Sec * 2.2) + 1) / 2
+    $cx = $r.Right - 26; $cy = $r.Y + 25
+    for ($i = 3; $i -ge 1; $i--) {
+        $a = (12 + 30 * $pulse) * (1 - 0.75 * $e) / $i * 1.5
+        $rad = 22 + $i * 3.5 + 1.5 * $pulse
+        $pen = New-Object System.Drawing.Pen((Alpha-Color $cAccent2 $a), [single]2)
+        $G.DrawEllipse($pen, [single]($cx - $rad), [single]($cy - $rad), [single]($rad * 2), [single]($rad * 2))
+        $pen.Dispose()
     }
-    # значок
-    $cx = $r.Right - 22; $cy = $r.Y + 22
-    $ib = New-Object System.Drawing.SolidBrush((Mix-Color $cTgBlue $cAccent2 ($p * 0.0)))
-    $g.FillEllipse($ib, ($cx - 16), ($cy - 16), 32, 32); $ib.Dispose()
-    $pts = @(
-        (New-Object System.Drawing.PointF(($cx - 7.5), ($cy + 0.5))),
-        (New-Object System.Drawing.PointF(($cx + 7.5), ($cy - 6.5))),
-        (New-Object System.Drawing.PointF(($cx + 4.5), ($cy + 7))),
-        (New-Object System.Drawing.PointF(($cx + 0.5), ($cy + 2.8))),
-        (New-Object System.Drawing.PointF(($cx - 2), ($cy + 6))),
-        (New-Object System.Drawing.PointF(($cx - 2.6), ($cy + 1.4)))
-    )
-    $g.FillPolygon([System.Drawing.Brushes]::White, [System.Drawing.PointF[]]$pts)
+    if ($e -gt 0.01) {
+        $path = New-RoundPath $r.X $r.Y $r.Width $r.Height ($r.Height / 2)
+        $c1 = Mix-Color $cHeadB $cPill1 $e; $c2 = Mix-Color $cHeadB $cPill2 $e
+        $br = New-Object System.Drawing.Drawing2D.LinearGradientBrush($r, $c1, $c2, [single]0)
+        $G.FillPath($br, $path); $br.Dispose()
+        $pen = New-Object System.Drawing.Pen((Mix-Color $cLine $cAccent2 $e), [single]1.4)
+        $G.DrawPath($pen, $path); $pen.Dispose(); $path.Dispose()
+    }
+    if ($e -gt 0.5) {
+        $a = ($e - 0.5) / 0.5
+        $bgc = Mix-Color $cHeadB $cPill1 0.7
+        $G.SetClip((New-Object System.Drawing.RectangleF(($r.X + 14), $r.Y, ($r.Width - 14 - 58), $r.Height)))
+        Draw-Text $G $script:TgL1 $fontTiny (Mix-Color $bgc $cAccent2 $a) ($r.X + 24) ($r.Y + 9) ($script:TgTextW + 6) 14 $tfL
+        Draw-Text $G $script:TgL2 $fontBold (Mix-Color $bgc $cText $a) ($r.X + 24) ($r.Y + 24) ($script:TgTextW + 8) 20 $tfL
+        $G.ResetClip()
+    }
+    Draw-TgBadge $G $cx $cy (38 + 3 * $e)
+}
+
+$header.Add_Paint({
+    try {
+        $g = $_.Graphics
+        $g.SmoothingMode = 'AntiAlias'
+        $rc = $this.ClientRectangle
+        if ($rc.Width -le 0 -or $rc.Height -le 0) { return }
+        $br = New-Object System.Drawing.Drawing2D.LinearGradientBrush($rc, $cHeadA, $cHeadB, [System.Drawing.Drawing2D.LinearGradientMode]::Horizontal)
+        $g.FillRectangle($br, $rc); $br.Dispose()
+        $lineRc = New-Object System.Drawing.Rectangle(0, ($rc.Height - 2), $rc.Width, 2)
+        $lb = New-Object System.Drawing.Drawing2D.LinearGradientBrush($lineRc, $cAccent, $cHeadB, [System.Drawing.Drawing2D.LinearGradientMode]::Horizontal)
+        $g.FillRectangle($lb, $lineRc); $lb.Dispose()
+        for ($i = 0; $i -lt 3; $i++) {
+            $r = Get-WinBtnRect $i; $b = $script:WinBtn[$i]
+            if ($b.T -gt 0.01) {
+                $hc = $cLine; if ($i -eq 2) { $hc = $cErr }
+                Draw-Round $g (Alpha-Color $hc (190 * $b.T)) $null 0 ($r.X + 5) ($r.Y + 6) ($r.Width - 10) ($r.Height - 12) 9
+            }
+            $pen = New-Object System.Drawing.Pen((Mix-Color $cDim $cWhite $b.T), [single]1.4)
+            $cx = $r.X + 23; $cy = $r.Y + 19
+            if ($i -eq 0) { $g.DrawLine($pen, ($cx - 5), $cy, ($cx + 5), $cy) }
+            elseif ($i -eq 1) {
+                if ($script:Mode -eq 'win') { $g.DrawRectangle($pen, ($cx - 5), ($cy - 5), 10, 10) }
+                else {
+                    $g.DrawRectangle($pen, ($cx - 5), ($cy - 2), 8, 8)
+                    $g.DrawLine($pen, ($cx - 2), ($cy - 2), ($cx - 2), ($cy - 5))
+                    $g.DrawLine($pen, ($cx - 2), ($cy - 5), ($cx + 5), ($cy - 5))
+                    $g.DrawLine($pen, ($cx + 5), ($cy - 5), ($cx + 5), ($cy + 2))
+                    $g.DrawLine($pen, ($cx + 5), ($cy + 2), ($cx + 3), ($cy + 2))
+                }
+            } else {
+                $g.DrawLine($pen, ($cx - 5), ($cy - 5), ($cx + 5), ($cy + 5))
+                $g.DrawLine($pen, ($cx + 5), ($cy - 5), ($cx - 5), ($cy + 5))
+            }
+            $pen.Dispose()
+        }
+        Paint-Telegram $g
+    } catch { $script:PaintErr = $_.Exception.Message }
 })
 
-# ---- кнопки окна
-function New-WinButton {
-    param([string]$Text, $HoverColor)
-    $b = New-Object System.Windows.Forms.Button
-    $b.Text = $Text; $b.SetBounds(0, 0, 46, 34)
-    $b.FlatStyle = 'Flat'; $b.FlatAppearance.BorderSize = 0
-    $b.BackColor = $cClear; $b.ForeColor = $cDim; $b.Font = New-Object System.Drawing.Font('Segoe UI Symbol', 10)
-    $b.FlatAppearance.MouseOverBackColor = $HoverColor; $b.FlatAppearance.MouseDownBackColor = $HoverColor
-    $b.UseVisualStyleBackColor = $false; $b.TabStop = $false
-    $b.Cursor = [System.Windows.Forms.Cursors]::Hand
-    $b.Add_MouseEnter({ $this.ForeColor = $cText }); $b.Add_MouseLeave({ $this.ForeColor = $cDim })
-    return $b
-}
-$btnMin = New-WinButton ([string][char]0x2014) $cPanel2
-$btnMin.Add_Click({ $form.WindowState = 'Minimized' })
-$btnFs = New-WinButton ([string][char]0x25A1) $cPanel2
-$btnFs.Add_Click({ Set-FullScreen (-not $script:IsFull) })
-$btnClose = New-WinButton ([string][char]0x2715) $cErr
 $script:Closing = $false
-$btnClose.Add_Click({ $script:Closing = $true })
-$header.Controls.Add($btnMin); $header.Controls.Add($btnFs); $header.Controls.Add($btnClose)
-
-$form.Add_KeyDown({
-    if ($_.KeyCode -eq 'F11') { Set-FullScreen (-not $script:IsFull) }
-    elseif ($_.KeyCode -eq 'Escape' -and $script:IsFull) { Set-FullScreen $false }
-})
-
-# перетаскивание за шапку (в оконном режиме) и клики по Telegram
 $script:Drag = $null; $script:DragOrigin = $null
-$dragDown = {
-    $r = Get-TgRect
-    if ($r.Contains($_.Location)) { Open-Url $script:TgUrl; return }
-    if (-not $script:IsFull) { $script:Drag = [System.Windows.Forms.Control]::MousePosition; $script:DragOrigin = $form.Location }
-}
-$dragMove = {
+$headDown = {
+    $e = $_
     if ($this -eq $header) {
-        $r = Get-TgRect
-        if ($r.Contains($_.Location)) { $script:TgTarget = 1; $header.Cursor = [System.Windows.Forms.Cursors]::Hand }
-        else { $script:TgTarget = 0; $header.Cursor = [System.Windows.Forms.Cursors]::Default }
+        for ($i = 0; $i -lt 3; $i++) {
+            if ((Get-WinBtnRect $i).Contains($e.Location)) {
+                if ($i -eq 0) { $form.WindowState = 'Minimized' }
+                elseif ($i -eq 1) { if ($script:Mode -eq 'win') { Set-Mode 'max' } else { Set-Mode 'win' } }
+                else { $script:Closing = $true }
+                return
+            }
+        }
+        $tr = [System.Drawing.RectangleF]::Inflate((Get-TgRect), 6, 6)
+        if ($tr.Contains([single]$e.X, [single]$e.Y)) { Open-Url $script:TgUrl; return }
+    }
+    if ($script:Mode -eq 'win' -and $e.Button -eq 'Left') {
+        $script:Drag = [System.Windows.Forms.Control]::MousePosition; $script:DragOrigin = $form.Location
+    }
+}
+$headMove = {
+    $e = $_
+    if ($this -eq $header) {
+        for ($i = 0; $i -lt 3; $i++) { $script:WinBtn[$i].Target = [int]((Get-WinBtnRect $i).Contains($e.Location)) }
+        $tr = [System.Drawing.RectangleF]::Inflate((Get-TgRect), 6, 6)
+        $onTg = $tr.Contains([single]$e.X, [single]$e.Y)
+        $script:TgTarget = [int]$onTg
+        $anyWin = ($script:WinBtn[0].Target + $script:WinBtn[1].Target + $script:WinBtn[2].Target) -gt 0
+        if ($onTg -or $anyWin) { $header.Cursor = [System.Windows.Forms.Cursors]::Hand } else { $header.Cursor = [System.Windows.Forms.Cursors]::Default }
     }
     if ($script:Drag -and ([System.Windows.Forms.Control]::MouseButtons -eq 'Left')) {
         $mp = [System.Windows.Forms.Control]::MousePosition
         $form.Location = New-Object System.Drawing.Point(($script:DragOrigin.X + $mp.X - $script:Drag.X), ($script:DragOrigin.Y + $mp.Y - $script:Drag.Y))
     }
 }
-$dragUp = { $script:Drag = $null }
-foreach ($dc in @($header, $lblLogo, $lblLogo2, $lblSub)) { $dc.Add_MouseDown($dragDown); $dc.Add_MouseMove($dragMove); $dc.Add_MouseUp($dragUp) }
-$header.Add_MouseLeave({ $script:TgTarget = 0; $header.Cursor = [System.Windows.Forms.Cursors]::Default })
+$headUp = { $script:Drag = $null }
+$headLeave = {
+    if ($this -eq $header) {
+        for ($i = 0; $i -lt 3; $i++) { $script:WinBtn[$i].Target = 0 }
+        $script:TgTarget = 0; $header.Cursor = [System.Windows.Forms.Cursors]::Default
+    }
+}
+foreach ($dc in @($header, $lblLogo, $lblLogo2, $lblSub)) {
+    $dc.Add_MouseDown($headDown); $dc.Add_MouseMove($headMove); $dc.Add_MouseUp($headUp); $dc.Add_MouseLeave($headLeave)
+}
+$header.Add_DoubleClick({
+    $p = $header.PointToClient([System.Windows.Forms.Control]::MousePosition)
+    $tr = [System.Drawing.RectangleF]::Inflate((Get-TgRect), 6, 6)
+    if ($p.X -lt ($header.Width - 150) -and -not $tr.Contains([single]$p.X, [single]$p.Y)) {
+        if ($script:Mode -eq 'win') { Set-Mode 'max' } else { Set-Mode 'win' }
+    }
+})
 
-# ---- навигация
+$form.Add_KeyDown({
+    if ($_.KeyCode -eq 'F11') { if ($script:Mode -eq 'full') { Set-Mode 'max' } else { Set-Mode 'full' } }
+    elseif ($_.KeyCode -eq 'Escape' -and $script:Mode -eq 'full') { Set-Mode 'max' }
+})
+
+# ---------------------------------------------------------------- боковое меню (рисуется целиком)
+$script:NavItems = @(
+    @{ Key = 'opt';   Text = 'Оптимизация'; T = 0.0; Target = 0 },
+    @{ Key = 'tools'; Text = 'Инструменты'; T = 0.0; Target = 0 },
+    @{ Key = 'about'; Text = 'О программе'; T = 0.0; Target = 0 }
+)
+$script:NavSel = 'opt'
+$script:NavIndY = 18.0
+$script:PackOk = $false
+function Get-NavRect {
+    param([int]$I)
+    return New-Object System.Drawing.RectangleF(12, (18 + 54 * $I), 166, 46)
+}
+function Paint-NavIcon {
+    param($G, [string]$Key, [double]$X, [double]$Y, $Col)
+    $br = New-Object System.Drawing.SolidBrush($Col)
+    $pen = New-Object System.Drawing.Pen($Col, [single]1.7)
+    if ($Key -eq 'opt') {
+        $pts = @( (New-Object System.Drawing.PointF([single]($X + 10), [single]$Y)), (New-Object System.Drawing.PointF([single]($X + 2), [single]($Y + 10.5))),
+                  (New-Object System.Drawing.PointF([single]($X + 8), [single]($Y + 10.5))), (New-Object System.Drawing.PointF([single]($X + 6), [single]($Y + 18))),
+                  (New-Object System.Drawing.PointF([single]($X + 16), [single]($Y + 7))), (New-Object System.Drawing.PointF([single]($X + 10), [single]($Y + 7))) )
+        $G.FillPolygon($br, [System.Drawing.PointF[]]$pts)
+    } elseif ($Key -eq 'tools') {
+        Draw-Round $G $Col $null 0 $X $Y 7.5 7.5 2.2
+        Draw-Round $G $Col $null 0 ($X + 10.5) $Y 7.5 7.5 2.2
+        Draw-Round $G $Col $null 0 $X ($Y + 10.5) 7.5 7.5 2.2
+        Draw-Round $G $Col $null 0 ($X + 10.5) ($Y + 10.5) 7.5 7.5 2.2
+    } else {
+        $G.DrawEllipse($pen, [single]($X + 0.8), [single]($Y + 0.8), [single]16.4, [single]16.4)
+        $G.FillEllipse($br, [single]($X + 7.7), [single]($Y + 4.2), [single]2.6, [single]2.6)
+        $G.DrawLine($pen, [single]($X + 9), [single]($Y + 8.4), [single]($X + 9), [single]($Y + 13.4))
+    }
+    $br.Dispose(); $pen.Dispose()
+}
+
 $nav = New-Object System.Windows.Forms.Panel
-$nav.SetBounds(0, 96, 190, 624); $nav.BackColor = $cNavB
+$nav.SetBounds(0, 96, 190, 664); $nav.BackColor = $cNavB
 Enable-DoubleBuffer $nav
 $nav.Add_Paint({
-    $rc = $this.ClientRectangle
-    if ($rc.Width -le 0 -or $rc.Height -le 0) { return }
-    $br = New-Object System.Drawing.Drawing2D.LinearGradientBrush($rc, $cNavA, $cNavB, [System.Drawing.Drawing2D.LinearGradientMode]::Vertical)
-    $_.Graphics.FillRectangle($br, $rc); $br.Dispose()
-    $pen = New-Object System.Drawing.Pen($cLine, 1)
-    $_.Graphics.DrawLine($pen, ($rc.Width - 1), 0, ($rc.Width - 1), $rc.Height); $pen.Dispose()
+    try {
+        $g = $_.Graphics; $g.SmoothingMode = 'AntiAlias'
+        $rc = $this.ClientRectangle
+        if ($rc.Width -le 0 -or $rc.Height -le 0) { return }
+        $br = New-Object System.Drawing.Drawing2D.LinearGradientBrush($rc, $cNavA, $cNavB, [System.Drawing.Drawing2D.LinearGradientMode]::Vertical)
+        $g.FillRectangle($br, $rc); $br.Dispose()
+        $pen = New-Object System.Drawing.Pen($cLine, [single]1)
+        $g.DrawLine($pen, ($rc.Width - 1), 0, ($rc.Width - 1), $rc.Height); $pen.Dispose()
+        $iy = $script:NavIndY
+        Fill-RoundGrad $g (Alpha-Color $cAccent 70) (Alpha-Color $cPanel2 230) 12 $iy 166 46 13 0
+        Draw-Round $g $null (Alpha-Color $cAccent2 90) 1 12.5 ($iy + 0.5) 165 45 13
+        Draw-Round $g $cAccent2 $null 0 12 ($iy + 11) 3.5 24 1.75
+        for ($i = 0; $i -lt $script:NavItems.Count; $i++) {
+            $it = $script:NavItems[$i]; $r = Get-NavRect $i
+            $sel = ($it.Key -eq $script:NavSel)
+            if (-not $sel -and $it.T -gt 0.02) { Draw-Round $g (Alpha-Color $cPanel2 (170 * $it.T)) $null 0 $r.X $r.Y $r.Width $r.Height 13 }
+            $col = Mix-Color $cDim $cText $it.T
+            if ($sel) { $col = $cText }
+            $ic = $col; if ($sel) { $ic = $cAccent2 }
+            Paint-NavIcon $g $it.Key ($r.X + 20) ($r.Y + 14) $ic
+            Draw-Text $g $it.Text $fontBold $col ($r.X + 52) $r.Y 110 $r.Height $tfL
+        }
+        $ch = 96; $cy = $this.Height - $ch - 14
+        Draw-Text $g 'F11  -  на весь экран' $fontTiny $cDim 20 ($cy - 26) 160 16 $tfL
+        Draw-Round $g $cPanel $cLine 1 12 $cy 166 $ch 13
+        $dc = $cWarn; if ($script:PackOk) { $dc = $cOk }
+        $g.FillEllipse((New-Object System.Drawing.SolidBrush($dc)), [single]26, [single]($cy + 15), [single]9, [single]9)
+        $st = 'Пак не найден'; if ($script:PackOk) { $st = 'Пак найден' }
+        Draw-Text $g $st $fontBold $cText 42 ($cy + 9) 128 20 $tfL
+        Draw-Text $g ([string]$script:Root) $fontTiny $cDim 24 ($cy + 36) 142 ($ch - 44) $tfLT
+    } catch { $script:PaintErr = $_.Exception.Message }
+})
+$nav.Add_MouseMove({
+    $e = $_; $hit = $false
+    for ($i = 0; $i -lt $script:NavItems.Count; $i++) {
+        $on = (Get-NavRect $i).Contains([single]$e.X, [single]$e.Y)
+        $script:NavItems[$i].Target = [int]$on
+        if ($on) { $hit = $true }
+    }
+    if ($hit) { $nav.Cursor = [System.Windows.Forms.Cursors]::Hand } else { $nav.Cursor = [System.Windows.Forms.Cursors]::Default }
+})
+$nav.Add_MouseLeave({ foreach ($it in $script:NavItems) { $it.Target = 0 } })
+$nav.Add_MouseDown({
+    $e = $_
+    for ($i = 0; $i -lt $script:NavItems.Count; $i++) {
+        if ((Get-NavRect $i).Contains([single]$e.X, [single]$e.Y)) { Show-Page $script:NavItems[$i].Key; return }
+    }
 })
 $form.Controls.Add($nav)
 
 $pages = @{}
-$navButtons = @{}
 $script:Slide = $null
 function Show-Page {
     param([string]$Name)
+    $script:NavSel = $Name
     foreach ($k in $pages.Keys) { $pages[$k].Visible = ($k -eq $Name) }
     if ($pages[$Name] -and $form.Visible) { $pages[$Name].Left = 190 + 48; $script:Slide = $pages[$Name] }
-    foreach ($k in $navButtons.Keys) {
-        if ($k -eq $Name) { $navButtons[$k].BackColor = $cPanel2; $navButtons[$k].ForeColor = $cText }
-        else { $navButtons[$k].BackColor = $cClear; $navButtons[$k].ForeColor = $cDim }
-    }
+    $nav.Invalidate()
 }
-function Add-NavButton {
-    param([string]$Key, [string]$Text, [int]$Top)
-    $b = New-Object System.Windows.Forms.Button
-    $b.Text = ('   ' + $Text); $b.TextAlign = 'MiddleLeft'
-    $b.SetBounds(12, $Top, 166, 44)
-    $b.FlatStyle = 'Flat'; $b.FlatAppearance.BorderSize = 0
-    $b.FlatAppearance.MouseOverBackColor = $cPanel2; $b.FlatAppearance.MouseDownBackColor = $cPanel2
-    $b.BackColor = $cClear; $b.ForeColor = $cDim; $b.Font = $fontBold
-    $b.UseVisualStyleBackColor = $false
-    $b.Cursor = [System.Windows.Forms.Cursors]::Hand
-    $b.Tag = $Key
-    $b.Add_Click({ Show-Page $this.Tag })
-    Set-Round $b 8
-    $nav.Controls.Add($b)
-    $navButtons[$Key] = $b
-}
-Add-NavButton 'opt'   'Оптимизация' 18
-Add-NavButton 'tools' 'Инструменты' 68
-Add-NavButton 'about' 'О программе' 118
-
-$lblNavNote = New-Object System.Windows.Forms.Label
-$lblNavNote.Text = "Перед применением создаётся`nточка восстановления.`nИзменения можно откатить.`n`nF11: полный экран / окно"
-$lblNavNote.ForeColor = $cDim; $lblNavNote.Font = $fontSmall; $lblNavNote.BackColor = $cClear
-$lblNavNote.SetBounds(16, 440, 170, 90)
-$nav.Controls.Add($lblNavNote)
-$lblPackPath = New-Object System.Windows.Forms.Label
-$lblPackPath.Font = $fontSmall; $lblPackPath.ForeColor = $cDim; $lblPackPath.BackColor = $cClear
-$lblPackPath.SetBounds(16, 560, 170, 50)
-$nav.Controls.Add($lblPackPath)
-
 function New-Page {
     $pg = New-Object System.Windows.Forms.Panel
-    $pg.SetBounds(190, 96, 930, 624); $pg.BackColor = $cBg
+    $pg.SetBounds(190, 96, 990, 664); $pg.BackColor = $cBg
     Enable-DoubleBuffer $pg
     $form.Controls.Add($pg)
     return $pg
 }
 
-# ---- страница: оптимизация
+# ---------------------------------------------------------------- кнопки-«пилюли» (рисуются сами)
+$script:Pills = New-Object System.Collections.ArrayList
+function Paint-Pill {
+    param($Ctrl, $G)
+    $st = $Ctrl.Tag
+    $G.SmoothingMode = 'AntiAlias'
+    $w = $Ctrl.Width; $h = $Ctrl.Height
+    $t = $st.T
+    $off = 0; if ($st.Down) { $off = 1 }
+    if ($st.Kind -eq 'primary' -and $st.Enabled) {
+        $pm = $st.Pulse
+        for ($i = 1; $i -le 3; $i++) {
+            $a = (22 + 48 * $pm + 40 * $t) / $i
+            $pen = New-Object System.Drawing.Pen((Alpha-Color $cAccent2 $a), [single]1.5)
+            $gp = New-RoundPath (4 - $i) (4 - $i) ($w - 8 + 2 * $i) ($h - 8 + 2 * $i) (15 + $i)
+            $G.DrawPath($pen, $gp); $gp.Dispose(); $pen.Dispose()
+        }
+        $c1 = Mix-Color $cAccent $cAccent2 ($pm * 0.55 + $t * 0.4)
+        $c2 = Mix-Color $cMagenta $cAccent ((1 - $pm) * 0.55)
+        Fill-RoundGrad $G $c1 $c2 4 4 ($w - 8) ($h - 8) 15 0
+        Draw-Text $G $st.Text $fontBtn $cWhite 4 (4 + $off) ($w - 8) ($h - 8) $tfC
+    } elseif ($st.Kind -eq 'primary') {
+        Draw-Round $G $cPanel2 $cLine 1 4 4 ($w - 8) ($h - 8) 15
+        Draw-Text $G $st.Text $fontBtn $cDim 4 4 ($w - 8) ($h - 8) $tfC
+    } else {
+        $fill = Mix-Color $cPanel $cRowHover $t
+        $line = Mix-Color $cLine $cAccent2 ($t * 0.9)
+        $tc = $cText; if (-not $st.Enabled) { $tc = $cDim; $fill = $cPanel }
+        Draw-Round $G $fill $line 1.2 1.5 1.5 ($w - 3) ($h - 3) 14
+        Draw-Text $G $st.Text $st.Font $tc 1 $off ($w - 2) $h $tfC
+    }
+}
+function New-Pill {
+    param([string]$Text, [string]$Kind, [scriptblock]$OnClick, $Font)
+    $p = New-Object System.Windows.Forms.Panel
+    $p.BackColor = $cBg
+    Enable-DoubleBuffer $p
+    $p.Cursor = [System.Windows.Forms.Cursors]::Hand
+    $p.Tag = @{ Text = $Text; Kind = $Kind; Font = $Font; T = 0.0; Target = 0; Enabled = $true; Pulse = 0.0; Down = $false; OnClick = $OnClick }
+    $p.Add_Paint({ try { Paint-Pill $this $_.Graphics } catch { $script:PaintErr = $_.Exception.Message } })
+    $p.Add_MouseEnter({ if ($this.Tag.Enabled) { $this.Tag.Target = 1 } })
+    $p.Add_MouseLeave({ $this.Tag.Target = 0; $this.Tag.Down = $false; $this.Invalidate() })
+    $p.Add_MouseDown({ if ($this.Tag.Enabled) { $this.Tag.Down = $true; $this.Invalidate() } })
+    $p.Add_MouseUp({
+        $e = $_
+        $wasDown = $this.Tag.Down; $this.Tag.Down = $false; $this.Invalidate()
+        if ($wasDown -and $this.Tag.Enabled -and $this.ClientRectangle.Contains($e.Location)) { $cb = $this.Tag.OnClick; & $cb }
+    })
+    [void]$script:Pills.Add($p)
+    return $p
+}
+
+# ---------------------------------------------------------------- страница: оптимизация
 $pageOpt = New-Page; $pages['opt'] = $pageOpt
 
 $lblH1 = New-Object System.Windows.Forms.Label
-$lblH1.Text = 'Что применить'; $lblH1.Font = $fontH1
+$lblH1.Text = 'Что применить'; $lblH1.Font = $fontH1; $lblH1.ForeColor = $cText; $lblH1.BackColor = $cBg
 $lblH1.AutoSize = $true; $lblH1.Location = New-Object System.Drawing.Point(22, 14)
 $pageOpt.Controls.Add($lblH1)
 
-$list = New-Object System.Windows.Forms.Panel
-$list.SetBounds(16, 54, 898, 330); $list.BackColor = $cBg; $list.AutoScroll = $true
-Enable-DoubleBuffer $list
-$pageOpt.Controls.Add($list)
+$script:Sel = @{}
+foreach ($t in $script:Tweaks) { $script:Sel[$t.Id] = [bool]$t.Default }
+$script:ListItems = New-Object System.Collections.ArrayList
+$script:Scroll = 0.0; $script:ScrollT = 0.0; $script:ScrollMax = 0.0; $script:ContentH = 0.0
+$script:SbT = 0.0; $script:SbTarget = 0; $script:SbDrag = $false; $script:SbGrab = 0.0
+$script:Thumb = @{ X = 0.0; Y = 0.0; H = 0.0 }
 
-$script:Rows = @{}
-$script:RowPanels = New-Object System.Collections.ArrayList
-$y = 0
-function Add-GroupLabel {
-    param([string]$Text)
-    $l = New-Object System.Windows.Forms.Label
-    $l.Text = $Text; $l.Font = $fontSmall; $l.ForeColor = $cAccent2; $l.AutoSize = $true
-    $l.Location = New-Object System.Drawing.Point(6, ($script:y + 4))
-    $list.Controls.Add($l)
-    $script:y += 28
+$listHost = New-Object System.Windows.Forms.Panel
+$listHost.SetBounds(22, 54, 940, 400); $listHost.BackColor = $cBg
+Enable-DoubleBuffer $listHost
+$pageOpt.Controls.Add($listHost)
+
+[void]$script:ListItems.Add(@{ Kind = 'group'; Text = 'РЕКОМЕНДУЕМЫЕ'; X = 0.0; Y = 0.0; W = 0.0; H = 30.0 })
+foreach ($t in $script:Tweaks) {
+    if ($t.Group -eq 'rec') { [void]$script:ListItems.Add(@{ Kind = 'row'; Tw = $t; X = 0.0; Y = 0.0; W = 0.0; H = 96.0; T = 0.0; Target = 0; K = [double][int]$script:Sel[$t.Id]; KT = [double][int]$script:Sel[$t.Id] }) }
 }
-function Add-TweakRow {
-    param($Tw)
-    $row = New-Object System.Windows.Forms.Panel
-    $row.SetBounds(0, $script:y, 860, 76); $row.BackColor = $cPanel
-    Enable-DoubleBuffer $row
-    $cb = New-Object System.Windows.Forms.CheckBox
-    $cb.Text = ''; $cb.AutoSize = $false; $cb.Size = New-Object System.Drawing.Size(24, 24)
-    $cb.Location = New-Object System.Drawing.Point(16, 26); $cb.Checked = [bool]$Tw.Default
-    $cb.FlatStyle = 'Flat'; $cb.BackColor = $cClear
-    $cb.FlatAppearance.BorderColor = $cAccent2; $cb.FlatAppearance.BorderSize = 1
-    $cb.FlatAppearance.CheckedBackColor = $cAccent; $cb.FlatAppearance.MouseOverBackColor = $cPanel2
-    $cb.Cursor = [System.Windows.Forms.Cursors]::Hand
-    $row.Controls.Add($cb)
-    $lt = New-Object System.Windows.Forms.Label
-    $lt.Text = $Tw.Title; $lt.Font = $fontBold; $lt.AutoSize = $false
-    $lt.SetBounds(52, 8, 790, 22); $lt.ForeColor = $cText; $lt.BackColor = $cClear
-    $row.Controls.Add($lt)
-    $ld = New-Object System.Windows.Forms.Label
-    $ld.Text = $Tw.Desc; $ld.Font = $fontSmall; $ld.AutoSize = $false
-    $ld.SetBounds(52, 31, 790, 40); $ld.ForeColor = $cDim; $ld.BackColor = $cClear
-    $row.Controls.Add($ld)
-    $row.Tag = @{ T = 0.0; Target = 0; Cb = $cb; Title = $lt; Desc = $ld }
-    $toggle = { $cb.Checked = -not $cb.Checked }.GetNewClosure()
-    $lt.Add_Click($toggle); $ld.Add_Click($toggle); $row.Add_Click($toggle)
-    $row.Add_MouseEnter({ $this.Tag.Target = 1 }); $row.Add_MouseLeave({ $this.Tag.Target = 0 })
-    $lt.Add_MouseEnter({ $this.Parent.Tag.Target = 1 }); $ld.Add_MouseEnter({ $this.Parent.Tag.Target = 1 })
-    $lt.Cursor = [System.Windows.Forms.Cursors]::Hand; $ld.Cursor = [System.Windows.Forms.Cursors]::Hand
-    $row.Add_Paint({
-        $st = $this.Tag
-        $g = $_.Graphics
-        $on = $st.Cb.Checked
-        $c = if ($on) { Mix-Color $cLine $cAccent (0.55 + 0.45 * $st.T) } else { Mix-Color $cPanel $cLine (0.4 + 0.6 * $st.T) }
-        $b = New-Object System.Drawing.SolidBrush($c)
-        $g.FillRectangle($b, 0, 14, 3, ($this.Height - 28)); $b.Dispose()
-    })
-    $cb.Add_CheckedChanged({ $this.Parent.Invalidate() })
-    Set-RoundAuto $row 9
-    $list.Controls.Add($row)
-    [void]$script:RowPanels.Add($row)
-    $script:Rows[$Tw.Id] = $cb
-    $script:y += 82
+[void]$script:ListItems.Add(@{ Kind = 'group'; Text = 'ДОПОЛНИТЕЛЬНЫЕ'; X = 0.0; Y = 0.0; W = 0.0; H = 30.0 })
+foreach ($t in $script:Tweaks) {
+    if ($t.Group -eq 'opt') { [void]$script:ListItems.Add(@{ Kind = 'row'; Tw = $t; X = 0.0; Y = 0.0; W = 0.0; H = 96.0; T = 0.0; Target = 0; K = [double][int]$script:Sel[$t.Id]; KT = [double][int]$script:Sel[$t.Id] }) }
 }
-Add-GroupLabel 'РЕКОМЕНДУЕМЫЕ'
-foreach ($t in $script:Tweaks) { if ($t.Group -eq 'rec') { Add-TweakRow $t } }
-Add-GroupLabel 'ДОПОЛНИТЕЛЬНЫЕ'
-foreach ($t in $script:Tweaks) { if ($t.Group -eq 'opt') { Add-TweakRow $t } }
 
-$script:Rows['fse'].Add_CheckedChanged({ if ($script:Rows['fse'].Checked) { $script:Rows['fso'].Checked = $false } })
-$script:Rows['fso'].Add_CheckedChanged({ if ($script:Rows['fso'].Checked) { $script:Rows['fse'].Checked = $false } })
+function Layout-List {
+    $W = $listHost.ClientSize.Width - 16
+    $gap = 12.0
+    $cols = 1; if ($W -ge 960) { $cols = 2 }
+    $cw = ($W - ($cols - 1) * $gap) / $cols
+    $y = 0.0; $col = 0
+    foreach ($it in $script:ListItems) {
+        if ($it.Kind -eq 'group') {
+            if ($col -ne 0) { $col = 0; $y += 96.0 + $gap }
+            $it.X = 0.0; $it.Y = $y; $it.W = [double]$W; $it.H = 30.0; $y += 36.0
+        } else {
+            $it.X = $col * ($cw + $gap); $it.Y = $y; $it.W = $cw; $it.H = 96.0
+            $col++
+            if ($col -ge $cols) { $col = 0; $y += 96.0 + $gap }
+        }
+    }
+    if ($col -ne 0) { $y += 96.0 + $gap }
+    $script:ContentH = $y
+    $script:ScrollMax = [Math]::Max(0.0, $y - $listHost.ClientSize.Height)
+    if ($script:ScrollT -gt $script:ScrollMax) { $script:ScrollT = $script:ScrollMax }
+    if ($script:Scroll -gt $script:ScrollMax) { $script:Scroll = $script:ScrollMax }
+    $listHost.Invalidate()
+}
 
-# ---- кнопки, прогресс, журнал
-$btnApply = New-Button 'ОПТИМИЗИРОВАТЬ' 22 396 330 54 $cAccent $cAccent2 $fontBtn
-$pageOpt.Controls.Add($btnApply)
-$btnRevert = New-Button 'Откатить последнее' 362 396 200 54 $cPanel2 $cLine $fontBold
-$pageOpt.Controls.Add($btnRevert)
-$btnAll = New-Button 'Все / никакие' 572 396 182 54 $cPanel2 $cLine $fontBold
-$pageOpt.Controls.Add($btnAll)
+function Set-Sel {
+    param([string]$Id, [bool]$On)
+    $script:Sel[$Id] = $On
+    if ($On -and $Id -eq 'fse') { $script:Sel['fso'] = $false }
+    if ($On -and $Id -eq 'fso') { $script:Sel['fse'] = $false }
+    foreach ($it in $script:ListItems) { if ($it.Kind -eq 'row') { $it.KT = [double][int]$script:Sel[$it.Tw.Id] } }
+}
 
-$barBack = New-Object System.Windows.Forms.Panel
-$barBack.SetBounds(22, 462, 880, 8); $barBack.BackColor = $cPanel2; $barBack.Visible = $false
-$pageOpt.Controls.Add($barBack)
-$barFill = New-Object System.Windows.Forms.Panel
-$barFill.SetBounds(0, 0, 0, 8); $barFill.BackColor = $cAccent2
-$barBack.Controls.Add($barFill)
-Set-RoundAuto $barBack 4
+function Paint-Toggle {
+    param($G, [double]$X, [double]$Y, [double]$K)
+    Draw-Round $G (Mix-Color $cPanel2 $cAccent $K) (Mix-Color $cLine $cAccent2 $K) 1.2 $X $Y 48 26 13
+    $kx = $X + 4 + 22 * $K
+    $br = New-Object System.Drawing.SolidBrush((Mix-Color $cDim $cWhite $K))
+    $G.FillEllipse($br, [single]$kx, [single]($Y + 4), [single]18, [single]18); $br.Dispose()
+}
 
+function Paint-Row {
+    param($G, $It, [double]$Y)
+    $x = $It.X; $w = $It.W; $h = $It.H; $k = $It.K; $t = $It.T
+    $fill = Mix-Color $cPanel $cRowHover $t
+    $line = Mix-Color (Mix-Color $cLine $cAccent ($k * 0.8)) $cAccent2 ($t * 0.55)
+    Draw-Round $G $fill $line 1.2 ($x + 0.5) ($Y + 0.5) ($w - 1) ($h - 1) 14
+    if ($k -gt 0.03) { Draw-Round $G (Alpha-Color $cAccent2 (255 * $k)) $null 0 ($x + 1) ($Y + 22) 3.5 ($h - 44) 1.75 }
+    Paint-Toggle $G ($x + 22) ($Y + ($h - 26) / 2) $k
+    Draw-Text $G $It.Tw.Title $fontRow $cText ($x + 90) ($Y + 11) ($w - 90 - 18) 24 $tfL
+    Draw-Text $G $It.Tw.Desc $fontDesc (Mix-Color $cDim $cText ($t * 0.25)) ($x + 90) ($Y + 38) ($w - 90 - 18) ($h - 38 - 8) $tfLT
+}
+
+$listHost.Add_Paint({
+    try {
+        $g = $_.Graphics; $g.SmoothingMode = 'AntiAlias'
+        $vh = $this.ClientSize.Height
+        foreach ($it in $script:ListItems) {
+            $y = $it.Y - $script:Scroll
+            if (($y + $it.H) -lt 0 -or $y -gt $vh) { continue }
+            if ($it.Kind -eq 'group') {
+                Draw-Text $g $it.Text $fontGroup $cAccent2 ($it.X + 4) $y 400 $it.H $tfL
+                $tw = Measure-W $it.Text $fontGroup
+                $pen = New-Object System.Drawing.Pen($cLine, [single]1)
+                $g.DrawLine($pen, [single]($it.X + $tw + 20), [single]($y + $it.H / 2), [single]($it.X + $it.W), [single]($y + $it.H / 2)); $pen.Dispose()
+            } else { Paint-Row $g $it $y }
+        }
+        if ($script:ScrollMax -gt 1) {
+            $trackH = $vh - 8.0
+            $thumbH = [Math]::Max(44.0, $trackH * $vh / $script:ContentH)
+            $thumbY = 4.0 + ($trackH - $thumbH) * ($script:Scroll / $script:ScrollMax)
+            $script:Thumb.X = $this.ClientSize.Width - 10.0; $script:Thumb.Y = $thumbY; $script:Thumb.H = $thumbH
+            Draw-Round $g (Alpha-Color $cLine 120) $null 0 ($this.ClientSize.Width - 8) 4 4 $trackH 2
+            Draw-Round $g (Mix-Color $cLine $cAccent2 (0.35 + 0.65 * $script:SbT)) $null 0 ($this.ClientSize.Width - 9) $thumbY 6 $thumbH 3
+        }
+    } catch { $script:PaintErr = $_.Exception.Message }
+})
+
+function Set-ScrollTarget {
+    param([double]$V)
+    $script:ScrollT = [Math]::Max(0.0, [Math]::Min($script:ScrollMax, $V))
+}
+function Get-ListHit {
+    param([double]$X, [double]$Y)
+    foreach ($it in $script:ListItems) {
+        if ($it.Kind -ne 'row') { continue }
+        $iy = $it.Y - $script:Scroll
+        if ($X -ge $it.X -and $X -le ($it.X + $it.W) -and $Y -ge $iy -and $Y -le ($iy + $it.H)) { return $it }
+    }
+    return $null
+}
+$listHost.Add_MouseMove({
+    $e = $_
+    if ($script:SbDrag) {
+        $trackH = $this.ClientSize.Height - 8.0
+        $range = $trackH - $script:Thumb.H
+        if ($range -gt 1) {
+            $ratio = ($e.Y - 4.0 - $script:SbGrab) / $range
+            Set-ScrollTarget ($ratio * $script:ScrollMax)
+            $script:Scroll = $script:ScrollT
+            $this.Invalidate()
+        }
+        return
+    }
+    $onThumb = ($script:ScrollMax -gt 1 -and $e.X -ge ($this.ClientSize.Width - 18) -and $e.Y -ge $script:Thumb.Y -and $e.Y -le ($script:Thumb.Y + $script:Thumb.H))
+    $script:SbTarget = [int]$onThumb
+    $hit = Get-ListHit $e.X $e.Y
+    foreach ($it in $script:ListItems) { if ($it.Kind -eq 'row') { $it.Target = [int]([object]::ReferenceEquals($it, $hit)) } }
+    if ($hit -or $onThumb) { $this.Cursor = [System.Windows.Forms.Cursors]::Hand } else { $this.Cursor = [System.Windows.Forms.Cursors]::Default }
+})
+$listHost.Add_MouseLeave({
+    foreach ($it in $script:ListItems) { if ($it.Kind -eq 'row') { $it.Target = 0 } }
+    $script:SbTarget = 0; $this.Cursor = [System.Windows.Forms.Cursors]::Default
+})
+$listHost.Add_MouseDown({
+    $e = $_
+    if ($e.Button -ne 'Left') { return }
+    if ($script:ScrollMax -gt 1 -and $e.X -ge ($this.ClientSize.Width - 18)) {
+        if ($e.Y -ge $script:Thumb.Y -and $e.Y -le ($script:Thumb.Y + $script:Thumb.H)) {
+            $script:SbDrag = $true; $script:SbGrab = $e.Y - $script:Thumb.Y
+        } elseif ($e.Y -lt $script:Thumb.Y) { Set-ScrollTarget ($script:ScrollT - $this.ClientSize.Height * 0.8) }
+        else { Set-ScrollTarget ($script:ScrollT + $this.ClientSize.Height * 0.8) }
+        return
+    }
+    $hit = Get-ListHit $e.X $e.Y
+    if ($hit) { Set-Sel $hit.Tw.Id (-not $script:Sel[$hit.Tw.Id]) }
+})
+$listHost.Add_MouseUp({ $script:SbDrag = $false })
+$listHost.Add_MouseWheel({ Set-ScrollTarget ($script:ScrollT - $_.Delta * 0.7) })
+
+# главные кнопки
+$script:Busy = $false
+$btnApply = New-Pill 'ОПТИМИЗИРОВАТЬ' 'primary' { Invoke-Apply } $fontBtn
+$btnRevert = New-Pill 'Откатить последнее' 'ghost' { Invoke-RevertClick } $fontBold
+$btnAll = New-Pill 'Все / никакие' 'ghost' { Invoke-ToggleAll } $fontBold
+foreach ($b in @($btnApply, $btnRevert, $btnAll)) { $pageOpt.Controls.Add($b) }
+
+# прогресс
+$script:ProgCur = 0.0; $script:ProgTarget = 0.0
+$barHost = New-Object System.Windows.Forms.Panel
+$barHost.SetBounds(22, 520, 940, 10); $barHost.BackColor = $cBg; $barHost.Visible = $false
+Enable-DoubleBuffer $barHost
+$barHost.Add_Paint({
+    try {
+        $g = $_.Graphics; $g.SmoothingMode = 'AntiAlias'
+        $w = $this.Width; $h = $this.Height
+        Draw-Round $g $cPanel2 $null 0 0 0 $w $h 5
+        $fw = [Math]::Max(0.0, ($w * $script:ProgCur))
+        if ($fw -gt 6) { Fill-RoundGrad $g $cAccent $cMagenta 0 0 $fw $h 5 0 }
+    } catch { $script:PaintErr = $_.Exception.Message }
+})
+$pageOpt.Controls.Add($barHost)
+
+# журнал
+$logHost = New-Object System.Windows.Forms.Panel
+$logHost.SetBounds(22, 540, 940, 100); $logHost.BackColor = $cBg
+Enable-DoubleBuffer $logHost
+$logHost.Add_Paint({
+    try {
+        $g = $_.Graphics; $g.SmoothingMode = 'AntiAlias'
+        Draw-Round $g $cPanel $cLine 1.2 0.5 0.5 ($this.Width - 1) ($this.Height - 1) 14
+    } catch { $script:PaintErr = $_.Exception.Message }
+})
+$pageOpt.Controls.Add($logHost)
 $logBox = New-Object System.Windows.Forms.RichTextBox
-$logBox.SetBounds(22, 482, 880, 100)
+$logBox.SetBounds(16, 10, 908, 80)
 $logBox.BackColor = $cPanel; $logBox.ForeColor = $cText; $logBox.Font = $fontMono
-$logBox.ReadOnly = $true; $logBox.BorderStyle = 'None'; $logBox.ScrollBars = 'Vertical'
-$pageOpt.Controls.Add($logBox)
+$logBox.ReadOnly = $true; $logBox.BorderStyle = 'None'; $logBox.ScrollBars = 'None'
+$logBox.Add_MouseEnter({ $this.Focus() })
+$logHost.Controls.Add($logBox)
 
 $script:LogFile = Join-Path $script:DataDir ('log-' + (Get-Date -Format 'yyyyMMdd') + '.txt')
 function Write-Log {
@@ -967,41 +1304,35 @@ function Write-Log {
     try { Add-Content -Path $script:LogFile -Value ((Get-Date -Format 'HH:mm:ss') + ' ' + $Text) -Encoding UTF8 } catch { }
     [System.Windows.Forms.Application]::DoEvents()
 }
-
-$script:ProgCur = 0.0; $script:ProgTarget = 0.0
 function Set-Progress {
     param([double]$Fraction)
     $script:ProgTarget = [Math]::Max(0, [Math]::Min(1, $Fraction))
     [System.Windows.Forms.Application]::DoEvents()
 }
-
-$script:Busy = $false
 function Set-Busy {
     param([bool]$On)
     $script:Busy = $On
-    $btnApply.Enabled = -not $On; $btnRevert.Enabled = -not $On; $btnAll.Enabled = -not $On
-    if ($On) { $btnApply.Text = 'ПРИМЕНЯЮ...'; $btnApply.BackColor = $cPanel2 } else { $btnApply.Text = 'ОПТИМИЗИРОВАТЬ' }
+    foreach ($b in @($btnApply, $btnRevert, $btnAll)) { $b.Tag.Enabled = (-not $On); if ($On) { $b.Tag.Target = 0 }; $b.Invalidate() }
+    if ($On) { $btnApply.Tag.Text = 'ПРИМЕНЯЮ...' } else { $btnApply.Tag.Text = 'ОПТИМИЗИРОВАТЬ' }
 }
-
-$btnAll.Add_Click({
+function Invoke-ToggleAll {
     $any = $false
-    foreach ($k in $script:Rows.Keys) { if ($script:Rows[$k].Checked) { $any = $true } }
-    foreach ($t in $script:Tweaks) { $script:Rows[$t.Id].Checked = (-not $any) -and [bool]$t.Default }
-})
-
-$btnApply.Add_Click({
+    foreach ($k in @($script:Sel.Keys)) { if ($script:Sel[$k]) { $any = $true } }
+    foreach ($tw in $script:Tweaks) { Set-Sel $tw.Id ((-not $any) -and [bool]$tw.Default) }
+}
+function Invoke-Apply {
     if ($script:Busy) { return }
     if (-not (Test-PackRoot $script:Root)) {
         [System.Windows.Forms.MessageBox]::Show("Папка пака не найдена. Нажмите «Указать папку пака» или положите XEOKA-PACK.ps1 в корень пака (рядом с папками «1. База», «2. Драйверы» и т.д.).", 'XEOKA PACK', 'OK', 'Warning') | Out-Null
         return
     }
-    $sel = @($script:Tweaks | Where-Object { $script:Rows[$_.Id].Checked })
+    $sel = @($script:Tweaks | Where-Object { $script:Sel[$_.Id] })
     if ($sel.Count -eq 0) { Write-Log 'Ничего не выбрано.' 'warn'; return }
     $msg = "Будет применено твиков: $($sel.Count).`n`nПеред этим создаётся точка восстановления. Изменения реестра можно откатить кнопкой «Откатить последнее».`n`nПродолжить?"
     $r = [System.Windows.Forms.MessageBox]::Show($msg, 'XEOKA PACK', 'YesNo', 'Question')
     if ($r -ne 'Yes') { return }
     Set-Busy $true
-    $logBox.Clear(); $barBack.Visible = $true; $script:ProgCur = 0.0; $barFill.Width = 0; Set-Progress 0
+    $logBox.Clear(); $barHost.Visible = $true; $script:ProgCur = 0.0; Set-Progress 0
     try {
         New-RunState
         Write-Log 'Создаю точку восстановления...' 'head'
@@ -1013,9 +1344,9 @@ $btnApply.Add_Click({
             Write-Log ('  точку создать не удалось (' + $_.Exception.Message.Split("`n")[0] + '). Продолжаю, откат реестра доступен.') 'warn'
         }
         $i = 0; $okCount = 0; $failCount = 0
-        foreach ($t in $sel) {
-            Write-Log ('> ' + $t.Title) 'head'
-            try { & $t.Run; Write-Log '  готово' 'ok'; $okCount++ }
+        foreach ($tw in $sel) {
+            Write-Log ('> ' + $tw.Title) 'head'
+            try { & $tw.Run; Write-Log '  готово' 'ok'; $okCount++ }
             catch { Write-Log ('  ошибка: ' + $_.Exception.Message) 'err'; $failCount++ }
             $i++; Set-Progress ($i / $sel.Count)
         }
@@ -1027,43 +1358,51 @@ $btnApply.Add_Click({
         if ($rr -eq 'Yes') { Start-Process shutdown.exe -ArgumentList '/r /t 5 /c "XEOKA PACK"' -WindowStyle Hidden }
     } catch {
         Write-Log ('Критическая ошибка: ' + $_.Exception.Message) 'err'
-    } finally { Set-Busy $false; $barBack.Visible = $false }
-})
-
-$btnRevert.Add_Click({
+    } finally { Set-Busy $false; $barHost.Visible = $false }
+}
+function Invoke-RevertClick {
     if ($script:Busy) { return }
     $r = [System.Windows.Forms.MessageBox]::Show('Вернуть значения реестра, схему питания и параметры сети к состоянию до последнего применения?', 'XEOKA PACK', 'YesNo', 'Question')
     if ($r -ne 'Yes') { return }
     Set-Busy $true
     try { Invoke-Revert } catch { Write-Log ('Ошибка отката: ' + $_.Exception.Message) 'err' } finally { Set-Busy $false }
-})
+}
 
-# ---- страница: инструменты
+# выбор папки пака
+$lblWarn = New-Object System.Windows.Forms.Label
+$lblWarn.Text = 'Папка пака не найдена'
+$lblWarn.Font = $fontSmall; $lblWarn.ForeColor = $cWarn; $lblWarn.BackColor = $cBg; $lblWarn.AutoSize = $false
+$lblWarn.TextAlign = 'MiddleRight'; $lblWarn.SetBounds(400, 14, 280, 30)
+$pageOpt.Controls.Add($lblWarn)
+$btnPick = New-Pill 'Указать папку пака' 'ghost' { Invoke-PickFolder } $fontSmall
+$btnPick.SetBounds(690, 10, 230, 38)
+$pageOpt.Controls.Add($btnPick)
+
+# ---------------------------------------------------------------- страница: инструменты
 $pageTools = New-Page; $pageTools.Visible = $false; $pages['tools'] = $pageTools
-
 $lblT = New-Object System.Windows.Forms.Label
-$lblT.Text = 'Инструменты пака'; $lblT.Font = $fontH1
+$lblT.Text = 'Инструменты пака'; $lblT.Font = $fontH1; $lblT.ForeColor = $cText; $lblT.BackColor = $cBg
 $lblT.AutoSize = $true; $lblT.Location = New-Object System.Drawing.Point(22, 14)
 $pageTools.Controls.Add($lblT)
 $lblT2 = New-Object System.Windows.Forms.Label
-$lblT2.Text = 'Запускаются отдельно. Это то, что нельзя безопасно применить одной кнопкой.'
-$lblT2.Font = $fontSmall; $lblT2.ForeColor = $cDim; $lblT2.AutoSize = $true
+$lblT2.Text = 'Запускаются отдельно: то, что нельзя безопасно применить одной кнопкой.'
+$lblT2.Font = $fontSmall; $lblT2.ForeColor = $cDim; $lblT2.BackColor = $cBg; $lblT2.AutoSize = $true
 $lblT2.Location = New-Object System.Drawing.Point(24, 46)
 $pageTools.Controls.Add($lblT2)
 
 $tools = @(
-    @{ T = 'Windows Defender'; D = 'Переключатель защитника'; P = '6.'; F = 'RUN-WDS.bat' },
-    @{ T = 'Обновления Windows'; D = 'Блокировщик обновлений'; P = '7.'; F = 'RUN-WUB.bat' },
-    @{ T = 'DEVICE-TWEAKER'; D = 'Аффинити, прерывания, USB'; P = '13.'; F = 'RUN-DEVICE-TWEAKER.bat' },
-    @{ T = 'BIOS (SCEWIN)'; D = 'Конфиги BIOS. Читайте инструкцию'; P = '12.'; F = 'SCEWIN-GUI.exe' },
-    @{ T = 'Тип драйвера сети'; D = 'NDIS или NetAdapterCx'; P = '15.'; F = 'RUN-CHECK-NIC-DRIVER-TYPE.PS1.bat' },
-    @{ T = 'Энергосбережение сети'; D = 'Проверка статуса'; P = '9.'; F = 'RUN-CHECK-POWER-MANAGEMENT.bat' },
-    @{ T = 'DDU'; D = 'Удаление драйверов видеокарты'; P = '2.'; F = 'Display Driver Uninstaller.exe' },
-    @{ T = 'NVCleanstall'; D = 'Установка драйвера NVIDIA'; P = '2.'; F = 'NVCleanstall_1.19.0.exe' },
-    @{ T = 'Profile Inspector'; D = 'Профили NVIDIA'; P = '2.'; F = 'nvidiaProfileInspector.exe' },
-    @{ T = 'CRU'; D = 'Настройка разрешений и частот'; P = '3.'; F = 'CRU.exe' },
-    @{ T = 'Autoruns'; D = 'Автозагрузка'; P = '8.'; F = 'Autoruns.exe' },
-    @{ T = 'Службы (PowerRun)'; D = 'Отключение служб. Осторожно'; P = '10.'; F = 'DISABLE-SERVICES.reg' }
+    @{ T = 'Windows Defender'; D = 'Переключатель защитника'; P = '6.'; F = 'RUN-WDS.bat'; G = 'WD'; Risk = $true },
+    @{ T = 'Обновления Windows'; D = 'Блокировщик обновлений'; P = '7.'; F = 'RUN-WUB.bat'; G = 'WU'; Risk = $true },
+    @{ T = 'DEVICE-TWEAKER'; D = 'Аффинити, прерывания, USB'; P = '13.'; F = 'RUN-DEVICE-TWEAKER.bat'; G = 'DT'; Risk = $false },
+    @{ T = 'BIOS (SCEWIN)'; D = 'Конфиги BIOS. Читайте инструкцию'; P = '12.'; F = 'SCEWIN-GUI.exe'; G = 'BIOS'; Risk = $true },
+    @{ T = 'Тип драйвера сети'; D = 'NDIS или NetAdapterCx'; P = '15.'; F = 'RUN-CHECK-NIC-DRIVER-TYPE.PS1.bat'; G = 'NIC'; Risk = $false },
+    @{ T = 'Энергосбережение сети'; D = 'Проверка статуса'; P = '9.'; F = 'RUN-CHECK-POWER-MANAGEMENT.bat'; G = 'PWR'; Risk = $false },
+    @{ T = 'DDU'; D = 'Удаление драйверов видеокарты'; P = '2.'; F = 'Display Driver Uninstaller.exe'; G = 'DDU'; Risk = $false },
+    @{ T = 'NVCleanstall'; D = 'Установка драйвера NVIDIA'; P = '2.'; F = 'NVCleanstall_1.19.0.exe'; G = 'NV'; Risk = $false },
+    @{ T = 'Profile Inspector'; D = 'Профили NVIDIA'; P = '2.'; F = 'nvidiaProfileInspector.exe'; G = 'NPI'; Risk = $false },
+    @{ T = 'CRU'; D = 'Настройка разрешений и частот'; P = '3.'; F = 'CRU.exe'; G = 'CRU'; Risk = $false },
+    @{ T = 'Autoruns'; D = 'Автозагрузка'; P = '8.'; F = 'Autoruns.exe'; G = 'AR'; Risk = $false },
+    @{ T = 'Службы (PowerRun)'; D = 'Отключение служб. Осторожно'; P = '10.'; F = 'DISABLE-SERVICES.reg'; G = 'SVC'; Risk = $true }
 )
 
 function Invoke-ToolCard {
@@ -1087,62 +1426,101 @@ function Invoke-ToolCard {
     } catch { [System.Windows.Forms.MessageBox]::Show("Не удалось запустить: $($_.Exception.Message)") | Out-Null }
 }
 
-$script:ToolCards = New-Object System.Collections.ArrayList
-foreach ($tool in $tools) {
-    $card = New-Object System.Windows.Forms.Panel
-    $card.SetBounds(0, 0, 360, 56)
-    $card.BackColor = $cPanel; $card.Tag = @{ T = 0.0; Target = 0 }
-    $card.Cursor = [System.Windows.Forms.Cursors]::Hand
-    Enable-DoubleBuffer $card
-    $ct = New-Object System.Windows.Forms.Label
-    $ct.Text = $tool.T; $ct.Font = $fontBold; $ct.AutoSize = $false
-    $ct.SetBounds(16, 7, 320, 22); $ct.ForeColor = $cText; $ct.BackColor = $cClear
-    $cd = New-Object System.Windows.Forms.Label
-    $cd.Text = $tool.D; $cd.Font = $fontSmall; $cd.AutoSize = $false
-    $cd.SetBounds(16, 30, 320, 22); $cd.ForeColor = $cDim; $cd.BackColor = $cClear
-    $card.Controls.Add($ct); $card.Controls.Add($cd)
-    $click = { Invoke-ToolCard $tool }.GetNewClosure()
-    $card.Add_Click($click); $ct.Add_Click($click); $cd.Add_Click($click)
-    $card.Add_MouseEnter({ $this.Tag.Target = 1 }); $card.Add_MouseLeave({ $this.Tag.Target = 0 })
-    $ct.Add_MouseEnter({ $this.Parent.Tag.Target = 1 }); $cd.Add_MouseEnter({ $this.Parent.Tag.Target = 1 })
-    $ct.Cursor = [System.Windows.Forms.Cursors]::Hand; $cd.Cursor = [System.Windows.Forms.Cursors]::Hand
-    Set-RoundAuto $card 9
-    $pageTools.Controls.Add($card)
-    [void]$script:ToolCards.Add(@{ Tool = $tool; Card = $card; Title = $ct; Desc = $cd })
+$script:ToolItems = New-Object System.Collections.ArrayList
+foreach ($tl in $tools) { [void]$script:ToolItems.Add(@{ Tool = $tl; X = 0.0; Y = 0.0; W = 0.0; H = 80.0; T = 0.0; Target = 0; Path = $null }) }
+
+$toolsHost = New-Object System.Windows.Forms.Panel
+$toolsHost.SetBounds(22, 84, 940, 440); $toolsHost.BackColor = $cBg
+Enable-DoubleBuffer $toolsHost
+$pageTools.Controls.Add($toolsHost)
+
+function Layout-Tools {
+    $W = $toolsHost.ClientSize.Width
+    $gap = 12.0
+    $cols = 2; if ($W -ge 1200) { $cols = 3 } elseif ($W -lt 700) { $cols = 1 }
+    $cw = ($W - ($cols - 1) * $gap) / $cols
+    $i = 0; $y = 30.0
+    foreach ($ti in $script:ToolItems) {
+        $col = $i % $cols
+        $ti.X = $col * ($cw + $gap); $ti.Y = $y; $ti.W = $cw; $ti.H = 80.0
+        $i++
+        if ($col -eq ($cols - 1)) { $y += 80.0 + $gap }
+    }
+    if (($i % $cols) -ne 0) { $y += 80.0 + $gap }
+    $script:ToolsH = $y
+    $toolsHost.Invalidate()
 }
-$btnFolder = New-Button 'Открыть папку пака' 22 500 220 42 $cPanel2 $cLine $fontBold
-$btnFolder.Add_Click({ Start-Process explorer.exe -ArgumentList ('"' + $script:Root + '"') })
+$script:ToolsH = 0.0
+
+$toolsHost.Add_Paint({
+    try {
+        $g = $_.Graphics; $g.SmoothingMode = 'AntiAlias'
+        $g.FillEllipse((New-Object System.Drawing.SolidBrush($cAmberB)), [single]4, [single]9, [single]9, [single]9)
+        Draw-Text $g 'янтарные значки: меняют защиту или стабильность системы, запускайте внимательно' $fontSmall $cDim 20 3 700 22 $tfL
+        foreach ($ti in $script:ToolItems) {
+            $x = $ti.X; $y = $ti.Y; $w = $ti.W; $h = $ti.H; $t = $ti.T
+            $has = [bool]$ti.Path
+            Draw-Round $g (Mix-Color $cPanel $cRowHover $t) (Mix-Color $cLine $cAccent2 ($t * 0.7)) 1.2 ($x + 0.5) ($y + 0.5) ($w - 1) ($h - 1) 14
+            $c1 = $cAccent; $c2 = $cMagenta
+            if ($ti.Tool.Risk) { $c1 = $cAmberA; $c2 = $cAmberB }
+            if (-not $has) { $c1 = $cLine; $c2 = $cPanel2 }
+            Fill-RoundGrad $g $c1 $c2 ($x + 18) ($y + 18) 44 44 22 50
+            $gt = $ti.Tool.G
+            Draw-Text $g $gt $fontGlyph $cWhite ($x + 18) ($y + 18) 44 44 $tfC
+            $tc = $cText; if (-not $has) { $tc = $cDim }
+            Draw-Text $g $ti.Tool.T $fontRow $tc ($x + 76) ($y + 15) ($w - 76 - 40) 24 $tfL
+            if ($has) { Draw-Text $g $ti.Tool.D $fontSmall $cDim ($x + 76) ($y + 42) ($w - 76 - 40) 22 $tfL }
+            else { Draw-Text $g 'файл не найден: укажите папку пака' $fontSmall $cWarn ($x + 76) ($y + 42) ($w - 76 - 40) 22 $tfL }
+            $pen = New-Object System.Drawing.Pen((Mix-Color $cLine $cAccent2 $t), [single]1.8)
+            $ax = $x + $w - 30 + 5 * $t; $ay = $y + $h / 2
+            $g.DrawLine($pen, [single]$ax, [single]($ay - 6), [single]($ax + 6), [single]$ay)
+            $g.DrawLine($pen, [single]($ax + 6), [single]$ay, [single]$ax, [single]($ay + 6)); $pen.Dispose()
+        }
+    } catch { $script:PaintErr = $_.Exception.Message }
+})
+function Get-ToolHit {
+    param([double]$X, [double]$Y)
+    foreach ($ti in $script:ToolItems) {
+        if ($X -ge $ti.X -and $X -le ($ti.X + $ti.W) -and $Y -ge $ti.Y -and $Y -le ($ti.Y + $ti.H)) { return $ti }
+    }
+    return $null
+}
+$toolsHost.Add_MouseMove({
+    $e = $_
+    $hit = Get-ToolHit $e.X $e.Y
+    foreach ($ti in $script:ToolItems) { $ti.Target = [int]([object]::ReferenceEquals($ti, $hit)) }
+    if ($hit) { $this.Cursor = [System.Windows.Forms.Cursors]::Hand } else { $this.Cursor = [System.Windows.Forms.Cursors]::Default }
+})
+$toolsHost.Add_MouseLeave({ foreach ($ti in $script:ToolItems) { $ti.Target = 0 }; $this.Cursor = [System.Windows.Forms.Cursors]::Default })
+$toolsHost.Add_MouseDown({
+    $e = $_
+    if ($e.Button -ne 'Left') { return }
+    $hit = Get-ToolHit $e.X $e.Y
+    if ($hit) { Invoke-ToolCard $hit.Tool }
+})
+
+$btnFolder = New-Pill 'Открыть папку пака' 'ghost' { Start-Process explorer.exe -ArgumentList ('"' + $script:Root + '"') } $fontBold
+$btnFolder.SetBounds(22, 540, 240, 46)
 $pageTools.Controls.Add($btnFolder)
 
-# ---- выбор папки пака (если авто-поиск не справился)
-$lblWarnOpt = New-Object System.Windows.Forms.Label
-$lblWarnOpt.Text = 'Папка пака не найдена'
-$lblWarnOpt.Font = $fontSmall; $lblWarnOpt.ForeColor = $cWarn; $lblWarnOpt.AutoSize = $false
-$lblWarnOpt.TextAlign = 'MiddleRight'; $lblWarnOpt.SetBounds(400, 16, 280, 28)
-$pageOpt.Controls.Add($lblWarnOpt)
-$btnPickOpt = New-Button 'Указать папку пака' 690 12 204 34 $cPanel2 $cLine $fontSmall
-$pageOpt.Controls.Add($btnPickOpt)
-$lblWarnTools = New-Object System.Windows.Forms.Label
-$lblWarnTools.Text = 'Папка пака не найдена'
-$lblWarnTools.Font = $fontSmall; $lblWarnTools.ForeColor = $cWarn; $lblWarnTools.AutoSize = $false
-$lblWarnTools.TextAlign = 'MiddleRight'; $lblWarnTools.SetBounds(400, 16, 280, 28)
-$pageTools.Controls.Add($lblWarnTools)
-$btnPickTools = New-Button 'Указать папку пака' 690 12 204 34 $cPanel2 $cLine $fontSmall
-$pageTools.Controls.Add($btnPickTools)
+$lblWarn2 = New-Object System.Windows.Forms.Label
+$lblWarn2.Text = 'Папка пака не найдена'
+$lblWarn2.Font = $fontSmall; $lblWarn2.ForeColor = $cWarn; $lblWarn2.BackColor = $cBg; $lblWarn2.AutoSize = $false
+$lblWarn2.TextAlign = 'MiddleRight'; $lblWarn2.SetBounds(400, 14, 280, 30)
+$pageTools.Controls.Add($lblWarn2)
+$btnPick2 = New-Pill 'Указать папку пака' 'ghost' { Invoke-PickFolder } $fontSmall
+$btnPick2.SetBounds(690, 10, 230, 38)
+$pageTools.Controls.Add($btnPick2)
 
 function Update-PackState {
     $script:FileCache = @{}
     $ok = Test-PackRoot $script:Root
-    foreach ($c in @($lblWarnOpt, $btnPickOpt, $lblWarnTools, $btnPickTools)) { $c.Visible = (-not $ok) }
-    if ($ok) { $lblPackPath.Text = ('Пак найден:' + "`n" + $script:Root); $lblPackPath.ForeColor = $cDim }
-    else { $lblPackPath.Text = 'Пак не найден.'; $lblPackPath.ForeColor = $cWarn }
-    foreach ($ci in $script:ToolCards) {
-        $path = Find-PackFile $ci.Tool.P $ci.Tool.F
-        if ($path) { $ci.Desc.Text = $ci.Tool.D; $ci.Desc.ForeColor = $cDim; $ci.Title.ForeColor = $cText }
-        else { $ci.Desc.Text = 'файл не найден: укажите папку пака'; $ci.Desc.ForeColor = $cWarn; $ci.Title.ForeColor = $cDim }
-    }
+    $script:PackOk = $ok
+    foreach ($c in @($lblWarn, $btnPick, $lblWarn2, $btnPick2)) { $c.Visible = (-not $ok) }
+    foreach ($ti in $script:ToolItems) { $ti.Path = Find-PackFile $ti.Tool.P $ti.Tool.F }
+    $nav.Invalidate(); $toolsHost.Invalidate()
 }
-$pickHandler = {
+function Invoke-PickFolder {
     $dlg = New-Object System.Windows.Forms.FolderBrowserDialog
     $dlg.Description = 'Выберите корневую папку пака (где лежат папки «1. База», «2. Драйверы» и т.д.)'
     if ($dlg.ShowDialog() -eq 'OK') {
@@ -1155,162 +1533,319 @@ $pickHandler = {
         }
     }
 }
-$btnPickOpt.Add_Click($pickHandler); $btnPickTools.Add_Click($pickHandler)
 
-# ---- страница: о программе
+# ---------------------------------------------------------------- страница: о программе
 $pageAbout = New-Page; $pageAbout.Visible = $false; $pages['about'] = $pageAbout
-
 $lblA = New-Object System.Windows.Forms.Label
-$lblA.Text = 'О программе'; $lblA.Font = $fontH1
+$lblA.Text = 'О программе'; $lblA.Font = $fontH1; $lblA.ForeColor = $cText; $lblA.BackColor = $cBg
 $lblA.AutoSize = $true; $lblA.Location = New-Object System.Drawing.Point(22, 14)
 $pageAbout.Controls.Add($lblA)
-$lblA2 = New-Object System.Windows.Forms.Label
-$lblA2.Font = $fontUi; $lblA2.ForeColor = $cText; $lblA2.AutoSize = $false
-$lblA2.SetBounds(24, 56, 860, 330)
-$lblA2.Text = @"
-XEOKA PACK собирает в одном окне твики из пака: питание, приоритеты процессов, таймер, MMCSS, сеть, игровые функции и энергосбережение устройств.
 
-Как это работает
-  - Перед применением создаётся точка восстановления.
-  - Каждое изменение реестра запоминается. Кнопка «Откатить последнее» возвращает прежние значения.
-  - Всё, что опасно применять вслепую (Defender, обновления, службы, BIOS), вынесено на вкладку «Инструменты» и запускается отдельно.
+$script:AboutCards = @(
+    @{ Title = 'Безопасно'; Icon = 'check'; Warn = $false; P = @(
+        'Перед применением создаётся точка восстановления Windows.',
+        'Каждое изменение реестра записывается в журнал.',
+        'Кнопка «Откатить последнее» возвращает прежние значения.') },
+    @{ Title = 'Отдельно от кнопки'; Icon = 'grid'; Warn = $false; P = @(
+        'Defender, обновления Windows, службы и BIOS меняют защиту и стабильность системы.',
+        'Поэтому они вынесены на вкладку «Инструменты» и запускаются вручную.') },
+    @{ Title = 'Что нужно знать'; Icon = 'bang'; Warn = $true; P = @(
+        'После применения перезагрузите ПК и проверьте игры и устройства.',
+        'Профиль NVIDIA и энергосбережение устройств кнопкой отката не возвращаются.',
+        'Используйте на свой риск. Автор не отвечает за последствия.') }
+)
+$script:AboutL = $null
+function Get-AboutLayout {
+    param([int]$W)
+    $L = @{}
+    $m = 22; $cw = $W - 2 * $m
+    $L.Hero = New-Object System.Drawing.RectangleF($m, 56, $cw, 132)
+    $cols = 1; if ($cw -ge 900) { $cols = 3 }
+    $gap = 14
+    $cardW = ($cw - ($cols - 1) * $gap) / $cols
+    $textW = [int]($cardW - 56)
+    $cards = New-Object System.Collections.ArrayList
+    $maxH = 0
+    foreach ($c in $script:AboutCards) {
+        $hs = New-Object System.Collections.ArrayList
+        $hh = 74
+        foreach ($ptxt in $c.P) {
+            $sz = [System.Windows.Forms.TextRenderer]::MeasureText($ptxt, $fontDesc, (New-Object System.Drawing.Size($textW, 0)), $tfWrap)
+            [void]$hs.Add($sz.Height); $hh += $sz.Height + 10
+        }
+        $hh += 14
+        if ($hh -gt $maxH) { $maxH = $hh }
+        [void]$cards.Add(@{ Card = $c; Hs = $hs; H = $hh })
+    }
+    $y = 188 + 16.0; $i = 0
+    foreach ($cd in $cards) {
+        $col = $i % $cols
+        $ch = $maxH; if ($cols -eq 1) { $ch = $cd.H }
+        $cd.R = New-Object System.Drawing.RectangleF(($m + $col * ($cardW + $gap)), $y, $cardW, $ch)
+        $i++
+        if ($col -eq ($cols - 1)) { $y += $ch + $gap }
+    }
+    $L.Cards = $cards
+    $L.Banner = New-Object System.Drawing.RectangleF($m, ($y + 2), $cw, 100)
+    $L.FooterY = $y + 2 + 100 + 16
+    $L.M = $m; $L.CW = $cw
+    return $L
+}
+function Draw-Chip {
+    param($G, [string]$Text, [double]$X, [double]$Y)
+    $w = (Measure-W $Text $fontSmall) + 38
+    Draw-Round $G (Alpha-Color $cAccent 46) (Alpha-Color $cAccent2 120) 1 $X $Y $w 28 14
+    $G.FillEllipse((New-Object System.Drawing.SolidBrush($cOk)), [single]($X + 12), [single]($Y + 10), [single]8, [single]8)
+    Draw-Text $G $Text $fontSmall $cText ($X + 26) $Y ($w - 30) 28 $tfL
+    return $w
+}
+function Paint-AboutIcon {
+    param($G, [string]$Kind, [double]$X, [double]$Y, [bool]$Warn)
+    $c1 = $cAccent; $c2 = $cMagenta
+    if ($Warn) { $c1 = $cAmberA; $c2 = $cAmberB }
+    Fill-RoundGrad $G $c1 $c2 $X $Y 36 36 18 50
+    $pen = New-Object System.Drawing.Pen($cWhite, [single]2.2)
+    $pen.StartCap = 'Round'; $pen.EndCap = 'Round'; $pen.LineJoin = 'Round'
+    $cx = $X + 18; $cy = $Y + 18
+    if ($Kind -eq 'check') {
+        $G.DrawLines($pen, [System.Drawing.PointF[]]@( (New-Object System.Drawing.PointF([single]($cx - 7), [single]$cy)), (New-Object System.Drawing.PointF([single]($cx - 2), [single]($cy + 5))), (New-Object System.Drawing.PointF([single]($cx + 7), [single]($cy - 5))) ))
+    } elseif ($Kind -eq 'grid') {
+        foreach ($o in @(@(-7,-7), @(1,-7), @(-7,1), @(1,1))) { Draw-Round $G $cWhite $null 0 ($cx + $o[0]) ($cy + $o[1]) 6 6 1.8 }
+    } else {
+        $G.DrawLine($pen, [single]$cx, [single]($cy - 7), [single]$cx, [single]($cy + 2))
+        $G.FillEllipse([System.Drawing.Brushes]::White, [single]($cx - 1.6), [single]($cy + 5), [single]3.2, [single]3.2)
+    }
+    $pen.Dispose()
+}
 
-Что нужно знать
-  - Часть настроек меняет поведение системы: после применения перезагрузитесь и проверьте игры и устройства.
-  - Профиль NVIDIA и энергосбережение устройств кнопкой отката не возвращаются.
-  - Используйте на свой риск. Автор не отвечает за последствия.
-"@
-$pageAbout.Controls.Add($lblA2)
-$lnkTg2 = New-Object System.Windows.Forms.LinkLabel
-$lnkTg2.Text = ('Автор и поддержка в Telegram: ' + $script:TgLabel)
-$lnkTg2.Font = $fontBold; $lnkTg2.AutoSize = $true
-$lnkTg2.LinkColor = $cAccent2; $lnkTg2.ActiveLinkColor = $cText; $lnkTg2.VisitedLinkColor = $cAccent2
-$lnkTg2.Location = New-Object System.Drawing.Point(24, 400)
-$lnkTg2.Cursor = [System.Windows.Forms.Cursors]::Hand
-$lnkTg2.Add_LinkClicked({ Open-Url $script:TgUrl })
-$pageAbout.Controls.Add($lnkTg2)
+$aboutHost = New-Object System.Windows.Forms.Panel
+$aboutHost.SetBounds(0, 0, 990, 664); $aboutHost.BackColor = $cBg
+Enable-DoubleBuffer $aboutHost
+$pageAbout.Controls.Add($aboutHost)
+$lblA.BringToFront()
+$aboutHost.Add_Paint({
+    try {
+        $L = $script:AboutL
+        if (-not $L) { return }
+        $g = $_.Graphics; $g.SmoothingMode = 'AntiAlias'
+        # --- hero
+        $h = $L.Hero
+        $hp = New-RoundPath $h.X $h.Y $h.Width $h.Height 20
+        $hb = New-Object System.Drawing.Drawing2D.LinearGradientBrush($h, (C '#3A1A7C'), (C '#120A29'), [single]0)
+        $g.FillPath($hb, $hp); $hb.Dispose()
+        $g.SetClip($hp)
+        $g.FillEllipse((New-Object System.Drawing.SolidBrush((Alpha-Color $cAccent2 26))), [single]($h.Right - 250), [single]($h.Y - 90), [single]340, [single]340)
+        $g.FillEllipse((New-Object System.Drawing.SolidBrush((Alpha-Color $cMagenta 20))), [single]($h.Right - 120), [single]($h.Y + 40), [single]200, [single]200)
+        $g.ResetClip()
+        $hpn = New-Object System.Drawing.Pen((Alpha-Color $cAccent2 130), [single]1.2)
+        $g.DrawPath($hpn, $hp); $hpn.Dispose(); $hp.Dispose()
+        $xw = (Measure-W 'XEOKA' $fontHero)
+        Draw-Text $g 'XEOKA' $fontHero $cText ($h.X + 30) ($h.Y + 14) 260 46 $tfL
+        Draw-Text $g 'PACK' $fontHero (Mix-Color $cAccent2 $cMagenta 0.5) ($h.X + 30 + $xw + 12) ($h.Y + 14) 220 46 $tfL
+        Draw-Text $g ('Оптимизация Windows одной кнопкой   -   версия ' + $script:Version) $fontDesc $cDim ($h.X + 32) ($h.Y + 62) ($h.Width - 64) 22 $tfL
+        $cx = $h.X + 32
+        foreach ($chip in @('Точка восстановления', 'Откат изменений', 'Автопоиск пака')) { $cwid = Draw-Chip $g $chip $cx ($h.Y + 90); $cx += $cwid + 10 }
+        # --- карточки
+        foreach ($cd in $L.Cards) {
+            $r = $cd.R
+            Draw-Round $g $cPanel $cLine 1.2 ($r.X + 0.5) ($r.Y + 0.5) ($r.Width - 1) ($r.Height - 1) 18
+            Paint-AboutIcon $g $cd.Card.Icon ($r.X + 20) ($r.Y + 20) $cd.Card.Warn
+            Draw-Text $g $cd.Card.Title $fontRow $cText ($r.X + 68) ($r.Y + 20) ($r.Width - 90) 36 $tfL
+            $py = $r.Y + 74
+            for ($i = 0; $i -lt $cd.Card.P.Count; $i++) {
+                $g.FillEllipse((New-Object System.Drawing.SolidBrush($cAccent2)), [single]($r.X + 22), [single]($py + 6), [single]5, [single]5)
+                Draw-Text $g $cd.Card.P[$i] $fontDesc $cDim ($r.X + 36) $py ($r.Width - 56) ($cd.Hs[$i] + 4) $tfWrap
+                $py += $cd.Hs[$i] + 10
+            }
+        }
+        # --- баннер Telegram
+        $b = $L.Banner
+        $bp = New-RoundPath $b.X $b.Y $b.Width $b.Height 20
+        $bb = New-Object System.Drawing.Drawing2D.LinearGradientBrush($b, (C '#142A55'), (C '#2A1260'), [single]0)
+        $g.FillPath($bb, $bp); $bb.Dispose()
+        $bpn = New-Object System.Drawing.Pen((Alpha-Color $cTgA 110), [single]1.2)
+        $g.DrawPath($bpn, $bp); $bpn.Dispose(); $bp.Dispose()
+        $pulse = ([Math]::Sin($script:Sec * 2.2) + 1) / 2
+        for ($i = 2; $i -ge 1; $i--) {
+            $pen = New-Object System.Drawing.Pen((Alpha-Color $cTgA ((20 + 30 * $pulse) / $i)), [single]2)
+            $rad = 30 + $i * 4
+            $g.DrawEllipse($pen, [single]($b.X + 54 - $rad), [single]($b.Y + 50 - $rad), [single]($rad * 2), [single]($rad * 2)); $pen.Dispose()
+        }
+        Draw-TgBadge $g ($b.X + 54) ($b.Y + 50) 56
+        Draw-Text $g 'АВТОР И ПОДДЕРЖКА В TELEGRAM' $fontTiny $cTgA ($b.X + 100) ($b.Y + 22) 420 16 $tfL
+        Draw-Text $g $script:TgLabel $fontBig $cText ($b.X + 100) ($b.Y + 40) 460 34 $tfL
+        Draw-Text $g ('Журнал и откат: ' + $script:DataDir) $fontTiny $cDim $L.M $L.FooterY ($L.CW - 440) 20 $tfL
+    } catch { $script:PaintErr = $_.Exception.Message }
+})
+$btnTg = New-Pill 'Открыть Telegram' 'primary' { Open-Url $script:TgUrl } $fontBtn
+$btnTg.SetBounds(700, 70, 230, 58)
+$pageAbout.Controls.Add($btnTg); $btnTg.BringToFront()
+$btnLogs = New-Pill 'Открыть журнал' 'ghost' { if (Test-Path $script:DataDir) { Start-Process explorer.exe -ArgumentList ('"' + $script:DataDir + '"') } } $fontSmall
+$pageAbout.Controls.Add($btnLogs); $btnLogs.BringToFront()
+$btnPackFolder = New-Pill 'Открыть папку пака' 'ghost' { Start-Process explorer.exe -ArgumentList ('"' + $script:Root + '"') } $fontSmall
+$pageAbout.Controls.Add($btnPackFolder); $btnPackFolder.BringToFront()
 
-# ---- адаптивная раскладка
+# ---------------------------------------------------------------- адаптивная раскладка
 function Update-Layout {
     if (-not $script:LayoutReady) { return }
     $W = $form.ClientSize.Width; $H = $form.ClientSize.Height
-    if ($W -lt 600 -or $H -lt 400) { return }
+    if ($W -lt 700 -or $H -lt 450) { return }
     $header.SetBounds(0, 0, $W, 96)
-    $btnClose.Left = $W - 46; $btnFs.Left = $W - 92; $btnMin.Left = $W - 138
     $nav.SetBounds(0, 96, 190, ($H - 96))
-    $lblNavNote.Top = [Math]::Max(200, ($nav.Height - 190)); $lblPackPath.Top = [Math]::Max(300, ($nav.Height - 90))
     $pw = $W - 190; $ph = $H - 96
     foreach ($pg in @($pageOpt, $pageTools, $pageAbout)) {
         $pg.Top = 96; $pg.Width = $pw; $pg.Height = $ph
         if ($script:Slide -ne $pg) { $pg.Left = 190 }
     }
-    # оптимизация
-    $logH = [Math]::Max(90, [int]($ph * 0.17))
-    $logBox.SetBounds(22, ($ph - $logH - 18), ($pw - 44), $logH)
-    $barBack.SetBounds(22, ($logBox.Top - 18), ($pw - 44), 8)
-    $btnY = $logBox.Top - 18 - 8 - 14 - 54
+    # --- оптимизация
+    $logH = [Math]::Max(100, [int]($ph * 0.15))
+    $logHost.SetBounds(22, ($ph - $logH - 18), ($pw - 44), $logH)
+    $logBox.SetBounds(16, 10, ($logHost.Width - 32), ($logHost.Height - 20))
+    $barHost.SetBounds(22, ($logHost.Top - 18), ($pw - 44), 10)
+    $btnY = $logHost.Top - 18 - 10 - 10 - 62
     $inner = $pw - 44
-    $w1 = [int]($inner * 0.42); $w2 = [int]($inner * 0.30); $w3 = $inner - $w1 - $w2 - 20
-    $btnApply.SetBounds(22, $btnY, $w1, 54)
-    $btnRevert.SetBounds((22 + $w1 + 10), $btnY, $w2, 54)
-    $btnAll.SetBounds((22 + $w1 + $w2 + 20), $btnY, $w3, 54)
-    $list.SetBounds(16, 54, ($pw - 32), ($btnY - 54 - 14))
-    $rw = $list.ClientSize.Width - 8
-    foreach ($row in $script:RowPanels) {
-        $row.Width = $rw
-        $row.Tag.Title.Width = $rw - 70; $row.Tag.Desc.Width = $rw - 70
-    }
-    $btnPickOpt.Left = $pw - 226; $lblWarnOpt.Left = $pw - 226 - 290
-    $btnPickTools.Left = $pw - 226; $lblWarnTools.Left = $pw - 226 - 290
-    # инструменты
-    $cols = 2; if ($pw -ge 1250) { $cols = 3 }
-    $cw = [int](($pw - 44 - ($cols - 1) * 10) / $cols)
-    $i = 0; $ty = 78
-    foreach ($ci in $script:ToolCards) {
-        $col = $i % $cols
-        $ci.Card.SetBounds((22 + $col * ($cw + 10)), $ty, $cw, 56)
-        $ci.Title.Width = $cw - 32; $ci.Desc.Width = $cw - 32
-        $i++
-        if ($col -eq ($cols - 1)) { $ty += 64 }
-    }
-    if (($i % $cols) -ne 0) { $ty += 64 }
-    $btnFolder.Top = $ty + 14
-    # о программе
-    $lblA2.Width = $pw - 60
+    $w1 = [int]($inner * 0.42); $w2 = [int]($inner * 0.30); $w3 = $inner - $w1 - $w2 - 24
+    $btnApply.SetBounds(18, $btnY, ($w1 + 8), 62)
+    $btnRevert.SetBounds((22 + $w1 + 12), ($btnY + 4), $w2, 54)
+    $btnAll.SetBounds((22 + $w1 + $w2 + 24), ($btnY + 4), $w3, 54)
+    $listHost.SetBounds(22, 54, ($pw - 44), ($btnY - 54 - 8))
+    Layout-List
+    $btnPick.Left = $pw - 252; $lblWarn.Left = $pw - 252 - 290
+    $btnPick2.Left = $pw - 252; $lblWarn2.Left = $pw - 252 - 290
+    # --- инструменты
+    $toolsHost.SetBounds(22, 84, ($pw - 44), ($ph - 84 - 76))
+    Layout-Tools
+    $btnFolder.SetBounds(22, ($ph - 62), 240, 46)
+    # --- о программе
+    $aboutHost.SetBounds(0, 0, $pw, $ph)
+    $script:AboutL = Get-AboutLayout $pw
+    $L = $script:AboutL
+    $btnTg.SetBounds([int]($L.Banner.Right - 250), [int]($L.Banner.Y + 21), 234, 58)
+    $btnPackFolder.SetBounds([int]($L.Banner.Right - 200), [int]$L.FooterY, 200, 40)
+    $btnLogs.SetBounds([int]($L.Banner.Right - 200 - 12 - 180), [int]$L.FooterY, 180, 40)
+    $aboutHost.Invalidate()
+    $nav.Invalidate(); $header.Invalidate()
 }
 $form.Add_Resize({ Update-Layout })
 
-# ---- анимации (по времени, ~60 кадров/с)
+# ---------------------------------------------------------------- анимации (по времени, ~60 кадров/с)
 $script:Sw = [System.Diagnostics.Stopwatch]::StartNew()
 $script:LastMs = 0
 $animTimer = New-Object System.Windows.Forms.Timer
 $animTimer.Interval = 15
 $animTimer.Add_Tick({
-    $now = $script:Sw.ElapsedMilliseconds
-    $dt = ($now - $script:LastMs) / 1000.0
-    $script:LastMs = $now
-    if ($dt -gt 0.1) { $dt = 0.1 }
-    $kHover = 1 - [Math]::Exp(-$dt * 13)
-    $kSlow  = 1 - [Math]::Exp(-$dt * 8)
-    $sec = $now / 1000.0
+    try {
+        $now = $script:Sw.ElapsedMilliseconds
+        $dt = ($now - $script:LastMs) / 1000.0
+        $script:LastMs = $now
+        if ($dt -gt 0.1) { $dt = 0.1 }
+        $script:Sec = $now / 1000.0
+        $sec = $script:Sec
+        $kHover = 1 - [Math]::Exp(-$dt * 13)
+        $kSlow  = 1 - [Math]::Exp(-$dt * 8)
 
-    # появление / закрытие окна
-    if ($script:Closing) {
-        $form.Opacity = [Math]::Max(0.0, $form.Opacity - $dt * 4.5)
-        if ($form.Opacity -le 0.03) { $animTimer.Stop(); $form.Close(); return }
-    } elseif ($form.Opacity -lt 1) {
-        $o = $form.Opacity + (1.0 - $form.Opacity) * $kSlow + 0.004
-        if ($o -ge 0.995) { $o = 1.0 }
-        $form.Opacity = $o
-    }
-
-    # пульсация главной кнопки и логотипа
-    $pk = ([Math]::Sin($sec * 2.1) + 1) / 2
-    if ($btnApply.Enabled) { $btnApply.BackColor = Mix-Color $cAccent $cAccent2 $pk }
-    $lblLogo2.ForeColor = Mix-Color $cAccent2 $cMagenta (([Math]::Sin($sec * 1.3) + 1) / 2)
-
-    # плавная кнопка Telegram
-    $tp = [double]$script:TgP; $tt = [double]$script:TgTarget
-    if ([Math]::Abs($tp - $tt) -gt 0.002) {
-        $tp = $tp + ($tt - $tp) * (1 - [Math]::Exp(-$dt * 9.5))
-        if ([Math]::Abs($tp - $tt) -le 0.002) { $tp = $tt }
-        $script:TgP = $tp
-        $maxW = 44 + $script:TgTextW + 26
-        $header.Invalidate((New-Object System.Drawing.Rectangle(($header.Width - 26 - $maxW - 6), 36, ($maxW + 40), 60)))
-    }
-
-    # подсветка строк и карточек
-    foreach ($pnl in @($script:RowPanels) + @($script:ToolCards | ForEach-Object { $_.Card })) {
-        $st = $pnl.Tag
-        $tgt = [double]$st.Target
-        if ([Math]::Abs($st.T - $tgt) -gt 0.004) {
-            $st.T = $st.T + ($tgt - $st.T) * $kHover
-            if ([Math]::Abs($st.T - $tgt) -le 0.004) { $st.T = $tgt }
-            $pnl.BackColor = Mix-Color $cPanel $cRowHover $st.T
-            $pnl.Invalidate()
+        if ($script:Closing) {
+            $form.Opacity = [Math]::Max(0.0, $form.Opacity - $dt * 4.5)
+            if ($form.Opacity -le 0.03) { $animTimer.Stop(); $form.Close(); return }
+        } elseif ($form.Opacity -lt 1) {
+            $o = $form.Opacity + (1.0 - $form.Opacity) * $kSlow + 0.004
+            if ($o -ge 0.995) { $o = 1.0 }
+            $form.Opacity = $o
         }
-    }
 
-    # въезд страницы
-    if ($script:Slide) {
-        $dx = $script:Slide.Left - 190
-        if ($dx -le 1) { $script:Slide.Left = 190; $script:Slide = $null }
-        else { $script:Slide.Left = 190 + [int]($dx * [Math]::Exp(-$dt * 11)) }
-    }
+        $pk = ([Math]::Sin($sec * 2.1) + 1) / 2
+        $lblLogo2.ForeColor = Mix-Color $cAccent2 $cMagenta (([Math]::Sin($sec * 1.3) + 1) / 2)
+        if ($btnApply.Visible) { $btnApply.Tag.Pulse = $pk; if ($btnApply.Tag.Enabled) { $btnApply.Invalidate() } }
 
-    # плавный прогресс
-    if ($barBack.Visible) {
-        $script:ProgCur = $script:ProgCur + ($script:ProgTarget - $script:ProgCur) * (1 - [Math]::Exp(-$dt * 7))
-        $barFill.Width = [int]($barBack.Width * $script:ProgCur)
-    }
+        # Telegram и кнопки окна
+        $tp = [double]$script:TgP; $tt = [double]$script:TgTarget
+        if ([Math]::Abs($tp - $tt) -gt 0.002) {
+            $tp = $tp + ($tt - $tp) * (1 - [Math]::Exp(-$dt * 9.5))
+            if ([Math]::Abs($tp - $tt) -le 0.002) { $tp = $tt }
+            $script:TgP = $tp
+        }
+        $maxW = 52 + $script:TgTextW + 34
+        $header.Invalidate((New-Object System.Drawing.Rectangle(($header.Width - 26 - $maxW - 10), 30, ($maxW + 40), 64)))
+        for ($i = 0; $i -lt 3; $i++) {
+            $b = $script:WinBtn[$i]
+            $n = Ease-To $b.T $b.Target $kHover
+            if ($n -ne $b.T) { $b.T = $n; $header.Invalidate((Get-WinBtnRect $i)) }
+        }
+
+        # боковое меню
+        $chNav = $false
+        for ($i = 0; $i -lt $script:NavItems.Count; $i++) {
+            $it = $script:NavItems[$i]
+            $n = Ease-To $it.T $it.Target $kHover
+            if ($n -ne $it.T) { $it.T = $n; $chNav = $true }
+            if ($it.Key -eq $script:NavSel) {
+                $ty = 18 + 54 * $i
+                $ny = $script:NavIndY + ($ty - $script:NavIndY) * (1 - [Math]::Exp(-$dt * 14))
+                if ([Math]::Abs($ny - $ty) -lt 0.2) { $ny = $ty }
+                if ($ny -ne $script:NavIndY) { $script:NavIndY = $ny; $chNav = $true }
+            }
+        }
+        if ($chNav) { $nav.Invalidate() }
+
+        # список твиков
+        if ($pageOpt.Visible) {
+            $chList = $false
+            foreach ($it in $script:ListItems) {
+                if ($it.Kind -ne 'row') { continue }
+                $n = Ease-To $it.T $it.Target $kHover; if ($n -ne $it.T) { $it.T = $n; $chList = $true }
+                $n = Ease-To $it.K $it.KT (1 - [Math]::Exp(-$dt * 16)); if ($n -ne $it.K) { $it.K = $n; $chList = $true }
+            }
+            $n = Ease-To $script:SbT $script:SbTarget $kHover; if ($n -ne $script:SbT) { $script:SbT = $n; $chList = $true }
+            if (-not $script:SbDrag -and [Math]::Abs($script:ScrollT - $script:Scroll) -gt 0.4) {
+                $script:Scroll = $script:Scroll + ($script:ScrollT - $script:Scroll) * (1 - [Math]::Exp(-$dt * 16)); $chList = $true
+            } elseif (-not $script:SbDrag -and $script:Scroll -ne $script:ScrollT) { $script:Scroll = $script:ScrollT; $chList = $true }
+            if ($chList) { $listHost.Invalidate() }
+            if ($barHost.Visible) {
+                $script:ProgCur = $script:ProgCur + ($script:ProgTarget - $script:ProgCur) * (1 - [Math]::Exp(-$dt * 7))
+                $barHost.Invalidate()
+            }
+        }
+
+        # инструменты
+        if ($pageTools.Visible) {
+            $chT = $false
+            foreach ($ti in $script:ToolItems) { $n = Ease-To $ti.T $ti.Target $kHover; if ($n -ne $ti.T) { $ti.T = $n; $chT = $true } }
+            if ($chT) { $toolsHost.Invalidate() }
+        }
+        if ($pageAbout.Visible) { $aboutHost.Invalidate((New-Object System.Drawing.Rectangle(0, 0, 200, 200))); if ($script:AboutL) { $aboutHost.Invalidate([System.Drawing.Rectangle]::Round($script:AboutL.Banner)) } }
+
+        # кнопки-пилюли
+        foreach ($pl in $script:Pills) {
+            $st = $pl.Tag
+            $n = Ease-To $st.T $st.Target $kHover
+            if ($n -ne $st.T) { $st.T = $n; $pl.Invalidate() }
+        }
+
+        if ($script:Slide) {
+            $dx = $script:Slide.Left - 190
+            if ($dx -le 1) { $script:Slide.Left = 190; $script:Slide = $null }
+            else { $script:Slide.Left = 190 + [int]($dx * [Math]::Exp(-$dt * 11)) }
+        }
+    } catch { $script:PaintErr = $_.Exception.Message }
 })
-$form.Add_FormClosed({ $animTimer.Stop() })
+$form.Add_FormClosed({
+    $animTimer.Stop()
+    if ($script:WheelFilter) { try { [System.Windows.Forms.Application]::RemoveMessageFilter($script:WheelFilter) } catch { } }
+})
+
+# колесо мыши для списка
+if ($script:WheelFilter) {
+    $script:WheelFilter.Host1 = $listHost
+    $script:WheelFilter.On1 = [Action[int]]{ param($d) Set-ScrollTarget ($script:ScrollT - $d * 0.7) }
+    [System.Windows.Forms.Application]::AddMessageFilter($script:WheelFilter)
+}
 
 $script:LayoutReady = $true
-Set-FullScreen $true
+Set-Mode 'max'
 Update-Layout
 Update-PackState
 Show-Page 'opt'
+$script:NavIndY = 18.0
 Write-Log 'Выберите твики и нажмите «ОПТИМИЗИРОВАТЬ».' 'dim'
 $animTimer.Start()
 [void]$form.ShowDialog()
