@@ -1,7 +1,13 @@
 @echo off
 setlocal EnableExtensions
-set "SCRIPT=%~dp0DEVICE-TWEAKER-UPDATE-2026-XEOKA-UPDATED.ps1"
+set "SCRIPT="
+for %%F in ("%~dp0DEVICE-TWEAKER*.ps1") do set "SCRIPT=%%~fF"
 set "PS=%SystemRoot%\System32\WindowsPowerShell\v1.0\powershell.exe"
+if not defined SCRIPT (
+  echo [ERROR] DEVICE-TWEAKER*.ps1 not found next to this .bat
+  pause
+  exit /b 5
+)
 if not exist "%SCRIPT%" (
   echo [ERROR] PowerShell script not found:
   echo         "%SCRIPT%"

@@ -19,7 +19,7 @@ trap {
     exit 1
 }
 
-$script:Version  = '2.9'
+$script:Version  = '3.0'
 $script:TgUrl    = 'https://t.me/CMEPT0HOCHbIU'
 $script:TgLabel  = 't.me/CMEPT0HOCHbIU'
 $script:Root     = if ($PSScriptRoot) { $PSScriptRoot } else { Split-Path -Parent $MyInvocation.MyCommand.Path }
@@ -478,10 +478,9 @@ function Invoke-Tweak-Nvidia {
     $nip = Find-PackFile '2.' 'XEOKA-OPTIMIZED-V2.nip'
     if (-not $nip) { $nip = Find-PackFile '2.' 'LLC-OPTIMIZED-V2.nip' }
     if (-not $npi -or -not $nip) { throw 'Nvidia Profile Inspector или .nip не найдены.' }
-    $p = Start-Process -FilePath $npi -ArgumentList ('-silentImport "{0}"' -f $nip) -WorkingDirectory (Split-Path $npi) -PassThru -WindowStyle Hidden
-    $t = 0
-    while (-not $p.HasExited -and $t -lt 60) { Start-Sleep -Milliseconds 250; $t++; [System.Windows.Forms.Application]::DoEvents() }
-    if (-not $p.HasExited) { Write-Log '  Profile Inspector всё ещё запущен, проверьте окно' 'warn' }
+    # как «открыть с помощью Profile Inspector»: .nip передаётся программе аргументом
+    Start-Process -FilePath $npi -ArgumentList ('"{0}"' -f $nip) -WorkingDirectory (Split-Path $npi) | Out-Null
+    Write-Log '  Profile Inspector открыт с файлом XEOKA-OPTIMIZED-V2.nip: подтвердите импорт в его окне и нажмите Apply changes' 'warn'
 }
 
 function Invoke-Tweak-DevicePower {
@@ -521,7 +520,7 @@ $script:Tweaks = @(
        Desc = 'Вариант вместо FSE. Включайте только один из двух.';
        Run = { Invoke-Tweak-Fso } },
     @{ Id = 'nvidia';  Group = 'opt'; Default = $false; Title = 'Профиль NVIDIA (XEOKA-OPTIMIZED-V2.nip)';
-       Desc = 'Импорт через Nvidia Profile Inspector. Только для видеокарт NVIDIA. Не откатывается кнопкой отката.';
+       Desc = 'Открывает XEOKA-OPTIMIZED-V2.nip в Profile Inspector, останется подтвердить в окне. Только NVIDIA. Не откатывается.';
        Run = { Invoke-Tweak-Nvidia } }
 )
 
@@ -1537,13 +1536,13 @@ $pageTools = New-Page 'tools'; $pageTools.Visible = $false; $pages['tools'] = $p
 $tools = @(
     @{ T = 'Windows Defender'; D = 'Переключатель защитника'; P = '6.'; F = 'RUN-WDS.bat'; G = 'WD'; Risk = $true },
     @{ T = 'Обновления Windows'; D = 'Блокировщик обновлений'; P = '7.'; F = 'RUN-WUB.bat'; G = 'WU'; Risk = $true },
-    @{ T = 'DEVICE-TWEAKER'; D = 'Аффинити, прерывания, USB'; P = '13.'; F = 'RUN-DEVICE-TWEAKER.bat'; G = 'DT'; Risk = $false },
+    @{ T = 'DEVICE-TWEAKER'; D = 'Аффинити, прерывания, USB'; P = '1'; F = 'DEVICE-TWEAKER*.ps1'; G = 'DT'; Risk = $false },
     @{ T = 'BIOS (SCEWIN)'; D = 'Конфиги BIOS. Читайте инструкцию'; P = '12.'; F = 'SCEWIN-GUI.exe'; G = 'BIOS'; Risk = $true },
     @{ T = 'Тип драйвера сети'; D = 'NDIS или NetAdapterCx'; P = '15.'; F = 'RUN-CHECK-NIC-DRIVER-TYPE.PS1.bat'; G = 'NIC'; Risk = $false },
     @{ T = 'Энергосбережение сети'; D = 'Проверка статуса'; P = '9.'; F = 'RUN-CHECK-POWER-MANAGEMENT.bat'; G = 'PWR'; Risk = $false },
     @{ T = 'DDU'; D = 'Удаление драйверов видеокарты'; P = '2.'; F = 'Display Driver Uninstaller.exe'; G = 'DDU'; Risk = $false },
     @{ T = 'NVCleanstall'; D = 'Установка драйвера NVIDIA'; P = '2.'; F = 'NVCleanstall_1.19.0.exe'; G = 'NV'; Risk = $false },
-    @{ T = 'Profile Inspector'; D = 'Профили NVIDIA'; P = '2.'; F = 'nvidiaProfileInspector.exe'; G = 'NPI'; Risk = $false },
+    @{ T = 'Профиль NVIDIA'; D = 'Откроет .nip в Profile Inspector'; P = '2.'; F = 'nvidiaProfileInspector.exe'; G = 'NPI'; Risk = $false },
     @{ T = 'CRU'; D = 'Настройка разрешений и частот'; P = '3.'; F = 'CRU.exe'; G = 'CRU'; Risk = $false },
     @{ T = 'Autoruns'; D = 'Автозагрузка'; P = '8.'; F = 'Autoruns.exe'; G = 'AR'; Risk = $false },
     @{ T = 'Службы (PowerRun)'; D = 'Отключение служб. Осторожно'; P = '10.'; F = 'DISABLE-SERVICES.reg'; G = 'SVC'; Risk = $true }
@@ -1564,6 +1563,15 @@ function Invoke-ToolCard {
             $pr = Find-PackFile '10.' 'PowerRun_x64.exe'
             if (-not $pr) { [System.Windows.Forms.MessageBox]::Show('PowerRun_x64.exe не найден.') | Out-Null; return }
             Start-Process -FilePath $pr -ArgumentList ('regedit.exe /s "{0}"' -f $p) -WorkingDirectory (Split-Path $pr)
+            return
+        }
+        if ($Tool.F -eq 'nvidiaProfileInspector.exe') {
+            Invoke-Tweak-Nvidia
+            return
+        }
+        if ($p -like '*.ps1') {
+            $psExe = Join-Path $env:SystemRoot 'System32\WindowsPowerShell\v1.0\powershell.exe'
+            Start-Process -FilePath $psExe -ArgumentList ('-NoProfile -ExecutionPolicy Bypass -File "{0}"' -f $p) -WorkingDirectory (Split-Path $p)
             return
         }
         Start-Process -FilePath $p -WorkingDirectory (Split-Path $p)
