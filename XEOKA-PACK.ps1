@@ -19,7 +19,7 @@ trap {
     exit 1
 }
 
-$script:Version  = '2.8'
+$script:Version  = '2.9'
 $script:TgUrl    = 'https://t.me/CMEPT0HOCHbIU'
 $script:TgLabel  = 't.me/CMEPT0HOCHbIU'
 $script:Root     = if ($PSScriptRoot) { $PSScriptRoot } else { Split-Path -Parent $MyInvocation.MyCommand.Path }
@@ -754,14 +754,14 @@ function Build-Bg {
     $bmp = New-Object System.Drawing.Bitmap($W, $H, [System.Drawing.Imaging.PixelFormat]::Format32bppPArgb)
     $g = [System.Drawing.Graphics]::FromImage($bmp)
     $g.SmoothingMode = 'AntiAlias'
-    $g.Clear((C '#030208'))
+    $g.Clear((C '#010003'))
     $glows = @(
-        @{ X = 0.50; Y = 0.10; RX = 0.55; RY = 0.35; C = (C '#7C3AED'); A = 62 },
-        @{ X = 0.88; Y = 0.55; RX = 0.30; RY = 0.35; C = (C '#C026D3'); A = 40 },
-        @{ X = 0.12; Y = 0.65; RX = 0.35; RY = 0.35; C = (C '#4F46E5'); A = 46 },
-        @{ X = 0.60; Y = 0.95; RX = 0.45; RY = 0.28; C = (C '#8B5CF6'); A = 48 },
-        @{ X = 0.30; Y = 0.30; RX = 0.20; RY = 0.20; C = (C '#A855F7'); A = 34 }
+        @{ X = 0.50; Y = 0.02; RX = 0.40; RY = 0.18; C = (C '#7C3AED'); A = 46 },
+        @{ X = 0.92; Y = 0.60; RX = 0.16; RY = 0.22; C = (C '#C026D3'); A = 22 },
+        @{ X = 0.08; Y = 0.72; RX = 0.18; RY = 0.22; C = (C '#4F46E5'); A = 26 },
+        @{ X = 0.62; Y = 0.98; RX = 0.30; RY = 0.14; C = (C '#8B5CF6'); A = 30 }
     )
+)
     foreach ($b in $glows) {
         $cx = $b.X * $W; $cy = $b.Y * $H; $rx = $b.RX * $W; $ry = $b.RY * $H
         $gp = New-Object System.Drawing.Drawing2D.GraphicsPath
@@ -786,7 +786,7 @@ function Build-Streak {
     $rect = New-Object System.Drawing.RectangleF(0, 0, 520, [single]$H)
     $br = New-Object System.Drawing.Drawing2D.LinearGradientBrush($rect, [System.Drawing.Color]::Black, [System.Drawing.Color]::Black, [single]0)
     $cb = New-Object System.Drawing.Drawing2D.ColorBlend(3)
-    $cb.Colors = [System.Drawing.Color[]]@([System.Drawing.Color]::FromArgb(0, 167, 139, 250), [System.Drawing.Color]::FromArgb(34, 167, 139, 250), [System.Drawing.Color]::FromArgb(0, 167, 139, 250))
+    $cb.Colors = [System.Drawing.Color[]]@([System.Drawing.Color]::FromArgb(0, 167, 139, 250), [System.Drawing.Color]::FromArgb(26, 167, 139, 250), [System.Drawing.Color]::FromArgb(0, 167, 139, 250))
     $cb.Positions = [single[]]@(0, 0.5, 1)
     $br.InterpolationColors = $cb
     $mx = New-Object System.Drawing.Drawing2D.Matrix(1, 0, -$sh, 1, [single]($H * $sh), 0)
