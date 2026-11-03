@@ -26,7 +26,7 @@
     <SolidColorBrush x:Key="MagentaBrush" Color="{StaticResource MagentaColor}" po:Freeze="True"/>
     <SolidColorBrush x:Key="CardBrush" Color="#E0120B22" po:Freeze="True"/>
     <SolidColorBrush x:Key="OkBrush" Color="#3DDC97" po:Freeze="True"/>
-    <SolidColorBrush x:Key="WarnBrush" Color="#FFB547" po:Freeze="True"/>
+    <SolidColorBrush x:Key="WarnBrush" Color="#E3B5FF" po:Freeze="True"/>
     <SolidColorBrush x:Key="ErrBrush" Color="#FF5C6C" po:Freeze="True"/>
 
     <LinearGradientBrush x:Key="AccentGradient" StartPoint="0,0" EndPoint="1,1" po:Freeze="True">
@@ -34,8 +34,8 @@
         <GradientStop Color="#C084FC" Offset="1"/>
     </LinearGradientBrush>
     <LinearGradientBrush x:Key="AmberGradient" StartPoint="0,0" EndPoint="1,1" po:Freeze="True">
-        <GradientStop Color="#FFC15A" Offset="0"/>
-        <GradientStop Color="#F2711C" Offset="1"/>
+        <GradientStop Color="#F0ABFC" Offset="0"/>
+        <GradientStop Color="#C026D3" Offset="1"/>
     </LinearGradientBrush>
     <LinearGradientBrush x:Key="MutedGradient" StartPoint="0,0" EndPoint="1,1" po:Freeze="True">
         <GradientStop Color="#2E2152" Offset="0"/>

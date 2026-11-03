@@ -1,5 +1,5 @@
 using System.IO;
-using System.Media;
+using System.Windows.Media;
 using System.Reflection;
 using System.Text.Json;
 
@@ -17,34 +17,62 @@ public sealed class Settings
     public void Save() { try { File.WriteAllText(FilePath, JsonSerializer.Serialize(this)); } catch { } }
 }
 
-/// <summary>Звуки интерфейса (встроены в exe).</summary>
+/// <summary>Звуки интерфейса (встроены в exe). Каждый запуск идёт в свободном плеере, поэтому звуки накладываются друг на друга.</summary>
 public static class SoundFx
 {
     public static bool Enabled { get; set; } = true;
-    static readonly Dictionary<string, SoundPlayer> Players = new();
 
-    static SoundPlayer? Get(string name)
+    sealed class Slot { public MediaPlayer P = new(); public bool Busy; }
+    static readonly Dictionary<string, List<Slot>> Pools = new();
+    static readonly Dictionary<string, Uri> Files = new();
+    const int MaxVoices = 12;
+
+    static Uri? FileFor(string name)
     {
-        if (Players.TryGetValue(name, out var p)) return p;
+        if (Files.TryGetValue(name, out var u)) return u;
         try
         {
-            var asm = Assembly.GetExecutingAssembly();
-            using var s = asm.GetManifestResourceStream("XeokaPack.Assets.Sounds." + name + ".wav");
+            var dir = Path.Combine(Path.GetTempPath(), "XEOKA-PACK-sounds");
+            Directory.CreateDirectory(dir);
+            var path = Path.Combine(dir, name + ".wav");
+            using var s = Assembly.GetExecutingAssembly().GetManifestResourceStream("XeokaPack.Assets.Sounds." + name + ".wav");
             if (s == null) return null;
-            var ms = new MemoryStream();
-            s.CopyTo(ms); ms.Position = 0;
-            p = new SoundPlayer(ms);
-            p.Load();
-            Players[name] = p;
-            return p;
+            using (var f = File.Create(path)) s.CopyTo(f);
+            u = new Uri(path);
+            Files[name] = u;
+            return u;
         }
         catch { return null; }
+    }
+
+    static Slot? Acquire(string name)
+    {
+        var uri = FileFor(name);
+        if (uri == null) return null;
+        if (!Pools.TryGetValue(name, out var list)) Pools[name] = list = new List<Slot>();
+        foreach (var s in list) if (!s.Busy) return s;
+        if (list.Count >= MaxVoices) return list[0];
+        var slot = new Slot();
+        slot.P.Open(uri);
+        slot.P.MediaEnded += (_, _) => slot.Busy = false;
+        slot.P.MediaFailed += (_, _) => slot.Busy = false;
+        list.Add(slot);
+        return slot;
     }
 
     public static void Play(string name)
     {
         if (!Enabled) return;
-        try { Get(name)?.Play(); } catch { }
+        try
+        {
+            var slot = Acquire(name);
+            if (slot == null) return;
+            slot.Busy = true;
+            slot.P.Position = TimeSpan.Zero;
+            slot.P.Volume = 1.0;
+            slot.P.Play();
+        }
+        catch { }
     }
     public static void Tap() => Play("tap");
     public static void Tick() => Play("tick");
