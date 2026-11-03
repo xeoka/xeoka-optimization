@@ -19,3 +19,10 @@ jobs:
         with:
           name: XEOKA-PACK
           path: out/XEOKA-PACK.exe
+      - name: Publish release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete latest --yes --cleanup-tag 2>$null
+          gh release create latest out/XEOKA-PACK.exe --title "XEOKA PACK (последняя сборка)" --notes "Готовый XEOKA-PACK.exe. Запускать от имени администратора (запросит сам). Пак (папки 1-17) должен лежать рядом или в Загрузках." --latest
