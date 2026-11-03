@@ -325,7 +325,7 @@
                             </RadioButton>
                             <RadioButton x:Name="NavAbout" Style="{StaticResource NavItem}" Tag="2" Click="Nav_Click">
                                 <StackPanel Orientation="Horizontal">
-                                    <Path Data="M12,2 A10,10 0 1 1 11.99,2 Z M11,10.5 H13 V17 H11 Z M11,7 H13 V9 H11 Z" FillRule="EvenOdd" Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}" Width="18" Height="18" Stretch="Uniform"/>
+                                    <Path Data="F0 M12,2 A10,10 0 1 1 11.99,2 Z M11,10.5 H13 V17 H11 Z M11,7 H13 V9 H11 Z" Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}" Width="18" Height="18" Stretch="Uniform"/>
                                     <TextBlock Text="О программе" Margin="14,0,0,0" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}"/>
                                 </StackPanel>
                             </RadioButton>
