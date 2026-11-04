@@ -8,6 +8,8 @@ namespace XeokaPack.Core;
 public sealed class Settings
 {
     public bool Sound { get; set; } = true;
+    public string Lang { get; set; } = "auto";
+    public string Theme { get; set; } = "violet";
     static string FilePath => Path.Combine(Paths.DataDir, "settings.json");
     public static Settings Load()
     {

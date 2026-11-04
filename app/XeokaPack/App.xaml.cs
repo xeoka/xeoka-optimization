@@ -25,8 +25,8 @@ public partial class App : Application
 
     static void Report(Exception? ex)
     {
-        var text = ex?.ToString() ?? "неизвестная ошибка";
+        var text = ex?.ToString() ?? Loc.L("неизвестная ошибка", "unknown error");
         try { File.WriteAllText(Path.Combine(Paths.DataDir, "error.txt"), DateTime.Now + Environment.NewLine + text); } catch { }
-        try { MessageBox.Show(text, "XEOKA PACK: ошибка", MessageBoxButton.OK, MessageBoxImage.Error); } catch { }
+        try { MessageBox.Show(text, Loc.L("XEOKA PACK: ошибка", "XEOKA PACK: error"), MessageBoxButton.OK, MessageBoxImage.Error); } catch { }
     }
 }

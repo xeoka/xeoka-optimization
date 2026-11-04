@@ -24,7 +24,7 @@ public static class Sys
         p.OutputDataReceived += (_, e) => { if (e.Data != null) lock (sb) sb.AppendLine(e.Data); };
         p.ErrorDataReceived += (_, e) => { if (e.Data != null) lock (sb) sb.AppendLine(e.Data); };
         p.BeginOutputReadLine(); p.BeginErrorReadLine();
-        if (!p.WaitForExit(timeoutMs)) { try { p.Kill(true); } catch { } return (-1, sb.ToString() + "\n[таймаут]"); }
+        if (!p.WaitForExit(timeoutMs)) { try { p.Kill(true); } catch { } return (-1, sb.ToString() + Loc.L("\n[таймаут]", "\n[timeout]")); }
         p.WaitForExit();
         return (p.ExitCode, sb.ToString());
     }
