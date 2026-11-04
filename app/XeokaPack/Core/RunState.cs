@@ -40,7 +40,7 @@ public sealed class RunState
     /// <summary>Записывает значение, предварительно сохранив прежнее в журнал.</summary>
     public void Apply(RegOp op)
     {
-        var root = Root(op.Hive) ?? throw new InvalidOperationException("Неизвестный раздел реестра: " + op.Hive);
+        var root = Root(op.Hive) ?? throw new InvalidOperationException(Loc.L("Неизвестный раздел реестра: ", "Unknown registry hive: ") + op.Hive);
         using var key = root.OpenSubKey(op.Sub, true) ?? root.CreateSubKey(op.Sub);
         var rec = new RegRecord { Hive = op.Hive, Sub = op.Sub, Name = op.Name };
         if (key.GetValueNames().Contains(op.Name, StringComparer.OrdinalIgnoreCase))
@@ -64,6 +64,23 @@ public sealed class RunState
             case RegKind.Delete: if (rec.Existed) key.DeleteValue(op.Name, false); break;
         }
         Ops.Add(rec);
+    }
+
+    /// <summary>Совпадает ли значение в реестре с тем, что запишет операция (для проверки «применено»).</summary>
+    public static bool Matches(RegOp op)
+    {
+        var root = Root(op.Hive);
+        if (root == null) return false;
+        using var key = root.OpenSubKey(op.Sub, false);
+        if (key == null) return op.Kind == RegKind.Delete;
+        bool has = key.GetValueNames().Contains(op.Name, StringComparer.OrdinalIgnoreCase);
+        switch (op.Kind)
+        {
+            case RegKind.DWord: return has && key.GetValue(op.Name) is int i && i == (int)op.Value!;
+            case RegKind.String: return has && key.GetValue(op.Name) is string s && s == (string)op.Value!;
+            case RegKind.Delete: return !has;
+        }
+        return false;
     }
 
     public static void Restore(RegRecord r)

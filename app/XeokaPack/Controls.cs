@@ -26,6 +26,8 @@ public sealed class LayoutState : Notify
     double _card = 440, _tool = 300, _about = 300;
     public double CardWidth { get => _card; set => Set(ref _card, value); }
     public double ToolWidth { get => _tool; set => Set(ref _tool, value); }
+    double _sum = 230;
+    public double SumWidth { get => _sum; set => Set(ref _sum, value); }
     public double AboutCardWidth { get => _about; set => Set(ref _about, value); }
 }
 
@@ -38,7 +40,23 @@ public sealed class TweakVM : Notify
     public string Id => T.Id;
     public string Title => T.Title;
     public string Desc => T.Desc;
+    TweakState _state;
+    public TweakState State { get => _state; set { if (Set(ref _state, value)) RefreshState(); } }
+    void RefreshState() { Raise(nameof(StateText)); Raise(nameof(StateBrush)); Raise(nameof(StateVis)); }
+    public string StateText => _state switch
+    {
+        TweakState.Applied => "●  " + Loc.L("Применено", "Applied"),
+        TweakState.Partial => "◐  " + Loc.L("Частично", "Partially applied"),
+        TweakState.NotApplied => "○  " + Loc.L("Не применено", "Not applied"),
+        _ => ""
+    };
+    public Brush StateBrush => (Brush)Application.Current.FindResource(_state switch
+    {
+        TweakState.Applied => "OkBrush", TweakState.Partial => "WarnBrush", _ => "DimBrush"
+    });
+    public Visibility StateVis => _state == TweakState.Unknown ? Visibility.Collapsed : Visibility.Visible;
     public bool IsOn { get => _on; set { if (Set(ref _on, value)) Changed?.Invoke(this); } }
+    public void Refresh() { Raise(nameof(Title)); Raise(nameof(Desc)); RefreshState(); }
     public void SetSilently(bool v) { if (Set(ref _on, v, nameof(IsOn))) { } }
 }
 
@@ -51,10 +69,23 @@ public sealed class ToolVM : Notify
     public bool Found => _path != null;
     public string Title => Def.Title;
     public string Glyph => Def.Glyph;
-    public string Info => Found ? Def.Desc : "файл не найден: укажите папку пака";
+    public string Info => Found ? Def.Desc : Loc.L("файл не найден: укажите папку пака", "file not found: pick the pack folder");
     public Brush InfoBrush => (Brush)Application.Current.FindResource(Found ? "DimBrush" : "WarnBrush");
     public Brush Badge => (Brush)Application.Current.FindResource(!Found ? "MutedGradient" : Def.Risk ? "AmberGradient" : "AccentGradient");
     public double Opacity => Found ? 1.0 : 0.75;
+    public void Refresh() { Raise(nameof(Title)); Raise(nameof(Info)); }
+}
+
+public sealed class ThemeVM : Notify
+{
+    readonly ThemeDef _d; readonly Func<string> _cur;
+    public ThemeVM(ThemeDef d, Func<string> cur) { _d = d; _cur = cur; }
+    public string Id => _d.Id;
+    public string Name => Loc.L(_d.NameRu, _d.NameEn);
+    public Brush SwatchBrush => Freeze(new SolidColorBrush((Color)ColorConverter.ConvertFromString(_d.Swatch)));
+    static Brush Freeze(SolidColorBrush b) { b.Freeze(); return b; }
+    public Brush Border => (Brush)Application.Current.FindResource(_cur() == _d.Id || (_cur() is not ("violet" or "cyan" or "emerald" or "rose" or "crimson" or "mono") && _d.Id == "violet") ? "Accent2Brush" : "LineBrush");
+    public void Refresh() { Raise(nameof(Name)); Raise(nameof(Border)); }
 }
 
 public sealed class LogItem

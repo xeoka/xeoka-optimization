@@ -19,7 +19,7 @@
                     Cursor="Hand" Tag="{Binding}" MouseLeftButtonUp="TweakCard_Click" RenderTransformOrigin="0.5,0.5">
                 <Border.RenderTransform><TranslateTransform x:Name="CardT" Y="0"/></Border.RenderTransform>
                 <Grid>
-                    <Border x:Name="OnRing" CornerRadius="16" BorderThickness="1.2" BorderBrush="#8B5CF6" Opacity="0"/>
+                    <Border x:Name="OnRing" CornerRadius="16" BorderThickness="1.2" BorderBrush="{StaticResource AccentBrush}" Opacity="0"/>
                     <Border x:Name="Hover" CornerRadius="16" BorderThickness="1.2" BorderBrush="{StaticResource Accent2Brush}" Background="#1E8B5CF6" Opacity="0"/>
                     <Border x:Name="Bar" Width="4" HorizontalAlignment="Left" Margin="0,24" CornerRadius="2" Background="{StaticResource Accent2Brush}" Opacity="0"/>
                     <Grid Margin="22,14,18,14">
@@ -31,6 +31,7 @@
                         <StackPanel Grid.Column="1" Margin="18,0,0,0" VerticalAlignment="Center">
                             <TextBlock Text="{Binding Title}" FontSize="15" FontWeight="SemiBold" TextWrapping="Wrap"/>
                             <TextBlock Text="{Binding Desc}" FontSize="12.5" Foreground="{StaticResource DimBrush}" TextWrapping="Wrap" Margin="0,4,0,0"/>
+                            <TextBlock Text="{Binding StateText}" Foreground="{Binding StateBrush}" Visibility="{Binding StateVis}" FontSize="11.5" FontWeight="SemiBold" Margin="0,6,0,0"/>
                         </StackPanel>
                     </Grid>
                 </Grid>
@@ -247,7 +248,7 @@
                             </TextBlock.Foreground>
                         </TextBlock>
                     </StackPanel>
-                    <TextBlock x:Name="SubTitle" Text="Оптимизация Windows одной кнопкой" FontSize="12.5" Foreground="#CFC3F5" Margin="3,0,0,0"/>
+                    <TextBlock x:Name="SubTitle" Text="{local:T sub_title}" FontSize="12.5" Foreground="#CFC3F5" Margin="3,0,0,0"/>
                 </StackPanel>
 
                 <!-- кнопки окна -->
@@ -276,7 +277,7 @@
                         </Border.Background>
                     </Border>
                     <StackPanel x:Name="TgTexts" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="22,0,0,0" Opacity="0" IsHitTestVisible="False">
-                        <TextBlock x:Name="TgLine1" Text="Автор в Telegram" FontSize="10.5" Foreground="#B79CFF"/>
+                        <TextBlock x:Name="TgLine1" Text="{local:T tg_author}" FontSize="10.5" Foreground="#B79CFF"/>
                         <TextBlock x:Name="TgLine2" Text="t.me/CMEPT0HOCHbIU" FontSize="15" FontWeight="SemiBold" Foreground="White"/>
                     </StackPanel>
                     <local:TgBadge x:Name="TgBadgeHdr" Width="50" Height="50" HorizontalAlignment="Right" IsHitTestVisible="False"/>
@@ -314,19 +315,25 @@
                             <RadioButton x:Name="NavOpt" Style="{StaticResource NavItem}" IsChecked="True" Tag="0" Click="Nav_Click" Margin="0,0,0,8">
                                 <StackPanel Orientation="Horizontal">
                                     <Path Data="M13,2 L4,14 L11,14 L9,22 L20,9 L13,9 Z" Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}" Width="18" Height="18" Stretch="Uniform"/>
-                                    <TextBlock Text="Оптимизация" Margin="14,0,0,0" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}"/>
+                                    <TextBlock Text="{local:T nav_opt}" Margin="14,0,0,0" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}"/>
                                 </StackPanel>
                             </RadioButton>
                             <RadioButton x:Name="NavTools" Style="{StaticResource NavItem}" Tag="1" Click="Nav_Click" Margin="0,0,0,8">
                                 <StackPanel Orientation="Horizontal">
                                     <Path Data="M3,3 H10 V10 H3 Z M14,3 H21 V10 H14 Z M3,14 H10 V21 H3 Z M14,14 H21 V21 H14 Z" Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}" Width="18" Height="18" Stretch="Uniform"/>
-                                    <TextBlock Text="Инструменты" Margin="14,0,0,0" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}"/>
+                                    <TextBlock Text="{local:T nav_tools}" Margin="14,0,0,0" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}"/>
                                 </StackPanel>
                             </RadioButton>
-                            <RadioButton x:Name="NavAbout" Style="{StaticResource NavItem}" Tag="2" Click="Nav_Click">
+                            <RadioButton x:Name="NavAbout" Style="{StaticResource NavItem}" Tag="2" Click="Nav_Click" Margin="0,0,0,8">
                                 <StackPanel Orientation="Horizontal">
                                     <Path Data="F0 M12,2 A10,10 0 1 1 11.99,2 Z M11,10.5 H13 V17 H11 Z M11,7 H13 V9 H11 Z" Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}" Width="18" Height="18" Stretch="Uniform"/>
-                                    <TextBlock Text="О программе" Margin="14,0,0,0" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}"/>
+                                    <TextBlock Text="{local:T nav_about}" Margin="14,0,0,0" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}"/>
+                                </StackPanel>
+                            </RadioButton>
+                            <RadioButton x:Name="NavSettings" Style="{StaticResource NavItem}" Tag="3" Click="Nav_Click" Margin="0,0,0,8">
+                                <StackPanel Orientation="Horizontal">
+                                    <Path Data="F0 M12,8.5 A3.5,3.5 0 1 0 12,15.5 A3.5,3.5 0 1 0 12,8.5 Z M10.5,2 H13.5 L14,4.6 L16,5.5 L18.2,4 L20.3,6.1 L18.8,8.3 L19.6,10.3 L22,10.8 V13.2 L19.6,13.7 L18.8,15.7 L20.3,17.9 L18.2,20 L16,18.5 L14,19.4 L13.5,22 H10.5 L10,19.4 L8,18.5 L5.8,20 L3.7,17.9 L5.2,15.7 L4.4,13.7 L2,13.2 V10.8 L4.4,10.3 L5.2,8.3 L3.7,6.1 L5.8,4 L8,5.5 L10,4.6 Z" Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}" Width="18" Height="18" Stretch="Uniform"/>
+                                    <TextBlock Text="{local:T nav_settings}" Margin="14,0,0,0" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}"/>
                                 </StackPanel>
                             </RadioButton>
                         </StackPanel>
@@ -335,15 +342,15 @@
                             <Border x:Name="SoundBtn" Cursor="Hand" Background="Transparent" Margin="6,0,0,10" MouseLeftButtonUp="SoundBtn_Click">
                                 <StackPanel Orientation="Horizontal">
                                     <Path x:Name="SoundIcon" Data="M3,9 H7 L12,5 V19 L7,15 H3 Z M15,9 Q18,12 15,15 M17.5,6.5 Q23,12 17.5,17.5" Fill="#9D92BE" Stroke="#9D92BE" StrokeThickness="1.6" Width="18" Height="18" Stretch="Uniform"/>
-                                    <TextBlock x:Name="SoundText" Text="Звуки: вкл" FontSize="12" Foreground="{StaticResource DimBrush}" Margin="10,0,0,0" VerticalAlignment="Center"/>
+                                    <TextBlock x:Name="SoundText" Text="{local:T snd_on}" FontSize="12" Foreground="{StaticResource DimBrush}" Margin="10,0,0,0" VerticalAlignment="Center"/>
                                 </StackPanel>
                             </Border>
-                            <TextBlock Text="F11 — на весь экран" FontSize="11" Foreground="#6F6596" Margin="6,0,0,10"/>
+                            <TextBlock Text="{local:T hint_f11}" FontSize="11" Foreground="#6F6596" Margin="6,0,0,10"/>
                             <Border CornerRadius="14" Background="#CC120B22" BorderBrush="{StaticResource LineBrush}" BorderThickness="1.2" Padding="14,12">
                                 <StackPanel>
                                     <StackPanel Orientation="Horizontal">
                                         <Ellipse x:Name="PackDot" Width="9" Height="9" Fill="{StaticResource WarnBrush}" VerticalAlignment="Center"/>
-                                        <TextBlock x:Name="PackStatus" Text="Ищу пак..." FontSize="13" FontWeight="SemiBold" Margin="9,0,0,0"/>
+                                        <TextBlock x:Name="PackStatus" Text="{local:T pack_searching}" FontSize="13" FontWeight="SemiBold" Margin="9,0,0,0"/>
                                     </StackPanel>
                                     <TextBlock x:Name="PackPath" Text="" FontSize="10.5" Foreground="{StaticResource DimBrush}" TextWrapping="Wrap" Margin="0,6,0,0" MaxHeight="46" TextTrimming="CharacterEllipsis"/>
                                 </StackPanel>
@@ -365,17 +372,33 @@
                             <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
                         <Grid Grid.Row="0" Margin="0,0,0,12">
-                            <TextBlock Text="Что применить" Style="{StaticResource H1}" VerticalAlignment="Center"/>
+                            <TextBlock Text="{local:T opt_title}" Style="{StaticResource H1}" VerticalAlignment="Center"/>
                             <StackPanel x:Name="PackWarnPanelOpt" Orientation="Horizontal" HorizontalAlignment="Right" Visibility="Collapsed">
-                                <TextBlock Text="Папка пака не найдена" Foreground="{StaticResource WarnBrush}" FontSize="13" VerticalAlignment="Center" Margin="0,0,14,0"/>
-                                <Button Content="Указать папку пака" Style="{StaticResource GhostButton}" Height="38" Padding="18,0" Click="PickBtn_Click"/>
+                                <TextBlock Text="{local:T pack_missing}" Foreground="{StaticResource WarnBrush}" FontSize="13" VerticalAlignment="Center" Margin="0,0,14,0"/>
+                                <Button Content="{local:T pick_pack}" Style="{StaticResource GhostButton}" Height="38" Padding="18,0" Click="PickBtn_Click"/>
                             </StackPanel>
                         </Grid>
                         <local:SmoothScrollViewer x:Name="OptScroll" Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" SizeChanged="OptScroll_SizeChanged">
                             <StackPanel Margin="0,0,10,0">
+                                <Border Style="{StaticResource InfoCard}" Margin="0,0,0,14" Padding="20,14,12,6">
+                                    <StackPanel>
+                                        <TextBlock Text="{local:T sum_title}" Style="{StaticResource GroupLabel}" Margin="0,0,0,10"/>
+                                        <ItemsControl x:Name="SumList">
+                                            <ItemsControl.ItemsPanel><ItemsPanelTemplate><WrapPanel/></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                    <StackPanel Width="{Binding Source={StaticResource Layout}, Path=SumWidth}" Margin="0,0,12,10">
+                                                        <TextBlock Text="{Binding Label}" FontSize="11" Foreground="{StaticResource DimBrush}"/>
+                                                        <TextBlock Text="{Binding Value}" FontSize="13.5" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" ToolTip="{Binding Value}"/>
+                                                    </StackPanel>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                    </StackPanel>
+                                </Border>
                                 <Grid Margin="0,2,0,12">
                                     <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
-                                    <TextBlock Text="РЕКОМЕНДУЕМЫЕ" Style="{StaticResource GroupLabel}" VerticalAlignment="Center"/>
+                                    <TextBlock Text="{local:T grp_rec}" Style="{StaticResource GroupLabel}" VerticalAlignment="Center"/>
                                     <Rectangle Grid.Column="1" Height="1" Fill="{StaticResource LineBrush}" Margin="14,0,0,0" VerticalAlignment="Center"/>
                                 </Grid>
                                 <ItemsControl x:Name="RecList" ItemTemplate="{StaticResource TweakCard}">
@@ -383,7 +406,7 @@
                                 </ItemsControl>
                                 <Grid Margin="0,6,0,12">
                                     <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
-                                    <TextBlock Text="ДОПОЛНИТЕЛЬНЫЕ" Style="{StaticResource GroupLabel}" VerticalAlignment="Center"/>
+                                    <TextBlock Text="{local:T grp_opt}" Style="{StaticResource GroupLabel}" VerticalAlignment="Center"/>
                                     <Rectangle Grid.Column="1" Height="1" Fill="{StaticResource LineBrush}" Margin="14,0,0,0" VerticalAlignment="Center"/>
                                 </Grid>
                                 <ItemsControl x:Name="OptList" ItemTemplate="{StaticResource TweakCard}">
@@ -397,9 +420,9 @@
                                 <ColumnDefinition Width="1.5*"/>
                                 <ColumnDefinition Width="1.2*"/>
                             </Grid.ColumnDefinitions>
-                            <Button x:Name="ApplyBtn" Content="ОПТИМИЗИРОВАТЬ" Style="{StaticResource PrimaryButton}" Margin="6,6,12,6" Click="ApplyBtn_Click"/>
-                            <Button x:Name="RevertBtn" Grid.Column="1" Content="Откатить последнее" Style="{StaticResource GhostButton}" Margin="0,4,12,4" Click="RevertBtn_Click"/>
-                            <Button x:Name="AllBtn" Grid.Column="2" Content="Все / никакие" Style="{StaticResource GhostButton}" Margin="0,4,0,4" Click="AllBtn_Click"/>
+                            <Button x:Name="ApplyBtn" Content="{local:T btn_apply}" Style="{StaticResource PrimaryButton}" Margin="6,6,12,6" Click="ApplyBtn_Click"/>
+                            <Button x:Name="RevertBtn" Grid.Column="1" Content="{local:T btn_revert}" Style="{StaticResource GhostButton}" Margin="0,4,12,4" Click="RevertBtn_Click"/>
+                            <Button x:Name="AllBtn" Grid.Column="2" Content="{local:T btn_all}" Style="{StaticResource GhostButton}" Margin="0,4,0,4" Click="AllBtn_Click"/>
                         </Grid>
                         <Border x:Name="ProgTrack" Grid.Row="3" Height="8" CornerRadius="4" Margin="0,14,0,0" Background="{StaticResource Panel2Brush}" Visibility="Collapsed">
                             <Border x:Name="ProgFill" CornerRadius="4" HorizontalAlignment="Stretch" RenderTransformOrigin="0,0.5" Background="{StaticResource AccentGradient}">
@@ -411,6 +434,25 @@
                                 <ItemsControl x:Name="LogList" ItemTemplate="{StaticResource LogLine}" Margin="0,0,10,0"/>
                             </local:SmoothScrollViewer>
                         </Border>
+
+                        <!-- Анимация применения -->
+                        <Grid x:Name="ApplyFx" Grid.RowSpan="5" Visibility="Collapsed" Opacity="0" Panel.ZIndex="20">
+                            <Rectangle Fill="#D9030208" RadiusX="18" RadiusY="18"/>
+                            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                                <Grid Width="120" Height="120" HorizontalAlignment="Center">
+                                    <Ellipse Stroke="{StaticResource LineBrush}" StrokeThickness="5" Margin="8"/>
+                                    <Path x:Name="FxArc" Data="M60,8 A52,52 0 0 1 112,60" Stroke="{StaticResource AccentGradient}" StrokeThickness="5" StrokeStartLineCap="Round" StrokeEndLineCap="Round" RenderTransformOrigin="0.5,0.5">
+                                        <Path.RenderTransform><RotateTransform x:Name="FxRot"/></Path.RenderTransform>
+                                        <Path.Effect><DropShadowEffect Color="#8B5CF6" BlurRadius="16" ShadowDepth="0" Opacity="0.9"/></Path.Effect>
+                                    </Path>
+                                    <Path x:Name="FxCheck" Data="M36,62 L54,80 L86,42" Stroke="{StaticResource OkBrush}" StrokeThickness="7" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round" Opacity="0" RenderTransformOrigin="0.5,0.5">
+                                        <Path.RenderTransform><ScaleTransform x:Name="FxCheckScale" ScaleX="0.4" ScaleY="0.4"/></Path.RenderTransform>
+                                    </Path>
+                                </Grid>
+                                <TextBlock x:Name="FxTitle" Text="{local:T fx_working}" FontSize="22" FontWeight="SemiBold" HorizontalAlignment="Center" Margin="0,18,0,0"/>
+                                <TextBlock x:Name="FxStep" FontSize="14" Foreground="{StaticResource DimBrush}" HorizontalAlignment="Center" Margin="0,6,0,0"/>
+                            </StackPanel>
+                        </Grid>
                     </Grid>
 
                     <!-- ===== Инструменты ===== -->
@@ -423,18 +465,18 @@
                         </Grid.RowDefinitions>
                         <Grid Margin="0,0,0,14">
                             <StackPanel>
-                                <TextBlock Text="Инструменты пака" Style="{StaticResource H1}"/>
+                                <TextBlock Text="{local:T tools_title}" Style="{StaticResource H1}"/>
                                 <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
-                                    <TextBlock Text="Запускаются отдельно: то, что нельзя безопасно применить одной кнопкой." FontSize="13" Foreground="{StaticResource DimBrush}"/>
+                                    <TextBlock Text="{local:T tools_sub}" FontSize="13" Foreground="{StaticResource DimBrush}"/>
                                 </StackPanel>
                                 <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
                                     <Ellipse Width="9" Height="9" Fill="{StaticResource AmberGradient}" VerticalAlignment="Center"/>
-                                    <TextBlock Text="янтарные значки: меняют защиту или стабильность системы, запускайте внимательно" FontSize="12.5" Foreground="{StaticResource DimBrush}" Margin="8,0,0,0"/>
+                                    <TextBlock Text="{local:T tools_risk}" FontSize="12.5" Foreground="{StaticResource DimBrush}" Margin="8,0,0,0"/>
                                 </StackPanel>
                             </StackPanel>
                             <StackPanel x:Name="PackWarnPanelTools" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top" Visibility="Collapsed">
-                                <TextBlock Text="Папка пака не найдена" Foreground="{StaticResource WarnBrush}" FontSize="13" VerticalAlignment="Center" Margin="0,0,14,0"/>
-                                <Button Content="Указать папку пака" Style="{StaticResource GhostButton}" Height="38" Padding="18,0" Click="PickBtn_Click"/>
+                                <TextBlock Text="{local:T pack_missing}" Foreground="{StaticResource WarnBrush}" FontSize="13" VerticalAlignment="Center" Margin="0,0,14,0"/>
+                                <Button Content="{local:T pick_pack}" Style="{StaticResource GhostButton}" Height="38" Padding="18,0" Click="PickBtn_Click"/>
                             </StackPanel>
                         </Grid>
                         <local:SmoothScrollViewer x:Name="ToolsScroll" Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" SizeChanged="ToolsScroll_SizeChanged">
@@ -443,7 +485,7 @@
                             </ItemsControl>
                         </local:SmoothScrollViewer>
                         <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,12,0,0">
-                            <Button Content="Открыть папку пака" Style="{StaticResource GhostButton}" Width="240" Height="46" Click="OpenPackBtn_Click"/>
+                            <Button Content="{local:T open_pack}" Style="{StaticResource GhostButton}" Width="240" Height="46" Click="OpenPackBtn_Click"/>
                         </StackPanel>
                     </Grid>
 
@@ -454,7 +496,7 @@
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="*"/>
                         </Grid.RowDefinitions>
-                        <TextBlock Text="О программе" Style="{StaticResource H1}" Margin="0,0,0,14"/>
+                        <TextBlock Text="{local:T nav_about}" Style="{StaticResource H1}" Margin="0,0,0,14"/>
                         <local:SmoothScrollViewer x:Name="AboutScroll" Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" SizeChanged="AboutScroll_SizeChanged">
                             <StackPanel Margin="0,0,10,0">
                                 <!-- hero -->
@@ -474,19 +516,19 @@
                                                 <TextBlock Text="XEOKA" FontSize="46" FontWeight="Black" Foreground="White"/>
                                                 <TextBlock Text="PACK" FontSize="46" FontWeight="Black" Foreground="#E3C9FF" Margin="14,0,0,0"/>
                                             </StackPanel>
-                                            <TextBlock x:Name="AboutVersion" Text="Оптимизация Windows одной кнопкой" FontSize="14" Foreground="#CFC3F5" Margin="3,0,0,14"/>
+                                            <TextBlock x:Name="AboutVersion" Text="{local:T sub_title}" FontSize="14" Foreground="#CFC3F5" Margin="3,0,0,14"/>
                                             <WrapPanel>
                                                 <Border CornerRadius="15" Background="#30000000" BorderBrush="#66A78BFA" BorderThickness="1" Padding="12,6" Margin="0,0,10,8">
-                                                    <StackPanel Orientation="Horizontal"><Ellipse Width="8" Height="8" Fill="{StaticResource OkBrush}" VerticalAlignment="Center"/><TextBlock Text="Точка восстановления" Style="{StaticResource ChipText}"/></StackPanel>
+                                                    <StackPanel Orientation="Horizontal"><Ellipse Width="8" Height="8" Fill="{StaticResource OkBrush}" VerticalAlignment="Center"/><TextBlock Text="{local:T chip_rp}" Style="{StaticResource ChipText}"/></StackPanel>
                                                 </Border>
                                                 <Border CornerRadius="15" Background="#30000000" BorderBrush="#66A78BFA" BorderThickness="1" Padding="12,6" Margin="0,0,10,8">
-                                                    <StackPanel Orientation="Horizontal"><Ellipse Width="8" Height="8" Fill="{StaticResource OkBrush}" VerticalAlignment="Center"/><TextBlock Text="Откат изменений" Style="{StaticResource ChipText}"/></StackPanel>
+                                                    <StackPanel Orientation="Horizontal"><Ellipse Width="8" Height="8" Fill="{StaticResource OkBrush}" VerticalAlignment="Center"/><TextBlock Text="{local:T chip_revert}" Style="{StaticResource ChipText}"/></StackPanel>
                                                 </Border>
                                                 <Border CornerRadius="15" Background="#30000000" BorderBrush="#66A78BFA" BorderThickness="1" Padding="12,6" Margin="0,0,10,8">
-                                                    <StackPanel Orientation="Horizontal"><Ellipse Width="8" Height="8" Fill="{StaticResource OkBrush}" VerticalAlignment="Center"/><TextBlock Text="Автопоиск пака" Style="{StaticResource ChipText}"/></StackPanel>
+                                                    <StackPanel Orientation="Horizontal"><Ellipse Width="8" Height="8" Fill="{StaticResource OkBrush}" VerticalAlignment="Center"/><TextBlock Text="{local:T chip_auto}" Style="{StaticResource ChipText}"/></StackPanel>
                                                 </Border>
                                                 <Border CornerRadius="15" Background="#30000000" BorderBrush="#66A78BFA" BorderThickness="1" Padding="12,6" Margin="0,0,10,8">
-                                                    <StackPanel Orientation="Horizontal"><Ellipse Width="8" Height="8" Fill="{StaticResource OkBrush}" VerticalAlignment="Center"/><TextBlock Text="Права администратора" Style="{StaticResource ChipText}"/></StackPanel>
+                                                    <StackPanel Orientation="Horizontal"><Ellipse Width="8" Height="8" Fill="{StaticResource OkBrush}" VerticalAlignment="Center"/><TextBlock Text="{local:T chip_admin}" Style="{StaticResource ChipText}"/></StackPanel>
                                                 </Border>
                                             </WrapPanel>
                                         </StackPanel>
@@ -502,11 +544,11 @@
                                                     <Ellipse Fill="{StaticResource AccentGradient}"/>
                                                     <Path Data="M12,20 L18,26 L28,14" Stroke="White" StrokeThickness="2.6" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
                                                 </Grid>
-                                                <TextBlock Text="Безопасно" FontSize="17" FontWeight="SemiBold" Margin="14,0,0,0" VerticalAlignment="Center"/>
+                                                <TextBlock Text="{local:T c1_title}" FontSize="17" FontWeight="SemiBold" Margin="14,0,0,0" VerticalAlignment="Center"/>
                                             </StackPanel>
-                                            <Grid Margin="0,0,0,8"><Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition/></Grid.ColumnDefinitions><Ellipse Style="{StaticResource Bullet}"/><TextBlock Grid.Column="1" Style="{StaticResource BulletText}" Text="Перед применением создаётся точка восстановления Windows."/></Grid>
-                                            <Grid Margin="0,0,0,8"><Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition/></Grid.ColumnDefinitions><Ellipse Style="{StaticResource Bullet}"/><TextBlock Grid.Column="1" Style="{StaticResource BulletText}" Text="Каждое изменение реестра записывается в журнал."/></Grid>
-                                            <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition/></Grid.ColumnDefinitions><Ellipse Style="{StaticResource Bullet}"/><TextBlock Grid.Column="1" Style="{StaticResource BulletText}" Text="Кнопка «Откатить последнее» возвращает прежние значения."/></Grid>
+                                            <Grid Margin="0,0,0,8"><Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition/></Grid.ColumnDefinitions><Ellipse Style="{StaticResource Bullet}"/><TextBlock Grid.Column="1" Style="{StaticResource BulletText}" Text="{local:T c1_b1}"/></Grid>
+                                            <Grid Margin="0,0,0,8"><Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition/></Grid.ColumnDefinitions><Ellipse Style="{StaticResource Bullet}"/><TextBlock Grid.Column="1" Style="{StaticResource BulletText}" Text="{local:T c1_b2}"/></Grid>
+                                            <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition/></Grid.ColumnDefinitions><Ellipse Style="{StaticResource Bullet}"/><TextBlock Grid.Column="1" Style="{StaticResource BulletText}" Text="{local:T c1_b3}"/></Grid>
                                         </StackPanel>
                                     </Border>
                                     <Border Style="{StaticResource InfoCard}" Width="{Binding Source={StaticResource Layout}, Path=AboutCardWidth}">
@@ -516,10 +558,10 @@
                                                     <Ellipse Fill="{StaticResource AccentGradient}"/>
                                                     <Path Data="M12,12 H19 V19 H12 Z M21,12 H28 V19 H21 Z M12,21 H19 V28 H12 Z M21,21 H28 V28 H21 Z" Fill="White"/>
                                                 </Grid>
-                                                <TextBlock Text="Отдельно от кнопки" FontSize="17" FontWeight="SemiBold" Margin="14,0,0,0" VerticalAlignment="Center"/>
+                                                <TextBlock Text="{local:T c2_title}" FontSize="17" FontWeight="SemiBold" Margin="14,0,0,0" VerticalAlignment="Center"/>
                                             </StackPanel>
-                                            <Grid Margin="0,0,0,8"><Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition/></Grid.ColumnDefinitions><Ellipse Style="{StaticResource Bullet}"/><TextBlock Grid.Column="1" Style="{StaticResource BulletText}" Text="Defender, обновления Windows, службы и BIOS меняют защиту и стабильность системы."/></Grid>
-                                            <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition/></Grid.ColumnDefinitions><Ellipse Style="{StaticResource Bullet}"/><TextBlock Grid.Column="1" Style="{StaticResource BulletText}" Text="Поэтому они вынесены на вкладку «Инструменты» и запускаются вручную."/></Grid>
+                                            <Grid Margin="0,0,0,8"><Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition/></Grid.ColumnDefinitions><Ellipse Style="{StaticResource Bullet}"/><TextBlock Grid.Column="1" Style="{StaticResource BulletText}" Text="{local:T c2_b1}"/></Grid>
+                                            <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition/></Grid.ColumnDefinitions><Ellipse Style="{StaticResource Bullet}"/><TextBlock Grid.Column="1" Style="{StaticResource BulletText}" Text="{local:T c2_b2}"/></Grid>
                                         </StackPanel>
                                     </Border>
                                     <Border Style="{StaticResource InfoCard}" Width="{Binding Source={StaticResource Layout}, Path=AboutCardWidth}">
@@ -530,11 +572,11 @@
                                                     <Path Data="M20,12 V22" Stroke="White" StrokeThickness="2.6" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
                                                     <Ellipse Width="3.6" Height="3.6" Fill="White" Margin="0,16,0,0"/>
                                                 </Grid>
-                                                <TextBlock Text="Что нужно знать" FontSize="17" FontWeight="SemiBold" Margin="14,0,0,0" VerticalAlignment="Center"/>
+                                                <TextBlock Text="{local:T c3_title}" FontSize="17" FontWeight="SemiBold" Margin="14,0,0,0" VerticalAlignment="Center"/>
                                             </StackPanel>
-                                            <Grid Margin="0,0,0,8"><Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition/></Grid.ColumnDefinitions><Ellipse Style="{StaticResource Bullet}"/><TextBlock Grid.Column="1" Style="{StaticResource BulletText}" Text="После применения перезагрузите ПК и проверьте игры и устройства."/></Grid>
-                                            <Grid Margin="0,0,0,8"><Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition/></Grid.ColumnDefinitions><Ellipse Style="{StaticResource Bullet}"/><TextBlock Grid.Column="1" Style="{StaticResource BulletText}" Text="Профиль NVIDIA и энергосбережение устройств кнопкой отката не возвращаются."/></Grid>
-                                            <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition/></Grid.ColumnDefinitions><Ellipse Style="{StaticResource Bullet}"/><TextBlock Grid.Column="1" Style="{StaticResource BulletText}" Text="Используйте на свой риск. Автор не отвечает за последствия."/></Grid>
+                                            <Grid Margin="0,0,0,8"><Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition/></Grid.ColumnDefinitions><Ellipse Style="{StaticResource Bullet}"/><TextBlock Grid.Column="1" Style="{StaticResource BulletText}" Text="{local:T c3_b1}"/></Grid>
+                                            <Grid Margin="0,0,0,8"><Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition/></Grid.ColumnDefinitions><Ellipse Style="{StaticResource Bullet}"/><TextBlock Grid.Column="1" Style="{StaticResource BulletText}" Text="{local:T c3_b2}"/></Grid>
+                                            <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition/></Grid.ColumnDefinitions><Ellipse Style="{StaticResource Bullet}"/><TextBlock Grid.Column="1" Style="{StaticResource BulletText}" Text="{local:T c3_b3}"/></Grid>
                                         </StackPanel>
                                     </Border>
                                 </WrapPanel>
@@ -557,21 +599,86 @@
                                             <local:TgBadge.RingBrush><SolidColorBrush Color="#46C3FF"/></local:TgBadge.RingBrush>
                                         </local:TgBadge>
                                         <StackPanel Grid.Column="1" Margin="22,0,16,0" VerticalAlignment="Center">
-                                            <TextBlock Text="АВТОР И ПОДДЕРЖКА В TELEGRAM" FontSize="11" FontWeight="SemiBold" Foreground="#46C3FF"/>
+                                            <TextBlock Text="{local:T tg_banner_t}" FontSize="11" FontWeight="SemiBold" Foreground="#46C3FF"/>
                                             <TextBlock Text="t.me/CMEPT0HOCHbIU" FontSize="26" FontWeight="SemiBold" Margin="0,3,0,0"/>
-                                            <TextBlock Text="Вопросы, идеи и новые версии пака" FontSize="13" Foreground="#B7B2D9" Margin="0,4,0,0"/>
+                                            <TextBlock Text="{local:T tg_banner_s}" FontSize="13" Foreground="#B7B2D9" Margin="0,4,0,0"/>
                                         </StackPanel>
-                                        <Button Grid.Column="2" Content="Открыть Telegram" Style="{StaticResource PrimaryButton}" Width="230" Height="58" VerticalAlignment="Center" Margin="8" Click="OpenTgBtn_Click"/>
+                                        <Button Grid.Column="2" Content="{local:T open_tg}" Style="{StaticResource PrimaryButton}" Width="230" Height="58" VerticalAlignment="Center" Margin="8" Click="OpenTgBtn_Click"/>
                                     </Grid>
                                 </Border>
 
                                 <Grid Margin="0,0,14,6">
                                     <TextBlock x:Name="LogPathText" FontSize="11.5" Foreground="{StaticResource DimBrush}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Margin="2,0,420,0"/>
                                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                                        <Button Content="Открыть журнал" Style="{StaticResource GhostButton}" Width="180" Height="42" Margin="0,0,12,0" Click="OpenLogsBtn_Click"/>
-                                        <Button Content="Открыть папку пака" Style="{StaticResource GhostButton}" Width="200" Height="42" Click="OpenPackBtn_Click"/>
+                                        <Button Content="{local:T open_logs}" Style="{StaticResource GhostButton}" Width="180" Height="42" Margin="0,0,12,0" Click="OpenLogsBtn_Click"/>
+                                        <Button Content="{local:T open_pack}" Style="{StaticResource GhostButton}" Width="200" Height="42" Click="OpenPackBtn_Click"/>
                                     </StackPanel>
                                 </Grid>
+                            </StackPanel>
+                        </local:SmoothScrollViewer>
+                    </Grid>
+
+                    <!-- ===== Настройки ===== -->
+                    <Grid x:Name="PageSettings" Margin="24,18,24,18" Visibility="Collapsed">
+                        <Grid.RenderTransform><TranslateTransform x:Name="PageSettingsT"/></Grid.RenderTransform>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        <TextBlock Text="{local:T set_title}" Style="{StaticResource H1}" Margin="0,0,0,14"/>
+                        <local:SmoothScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                            <StackPanel Margin="0,0,10,0" MaxWidth="900" HorizontalAlignment="Left">
+                                <Border Style="{StaticResource InfoCard}" Margin="0,0,0,14">
+                                    <StackPanel>
+                                        <TextBlock Text="{local:T set_lang}" FontSize="16" FontWeight="SemiBold"/>
+                                        <TextBlock Text="{local:T set_lang_sub}" FontSize="12.5" Foreground="{StaticResource DimBrush}" Margin="0,3,0,12"/>
+                                        <StackPanel Orientation="Horizontal">
+                                            <Button x:Name="LangRu" Content="Русский" Tag="ru" Style="{StaticResource GhostButton}" Width="140" Height="42" Margin="0,0,10,0" Click="Lang_Click"/>
+                                            <Button x:Name="LangEn" Content="English" Tag="en" Style="{StaticResource GhostButton}" Width="140" Height="42" Margin="0,0,10,0" Click="Lang_Click"/>
+                                            <Button x:Name="LangAuto" Content="{local:T lang_auto}" Tag="auto" Style="{StaticResource GhostButton}" Width="120" Height="42" Click="Lang_Click"/>
+                                        </StackPanel>
+                                    </StackPanel>
+                                </Border>
+                                <Border Style="{StaticResource InfoCard}" Margin="0,0,0,14">
+                                    <StackPanel>
+                                        <TextBlock Text="{local:T set_theme}" FontSize="16" FontWeight="SemiBold"/>
+                                        <TextBlock Text="{local:T set_theme_sub}" FontSize="12.5" Foreground="{StaticResource DimBrush}" Margin="0,3,0,12"/>
+                                        <ItemsControl x:Name="ThemeList">
+                                            <ItemsControl.ItemsPanel><ItemsPanelTemplate><WrapPanel/></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                    <Border Tag="{Binding Id}" Width="118" Margin="0,0,12,12" Padding="10" CornerRadius="14" BorderThickness="1.4" Cursor="Hand"
+                                                            Background="#33000000" BorderBrush="{Binding Border}" MouseLeftButtonUp="Theme_Click">
+                                                        <StackPanel>
+                                                            <Ellipse Width="44" Height="44" Fill="{Binding SwatchBrush}" HorizontalAlignment="Center"/>
+                                                            <TextBlock Text="{Binding Name}" FontSize="12.5" HorizontalAlignment="Center" Margin="0,8,0,0"/>
+                                                        </StackPanel>
+                                                    </Border>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                    </StackPanel>
+                                </Border>
+                                <Border Style="{StaticResource InfoCard}" Margin="0,0,0,14">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                        <StackPanel>
+                                            <TextBlock Text="{local:T set_sound}" FontSize="16" FontWeight="SemiBold"/>
+                                            <TextBlock Text="{local:T set_sound_sub}" FontSize="12.5" Foreground="{StaticResource DimBrush}" Margin="0,3,0,0"/>
+                                        </StackPanel>
+                                        <Button x:Name="SetSoundBtn" Grid.Column="1" Style="{StaticResource GhostButton}" Width="120" Height="42" VerticalAlignment="Center" Click="SetSoundBtn_Click"/>
+                                    </Grid>
+                                </Border>
+                                <Border Style="{StaticResource InfoCard}" Margin="0,0,0,14">
+                                    <StackPanel>
+                                        <TextBlock Text="{local:T set_support}" FontSize="16" FontWeight="SemiBold"/>
+                                        <TextBlock Text="{local:T set_support_sub}" FontSize="12.5" Foreground="{StaticResource DimBrush}" TextWrapping="Wrap" Margin="0,3,0,12"/>
+                                        <StackPanel Orientation="Horizontal">
+                                            <Button x:Name="SupportBtn" Content="{local:T btn_support}" Style="{StaticResource PrimaryButton}" Width="210" Height="48" Margin="0,0,12,0" Click="SupportBtn_Click"/>
+                                            <Button Content="{local:T btn_data}" Style="{StaticResource GhostButton}" Width="170" Height="44" VerticalAlignment="Center" Click="OpenLogsBtn_Click"/>
+                                        </StackPanel>
+                                    </StackPanel>
+                                </Border>
                             </StackPanel>
                         </local:SmoothScrollViewer>
                     </Grid>
@@ -596,8 +703,8 @@
                     <TextBlock x:Name="DlgTitle" FontSize="20" FontWeight="SemiBold" Text="XEOKA PACK"/>
                     <TextBlock x:Name="DlgText" FontSize="14" Foreground="#C9C0E8" TextWrapping="Wrap" Margin="0,12,0,22" LineHeight="21"/>
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                        <Button x:Name="DlgNo" Content="Отмена" Style="{StaticResource GhostButton}" Width="130" Height="44" Margin="0,0,12,0" Click="DlgNo_Click"/>
-                        <Button x:Name="DlgYes" Content="Продолжить" Style="{StaticResource PrimaryButton}" Width="170" Height="44" Margin="6" Click="DlgYes_Click"/>
+                        <Button x:Name="DlgNo" Content="{local:T dlg_cancel}" Style="{StaticResource GhostButton}" Width="130" Height="44" Margin="0,0,12,0" Click="DlgNo_Click"/>
+                        <Button x:Name="DlgYes" Content="{local:T dlg_continue}" Style="{StaticResource PrimaryButton}" Width="170" Height="44" Margin="6" Click="DlgYes_Click"/>
                     </StackPanel>
                 </StackPanel>
             </Border>

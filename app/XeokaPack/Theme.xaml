@@ -15,33 +15,33 @@
     <Color x:Key="Accent2Color">#A78BFA</Color>
     <Color x:Key="MagentaColor">#C084FC</Color>
 
-    <SolidColorBrush x:Key="BgBrush" Color="{StaticResource BgColor}" po:Freeze="True"/>
-    <SolidColorBrush x:Key="PanelBrush" Color="{StaticResource PanelColor}" po:Freeze="True"/>
-    <SolidColorBrush x:Key="Panel2Brush" Color="{StaticResource Panel2Color}" po:Freeze="True"/>
-    <SolidColorBrush x:Key="LineBrush" Color="{StaticResource LineColor}" po:Freeze="True"/>
-    <SolidColorBrush x:Key="TextBrush" Color="{StaticResource TextColor}" po:Freeze="True"/>
-    <SolidColorBrush x:Key="DimBrush" Color="{StaticResource DimColor}" po:Freeze="True"/>
-    <SolidColorBrush x:Key="AccentBrush" Color="{StaticResource AccentColor}" po:Freeze="True"/>
-    <SolidColorBrush x:Key="Accent2Brush" Color="{StaticResource Accent2Color}" po:Freeze="True"/>
-    <SolidColorBrush x:Key="MagentaBrush" Color="{StaticResource MagentaColor}" po:Freeze="True"/>
-    <SolidColorBrush x:Key="CardBrush" Color="#E0120B22" po:Freeze="True"/>
-    <SolidColorBrush x:Key="OkBrush" Color="#3DDC97" po:Freeze="True"/>
-    <SolidColorBrush x:Key="WarnBrush" Color="#E3B5FF" po:Freeze="True"/>
-    <SolidColorBrush x:Key="ErrBrush" Color="#FF5C6C" po:Freeze="True"/>
+    <SolidColorBrush x:Key="BgBrush" Color="{StaticResource BgColor}"/>
+    <SolidColorBrush x:Key="PanelBrush" Color="{StaticResource PanelColor}"/>
+    <SolidColorBrush x:Key="Panel2Brush" Color="{StaticResource Panel2Color}"/>
+    <SolidColorBrush x:Key="LineBrush" Color="{StaticResource LineColor}"/>
+    <SolidColorBrush x:Key="TextBrush" Color="{StaticResource TextColor}"/>
+    <SolidColorBrush x:Key="DimBrush" Color="{StaticResource DimColor}"/>
+    <SolidColorBrush x:Key="AccentBrush" Color="{StaticResource AccentColor}"/>
+    <SolidColorBrush x:Key="Accent2Brush" Color="{StaticResource Accent2Color}"/>
+    <SolidColorBrush x:Key="MagentaBrush" Color="{StaticResource MagentaColor}"/>
+    <SolidColorBrush x:Key="CardBrush" Color="#E0120B22"/>
+    <SolidColorBrush x:Key="OkBrush" Color="#3DDC97"/>
+    <SolidColorBrush x:Key="WarnBrush" Color="#E3B5FF"/>
+    <SolidColorBrush x:Key="ErrBrush" Color="#FF5C6C"/>
 
-    <LinearGradientBrush x:Key="AccentGradient" StartPoint="0,0" EndPoint="1,1" po:Freeze="True">
+    <LinearGradientBrush x:Key="AccentGradient" StartPoint="0,0" EndPoint="1,1">
         <GradientStop Color="#8B5CF6" Offset="0"/>
         <GradientStop Color="#C084FC" Offset="1"/>
     </LinearGradientBrush>
-    <LinearGradientBrush x:Key="AmberGradient" StartPoint="0,0" EndPoint="1,1" po:Freeze="True">
+    <LinearGradientBrush x:Key="AmberGradient" StartPoint="0,0" EndPoint="1,1">
         <GradientStop Color="#F0ABFC" Offset="0"/>
         <GradientStop Color="#C026D3" Offset="1"/>
     </LinearGradientBrush>
-    <LinearGradientBrush x:Key="MutedGradient" StartPoint="0,0" EndPoint="1,1" po:Freeze="True">
+    <LinearGradientBrush x:Key="MutedGradient" StartPoint="0,0" EndPoint="1,1">
         <GradientStop Color="#2E2152" Offset="0"/>
         <GradientStop Color="#1A1030" Offset="1"/>
     </LinearGradientBrush>
-    <LinearGradientBrush x:Key="TgGradient" StartPoint="0.2,0" EndPoint="0.8,1" po:Freeze="True">
+    <LinearGradientBrush x:Key="TgGradient" StartPoint="0.2,0" EndPoint="0.8,1">
         <GradientStop Color="#46C3FF" Offset="0"/>
         <GradientStop Color="#1E8FD8" Offset="1"/>
     </LinearGradientBrush>

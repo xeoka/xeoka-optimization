@@ -34,10 +34,11 @@ public partial class MainWindow : Window
 
     public MainWindow()
     {
+        Loc.Set(_settings.Lang);
         InitializeComponent();
         _layout = (LayoutState)Application.Current.Resources["Layout"];
-        _pages = new[] { PageOpt, PageTools, PageAbout };
-        _pageT = new[] { PageOptT, PageToolsT, PageAboutT };
+        _pages = new[] { PageOpt, PageTools, PageAbout, PageSettings };
+        _pageT = new[] { PageOptT, PageToolsT, PageAboutT, PageSettingsT };
 
         SoundFx.Enabled = _settings.Sound;
         UpdateSoundUi();
@@ -57,9 +58,133 @@ public partial class MainWindow : Window
 
         var ver = Assembly.GetExecutingAssembly().GetName().Version;
         var vs = ver == null ? "" : $"{ver.Major}.{ver.Minor}";
-        SubTitle.Text = "Оптимизация Windows одной кнопкой   |   v" + vs;
-        AboutVersion.Text = "Оптимизация Windows одной кнопкой   -   версия " + vs;
-        LogPathText.Text = "Журнал и откат: " + Paths.DataDir;
+        _ver = vs;
+        SumList.ItemsSource = _summary;
+        BuildThemeList();
+        RefreshTexts();
+        Loc.Changed += () => Dispatcher.BeginInvoke(RefreshTexts);
+    }
+
+    string _ver = "";
+    readonly ObservableCollection<SumItem> _summary = new();
+    readonly ObservableCollection<ThemeVM> _themes = new();
+
+    void RefreshTexts()
+    {
+        SubTitle.Text = Loc.L("Оптимизация Windows одной кнопкой   |   v", "Windows optimization in one click   |   v") + _ver;
+        AboutVersion.Text = Loc.L("Оптимизация Windows одной кнопкой   -   версия ", "Windows optimization in one click   -   version ") + _ver;
+        LogPathText.Text = Loc.L("Журнал и откат: ", "Log and revert data: ") + Paths.DataDir;
+        foreach (var v in AllTweaks) v.Refresh();
+        foreach (var t in _tools) t.Refresh();
+        foreach (var t in _themes) t.Refresh();
+        if (_pack != null) UpdatePackState();
+        UpdateSoundUi();
+        SetBusy(_busy);
+        LangRu.Opacity = _settings.Lang == "ru" ? 1 : 0.55;
+        LangEn.Opacity = _settings.Lang == "en" ? 1 : 0.55;
+        LangAuto.Opacity = _settings.Lang == "auto" ? 1 : 0.55;
+        _ = RefreshSummaryAsync();
+    }
+
+    // ------------------------------------------------------------ состояние и сводка
+    async Task RefreshStatesAsync()
+    {
+        var tweaks = AllTweaks.ToList();
+        var res = await Task.Run(() =>
+        {
+            var ctx = new TweakContext { Log = new Logger(), Pack = _pack, State = new RunState() };
+            return tweaks.Select(v =>
+            {
+                try { return v.T.Check == null ? TweakState.Unknown : v.T.Check(ctx); }
+                catch { return TweakState.Unknown; }
+            }).ToList();
+        });
+        for (int i = 0; i < tweaks.Count; i++) tweaks[i].State = res[i];
+    }
+
+    async Task RefreshSummaryAsync()
+    {
+        var items = await Task.Run(() => { try { return SysInfo.Collect(_pack); } catch { return new List<SumItem>(); } });
+        _summary.Clear();
+        foreach (var i in items) _summary.Add(i);
+    }
+
+    // ------------------------------------------------------------ настройки
+    void BuildThemeList()
+    {
+        foreach (var t in ThemeManager.All) _themes.Add(new ThemeVM(t, () => _settings.Theme));
+        ThemeList.ItemsSource = _themes;
+    }
+
+    void Lang_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is not FrameworkElement fe) return;
+        SoundFx.Tap();
+        _settings.Lang = fe.Tag?.ToString() ?? "auto";
+        _settings.Save();
+        Loc.Set(_settings.Lang);
+    }
+
+    void Theme_Click(object sender, MouseButtonEventArgs e)
+    {
+        if (sender is not FrameworkElement fe) return;
+        SoundFx.Tick();
+        _settings.Theme = fe.Tag?.ToString() ?? "violet";
+        _settings.Save();
+        ThemeManager.Apply(_settings.Theme, this);
+        foreach (var t in _themes) t.Refresh();
+        foreach (var v in AllTweaks) v.Refresh();
+    }
+
+    void SetSoundBtn_Click(object sender, RoutedEventArgs e) => SoundBtn_Click(sender, null!);
+
+    async void SupportBtn_Click(object sender, RoutedEventArgs e)
+    {
+        SoundFx.Tap();
+        SupportBtn.IsEnabled = false;
+        try
+        {
+            var sum = _summary.ToList();
+            var tw = AllTweaks.Select(v => (v.T.Title, v.State.ToString())).ToList();
+            var path = await Task.Run(() => Support.Build(_pack, sum, tw, _settings));
+            SoundFx.Chime();
+            try { Process.Start(new ProcessStartInfo("explorer.exe", "/select,\"" + path + "\"") { UseShellExecute = true }); } catch { }
+            await AskAsync(Loc.L("Архив готов", "Archive ready"),
+                Loc.L("Файл сохранён на рабочем столе:\n" + path + "\n\nОтправьте его автору в Telegram.", "Saved to your desktop:\n" + path + "\n\nSend it to the author on Telegram."),
+                Loc.L("Понятно", "OK"), null);
+        }
+        catch (Exception ex) { await AskAsync(Loc.L("Не удалось собрать архив", "Could not create the archive"), ex.Message, Loc.L("Закрыть", "Close"), null); }
+        SupportBtn.IsEnabled = true;
+    }
+
+    // ------------------------------------------------------------ анимация применения
+    void FxStart()
+    {
+        ApplyFx.Visibility = Visibility.Visible;
+        FxArc.Visibility = Visibility.Visible;
+        FxCheck.Opacity = 0;
+        FxTitle.Text = Loc.L("Применяю оптимизации", "Applying optimizations");
+        FxStep.Text = "";
+        ApplyFx.BeginAnimation(OpacityProperty, new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(280)));
+        FxRot.BeginAnimation(RotateTransform.AngleProperty, new DoubleAnimation(0, 360, TimeSpan.FromSeconds(1.1)) { RepeatBehavior = RepeatBehavior.Forever });
+    }
+
+    async Task FxFinish(bool ok)
+    {
+        FxRot.BeginAnimation(RotateTransform.AngleProperty, null);
+        FxArc.Visibility = Visibility.Collapsed;
+        FxTitle.Text = ok ? Loc.L("Готово", "Done") : Loc.L("Готово с ошибками", "Done with errors");
+        FxStep.Text = "";
+        FxCheck.Stroke = (Brush)FindResource(ok ? "OkBrush" : "WarnBrush");
+        FxCheck.BeginAnimation(OpacityProperty, new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(260)));
+        var sp = new DoubleAnimation(0.4, 1, TimeSpan.FromMilliseconds(520)) { EasingFunction = new BackEase { EasingMode = EasingMode.EaseOut, Amplitude = 0.5 } };
+        FxCheckScale.BeginAnimation(ScaleTransform.ScaleXProperty, sp);
+        FxCheckScale.BeginAnimation(ScaleTransform.ScaleYProperty, sp);
+        await Task.Delay(1300);
+        var fade = new DoubleAnimation(1, 0, TimeSpan.FromMilliseconds(320));
+        ApplyFx.BeginAnimation(OpacityProperty, fade);
+        await Task.Delay(340);
+        ApplyFx.Visibility = Visibility.Collapsed;
     }
 
     // ------------------------------------------------------------ запуск
@@ -70,13 +195,14 @@ public partial class MainWindow : Window
         MeasureTg();
         BeginAnimation(OpacityProperty, new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(520)) { EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut } });
         SoundFx.Deep();
-        AddLog("Выберите твики и нажмите «ОПТИМИЗИРОВАТЬ».", LogLevel.Dim);
+        AddLog(Loc.L("Выберите твики и нажмите «ОПТИМИЗИРОВАТЬ».", "Pick tweaks and press OPTIMIZE."), LogLevel.Dim);
+        ThemeManager.Apply(_settings.Theme, this);
         _ = RefreshPackAsync(autoDetect: true);
     }
 
     async Task RefreshPackAsync(bool autoDetect)
     {
-        PackStatus.Text = "Ищу пак...";
+        PackStatus.Text = Loc.L("Ищу пак...", "Looking for the pack...");
         PackDot.Fill = (Brush)FindResource("WarnBrush");
         var paths = await Task.Run(() =>
         {
@@ -85,13 +211,14 @@ public partial class MainWindow : Window
         });
         for (int i = 0; i < _tools.Count; i++) _tools[i].Path = paths[i];
         UpdatePackState();
+        _ = RefreshStatesAsync();
     }
 
     void UpdatePackState()
     {
         bool ok = _pack.IsPack;
         PackDot.Fill = (Brush)FindResource(ok ? "OkBrush" : "WarnBrush");
-        PackStatus.Text = ok ? "Пак найден" : "Пак не найден";
+        PackStatus.Text = ok ? Loc.L("Пак найден", "Pack found") : Loc.L("Пак не найден", "Pack not found");
         PackPath.Text = _pack.Root;
         var vis = ok ? Visibility.Collapsed : Visibility.Visible;
         PackWarnPanelOpt.Visibility = vis;
@@ -236,6 +363,7 @@ public partial class MainWindow : Window
     {
         double avail = OptScroll.ActualWidth - 10 - 12;
         _layout.CardWidth = Fit(avail, avail >= 980 ? 2 : 1, 12);
+        _layout.SumWidth = Fit(avail - 20, avail >= 1100 ? 4 : avail >= 760 ? 3 : 2, 12);
     }
     void ToolsScroll_SizeChanged(object sender, SizeChangedEventArgs e)
     {
@@ -288,7 +416,7 @@ public partial class MainWindow : Window
     {
         _busy = on;
         ApplyBtn.IsEnabled = RevertBtn.IsEnabled = AllBtn.IsEnabled = !on;
-        ApplyBtn.Content = on ? "ПРИМЕНЯЮ..." : "ОПТИМИЗИРОВАТЬ";
+        ApplyBtn.Content = on ? Loc.L("ПРИМЕНЯЮ...", "APPLYING...") : Loc.L("ОПТИМИЗИРОВАТЬ", "OPTIMIZE");
     }
 
     async void ApplyBtn_Click(object sender, RoutedEventArgs e)
@@ -297,15 +425,15 @@ public partial class MainWindow : Window
         SoundFx.Tap();
         if (!_pack.IsPack)
         {
-            if (await AskAsync("Папка пака не найдена",
-                "Положите программу в корень пака (рядом с папками «1. База», «2. Драйверы» и т.д.) или укажите папку вручную.", "Указать папку", "Закрыть"))
+            if (await AskAsync(Loc.L("Папка пака не найдена", "Pack folder not found"),
+                Loc.L("Положите программу в корень пака (рядом с папками «1. База», «2. Драйверы» и т.д.) или укажите папку вручную.", "Put the program in the pack root (next to the folders 1. ..., 2. ... and so on) or pick the folder manually."), Loc.L("Указать папку", "Pick folder"), Loc.L("Закрыть", "Close")))
                 await PickFolderAsync();
             return;
         }
         var sel = AllTweaks.Where(v => v.IsOn).Select(v => v.T).ToList();
-        if (sel.Count == 0) { _log.Warn("Ничего не выбрано."); return; }
-        if (!await AskAsync("Применить твики?",
-            $"Будет применено твиков: {sel.Count}.\n\nПеред этим создаётся точка восстановления. Изменения реестра можно откатить кнопкой «Откатить последнее».", "Применить"))
+        if (sel.Count == 0) { _log.Warn(Loc.L("Ничего не выбрано.", "Nothing selected.")); return; }
+        if (!await AskAsync(Loc.L("Применить твики?", "Apply tweaks?"),
+            Loc.L($"Будет применено твиков: {sel.Count}.\n\nПеред этим создаётся точка восстановления. Изменения реестра можно откатить кнопкой «Откатить последнее».", $"Tweaks to apply: {sel.Count}.\n\nA restore point is created first. Registry changes can be undone with the Revert button."), Loc.L("Применить", "Apply")))
             return;
 
         SetBusy(true);
@@ -313,23 +441,28 @@ public partial class MainWindow : Window
         ProgScale.BeginAnimation(ScaleTransform.ScaleXProperty, null); ProgScale.ScaleX = 0;
         ProgTrack.Visibility = Visibility.Visible;
         SoundFx.Deep();
+        FxStart();
         (int Ok, int Fail) res;
         try
         {
-            res = await Task.Run(() => Operations.Apply(sel, _log, _pack, p => Dispatcher.BeginInvoke(() => SetProgress(p))));
+            res = await Task.Run(() => Operations.Apply(sel, _log, _pack, p => Dispatcher.BeginInvoke(() => SetProgress(p)),
+                (n, total, title) => Dispatcher.BeginInvoke(() => FxStep.Text = $"{n} / {total}   {title}")));
         }
         catch (Exception ex)
         {
-            _log.Err("Критическая ошибка: " + ex.Message);
+            _log.Err(Loc.L("Критическая ошибка: ", "Critical error: ") + ex.Message);
             SetBusy(false);
+            ApplyFx.Visibility = Visibility.Collapsed;
             return;
         }
         SetBusy(false);
-        await Task.Delay(700);
+        await FxFinish(res.Fail == 0);
+        _ = RefreshStatesAsync();
+        await Task.Delay(100);
         ProgTrack.Visibility = Visibility.Collapsed;
         if (res.Fail == 0) SoundFx.Chime();
-        var reboot = await AskAsync(res.Fail == 0 ? "Готово" : "Готово с ошибками",
-            $"Успешно: {res.Ok}, с ошибками: {res.Fail}.\n\nДля применения всех изменений нужна перезагрузка. Перезагрузить сейчас?", "Перезагрузить", "Позже");
+        var reboot = await AskAsync(res.Fail == 0 ? Loc.L("Готово", "Done") : Loc.L("Готово с ошибками", "Done with errors"),
+            Loc.L($"Успешно: {res.Ok}, с ошибками: {res.Fail}.\n\nДля применения всех изменений нужна перезагрузка. Перезагрузить сейчас?", $"Succeeded: {res.Ok}, failed: {res.Fail}.\n\nA restart is needed for all changes to take effect. Restart now?"), Loc.L("Перезагрузить", "Restart"), Loc.L("Позже", "Later"));
         if (reboot)
         {
             try { Process.Start(new ProcessStartInfo("shutdown.exe", "/r /t 5 /c \"XEOKA PACK\"") { CreateNoWindow = true, UseShellExecute = false }); } catch { }
@@ -340,11 +473,11 @@ public partial class MainWindow : Window
     {
         if (_busy) return;
         SoundFx.Tap();
-        if (!await AskAsync("Откатить изменения?", "Вернуть значения реестра, схему питания и параметры сети к состоянию до последнего применения?", "Откатить")) return;
+        if (!await AskAsync(Loc.L("Откатить изменения?", "Revert changes?"), Loc.L("Вернуть значения реестра, схему питания и параметры сети к состоянию до последнего применения?", "Restore registry values, the power plan and network settings to how they were before the last run?"), Loc.L("Откатить", "Revert"))) return;
         SetBusy(true);
         _logItems.Clear();
-        try { await Task.Run(() => Operations.Revert(_log)); }
-        catch (Exception ex) { _log.Err("Ошибка отката: " + ex.Message); }
+        try { await Task.Run(() => Operations.Revert(_log)); _ = RefreshStatesAsync(); }
+        catch (Exception ex) { _log.Err(Loc.L("Ошибка отката: ", "Revert error: ") + ex.Message); }
         finally { SetBusy(false); }
     }
 
@@ -355,17 +488,17 @@ public partial class MainWindow : Window
         SoundFx.Tap();
         if (!t.Found)
         {
-            await AskAsync("Файл не найден", "«" + t.Def.File + "» не найден в паке. Укажите папку пака или положите файл на место.", "Понятно", null);
+            await AskAsync(Loc.L("Файл не найден", "File not found"), Loc.L("«" + t.Def.File + "» не найден в паке. Укажите папку пака или положите файл на место.", "\"" + t.Def.File + "\" was not found in the pack. Pick the pack folder or put the file back."), Loc.L("Понятно", "OK"), null);
             return;
         }
         if (t.Def.Kind == ToolKind.Services)
         {
-            if (!await AskAsync("Службы",
-                "Будут отключены службы: DPS, Themes, Spooler (печать), WSearch (поиск), LanmanWorkstation и Netlogon (сетевые папки, домен), SessionEnv (удалённый рабочий стол), edgeupdate, GameInputSvc и другие.\n\nОтключение Themes может испортить внешний вид Windows, без Spooler не будет печати. Откат кнопкой отката не поддерживается.\n\nПродолжить?", "Продолжить"))
+            if (!await AskAsync(Loc.L("Службы", "Services"),
+                Loc.L("Будут отключены службы: DPS, Themes, Spooler (печать), WSearch (поиск), LanmanWorkstation и Netlogon (сетевые папки, домен), SessionEnv (удалённый рабочий стол), edgeupdate, GameInputSvc и другие.\n\nОтключение Themes может испортить внешний вид Windows, без Spooler не будет печати. Откат кнопкой отката не поддерживается.\n\nПродолжить?", "These services will be disabled: DPS, Themes, Spooler (printing), WSearch (search), LanmanWorkstation and Netlogon (network folders, domain), SessionEnv (remote desktop), edgeupdate, GameInputSvc and others.\n\nDisabling Themes can break the look of Windows, and without Spooler there is no printing. The revert button cannot undo this.\n\nContinue?"), Loc.L("Продолжить", "Continue")))
                 return;
         }
         try { await Task.Run(() => ToolLauncher.Launch(_pack, t.Def)); }
-        catch (Exception ex) { await AskAsync("Не удалось запустить", ex.Message, "Закрыть", null); }
+        catch (Exception ex) { await AskAsync(Loc.L("Не удалось запустить", "Could not launch"), ex.Message, Loc.L("Закрыть", "Close"), null); }
     }
 
     void OpenPackBtn_Click(object sender, RoutedEventArgs e) { SoundFx.Tap(); Sys.OpenFolder(_pack.Root); }
@@ -374,14 +507,14 @@ public partial class MainWindow : Window
 
     async Task PickFolderAsync()
     {
-        var dlg = new Microsoft.Win32.OpenFolderDialog { Title = "Выберите корневую папку пака (где лежат «1. База», «2. Драйверы» и т.д.)" };
+        var dlg = new Microsoft.Win32.OpenFolderDialog { Title = Loc.L("Выберите корневую папку пака (где лежат «1. База», «2. Драйверы» и т.д.)", "Pick the pack root folder (the one with 1. ..., 2. ... and so on)") };
         if (dlg.ShowDialog(this) != true) return;
         if (PackLocator.IsPackRoot(dlg.FolderName))
         {
             _pack.SetRoot(dlg.FolderName);
             await RefreshPackAsync(autoDetect: false);
         }
-        else await AskAsync("Это не папка пака", "В выбранной папке не найдены папки пака (1. База, 2. Драйверы ...).", "Понятно", null);
+        else await AskAsync(Loc.L("Это не папка пака", "This is not the pack folder"), Loc.L("В выбранной папке не найдены папки пака (1. База, 2. Драйверы ...).", "The selected folder has no pack folders (1. ..., 2. ...)."), Loc.L("Понятно", "OK"), null);
     }
 
     // ------------------------------------------------------------ звук
@@ -395,12 +528,13 @@ public partial class MainWindow : Window
     }
     void UpdateSoundUi()
     {
-        SoundText.Text = _settings.Sound ? "Звуки: вкл" : "Звуки: выкл";
+        SoundText.Text = _settings.Sound ? Loc.L("Звуки: вкл", "Sounds: on") : Loc.L("Звуки: выкл", "Sounds: off");
         SoundIcon.Opacity = _settings.Sound ? 1 : 0.45;
+        SetSoundBtn.Content = _settings.Sound ? Loc.T("tog_on") : Loc.T("tog_off");
     }
 
     // ------------------------------------------------------------ диалог
-    Task<bool> AskAsync(string title, string text, string yes, string? no = "Отмена")
+    Task<bool> AskAsync(string title, string text, string yes, string? no = Loc.L("Отмена", "Cancel"))
     {
         _dlg?.TrySetResult(false);
         _dlg = new TaskCompletionSource<bool>();
