@@ -534,13 +534,13 @@ public partial class MainWindow : Window
     }
 
     // ------------------------------------------------------------ диалог
-    Task<bool> AskAsync(string title, string text, string yes, string? no = Loc.L("Отмена", "Cancel"))
+    Task<bool> AskAsync(string title, string text, string yes, string? no = "")
     {
         _dlg?.TrySetResult(false);
         _dlg = new TaskCompletionSource<bool>();
         DlgTitle.Text = title; DlgText.Text = text; DlgYes.Content = yes;
         DlgNo.Visibility = no == null ? Visibility.Collapsed : Visibility.Visible;
-        if (no != null) DlgNo.Content = no;
+        if (no != null) DlgNo.Content = no == "" ? Loc.L("Отмена", "Cancel") : no;
         Overlay.Visibility = Visibility.Visible;
         OverlayDim.BeginAnimation(OpacityProperty, new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(200)));
         DlgCard.BeginAnimation(OpacityProperty, new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(220)));
