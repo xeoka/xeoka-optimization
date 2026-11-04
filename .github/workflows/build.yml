@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
   push:
     branches: [main]
-    paths: ['app/**', '.github/workflows/**']
+    paths: ["app/**", ".github/workflows/**"]
 permissions:
   contents: write
 jobs:
@@ -24,5 +24,9 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          New-Item -ItemType Directory -Force stage | Out-Null
+          Copy-Item out/XEOKA-PACK.exe stage/
+          Get-ChildItem -Directory | Where-Object { $_.Name -match '^\d+\.' } | ForEach-Object { Copy-Item $_.FullName stage/ -Recurse }
+          Compress-Archive -Path stage/* -DestinationPath XEOKA-PACK-full.zip -Force
           gh release delete latest --yes --cleanup-tag 2>$null
-          gh release create latest out/XEOKA-PACK.exe --title "XEOKA PACK (последняя сборка)" --notes "Готовый XEOKA-PACK.exe. Запускать от имени администратора (запросит сам). Пак (папки 1-17) должен лежать рядом или в Загрузках." --latest
+          gh release create latest out/XEOKA-PACK.exe XEOKA-PACK-full.zip --title "XEOKA PACK (последняя сборка)" --notes "XEOKA-PACK-full.zip: распакуйте и запустите XEOKA-PACK.exe, всё нужное уже рядом. XEOKA-PACK.exe: только программа, пак (папки 1-17) должен лежать рядом или в Загрузках. Запрашивает права администратора сам." --latest
