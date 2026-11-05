@@ -71,11 +71,7 @@ public static partial class Strings
         ["dlg_cancel"] = ("Отмена", "Cancel"),
         ["dlg_continue"] = ("Продолжить", "Continue"),
         ["legal_title"] = ("Права и распространение", "Rights and redistribution"),
-        ["legal"] = ("Программа и пак принадлежат автору.
-Распространять, выкладывать в открытый доступ и перепродавать их без разрешения автора запрещено.
-Разрешение и связь с автором: https://t.me/CMEPT0HOCHbIU", "The program and the pack belong to the author.
-Redistribution, public re-uploading and resale without the author's permission are prohibited.
-Permission and contact: https://t.me/CMEPT0HOCHbIU"),
+        ["legal"] = ("Программа и пак принадлежат автору.\nРаспространять, выкладывать в открытый доступ и перепродавать их без разрешения автора запрещено.\nРазрешение и связь с автором: https://t.me/CMEPT0HOCHbIU", "The program and the pack belong to the author.\nRedistribution, public re-uploading and resale without the author's permission are prohibited.\nPermission and contact: https://t.me/CMEPT0HOCHbIU"),
         ["win_min"] = ("Свернуть", "Minimize"),
         ["win_max"] = ("Развернуть", "Maximize"),
         ["win_close"] = ("Закрыть", "Close"),
