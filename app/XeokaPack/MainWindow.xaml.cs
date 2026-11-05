@@ -366,18 +366,18 @@ public partial class MainWindow : Window
 
     void OptScroll_SizeChanged(object sender, SizeChangedEventArgs e)
     {
-        double avail = OptScroll.ActualWidth - 10 - 12;
+        double avail = OptScroll.ActualWidth - 10 - 12 - 18;
         _layout.CardWidth = Fit(avail, avail >= 980 ? 2 : 1, 12);
         _layout.SumWidth = Fit(avail - 20, avail >= 1100 ? 4 : avail >= 760 ? 3 : 2, 12);
     }
     void ToolsScroll_SizeChanged(object sender, SizeChangedEventArgs e)
     {
-        double avail = ToolsScroll.ActualWidth - 10 - 12;
+        double avail = ToolsScroll.ActualWidth - 10 - 12 - 18;
         _layout.ToolWidth = Fit(avail, avail >= 1250 ? 3 : avail >= 640 ? 2 : 1, 12);
     }
     void AboutScroll_SizeChanged(object sender, SizeChangedEventArgs e)
     {
-        double avail = AboutScroll.ActualWidth - 10 - 12;
+        double avail = AboutScroll.ActualWidth - 10 - 12 - 18;
         _layout.AboutCardWidth = Fit(avail, avail >= 900 ? 3 : 1, 14);
     }
 
