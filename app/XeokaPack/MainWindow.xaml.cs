@@ -74,6 +74,7 @@ public partial class MainWindow : Window
         SubTitle.Text = Loc.L("Оптимизация Windows одной кнопкой   |   v", "Windows optimization in one click   |   v") + _ver;
         AboutVersion.Text = Loc.L("Оптимизация Windows одной кнопкой   -   версия ", "Windows optimization in one click   -   version ") + _ver;
         LogPathText.Text = Loc.L("Журнал и откат: ", "Log and revert data: ") + Paths.DataDir;
+        ToolsRiskText.Text = Loc.L(ThemeManager.Current.RiskRu, ThemeManager.Current.RiskEn) + Loc.T("tools_risk");
         foreach (var v in AllTweaks) v.Refresh();
         foreach (var t in _tools) t.Refresh();
         foreach (var t in _themes) t.Refresh();
@@ -132,6 +133,7 @@ public partial class MainWindow : Window
         _settings.Theme = fe.Tag?.ToString() ?? "violet";
         _settings.Save();
         ThemeManager.Apply(_settings.Theme, this);
+        ToolsRiskText.Text = Loc.L(ThemeManager.Current.RiskRu, ThemeManager.Current.RiskEn) + Loc.T("tools_risk");
         foreach (var t in _themes) t.Refresh();
         foreach (var v in AllTweaks) v.Refresh();
     }
@@ -197,6 +199,7 @@ public partial class MainWindow : Window
         SoundFx.Deep();
         AddLog(Loc.L("Выберите твики и нажмите «ОПТИМИЗИРОВАТЬ».", "Pick tweaks and press OPTIMIZE."), LogLevel.Dim);
         ThemeManager.Apply(_settings.Theme, this);
+        RefreshTexts();
         _ = RefreshPackAsync(autoDetect: true);
     }
 

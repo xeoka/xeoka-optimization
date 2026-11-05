@@ -471,7 +471,7 @@
                                 </StackPanel>
                                 <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
                                     <Ellipse Width="9" Height="9" Fill="{DynamicResource AmberGradient}" VerticalAlignment="Center"/>
-                                    <TextBlock Text="{local:T tools_risk}" FontSize="12.5" Foreground="{DynamicResource DimBrush}" Margin="8,0,0,0"/>
+                                    <TextBlock x:Name="ToolsRiskText" FontSize="12.5" Foreground="{DynamicResource DimBrush}" Margin="8,0,0,0"/>
                                 </StackPanel>
                             </StackPanel>
                             <StackPanel x:Name="PackWarnPanelTools" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top" Visibility="Collapsed">
