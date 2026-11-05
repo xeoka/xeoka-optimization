@@ -607,7 +607,12 @@
                                     </Grid>
                                 </Border>
 
-                                <TextBlock Text="{local:T legal}" FontSize="12" Foreground="{DynamicResource WarnBrush}" TextWrapping="Wrap" Margin="2,0,14,12"/>
+                                <Border Style="{StaticResource InfoCard}" Margin="0,0,14,14" Padding="22,16">
+                                    <StackPanel>
+                                        <TextBlock Text="{local:T legal_title}" FontSize="15" FontWeight="SemiBold" Foreground="{DynamicResource WarnBrush}"/>
+                                        <TextBlock Text="{local:T legal}" FontSize="13" Foreground="{DynamicResource DimBrush}" TextWrapping="Wrap" LineHeight="21" Margin="0,8,0,0"/>
+                                    </StackPanel>
+                                </Border>
                                 <Grid Margin="0,0,14,6">
                                     <TextBlock x:Name="LogPathText" FontSize="11.5" Foreground="{DynamicResource DimBrush}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Margin="2,0,420,0"/>
                                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">

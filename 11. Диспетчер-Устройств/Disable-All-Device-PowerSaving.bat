@@ -57,11 +57,11 @@ pause
 exit /b %EC%
 
 :ShowCommunityLinks
-"%PS%" -NoProfile -ExecutionPolicy Bypass -Command "$esc=[char]27; Write-Host ''; Write-Host 'Community links:' -ForegroundColor DarkCyan; $links=@(,@('Xeoka pack - Telegram: https://t.me/CMEPT0HOCHbIU','https://t.me/CMEPT0HOCHbIU','96')); foreach($link in $links){ [Console]::WriteLine(('  ' + $esc + ']8;;' + $link[1] + $esc + '\' + $esc + '[' + $link[2] + 'm' + $link[0] + $esc + '[0m' + $esc + ']8;;' + $esc + '\')) }"
+"%PS%" -NoProfile -ExecutionPolicy Bypass -Command "$esc=[char]27; Write-Host ''; Write-Host 'Community links:' -ForegroundColor DarkCyan; $links=@(,@('xeoka pack - Telegram: https://t.me/CMEPT0HOCHbIU','https://t.me/CMEPT0HOCHbIU','96')); foreach($link in $links){ [Console]::WriteLine(('  ' + $esc + ']8;;' + $link[1] + $esc + '\' + $esc + '[' + $link[2] + 'm' + $link[0] + $esc + '[0m' + $esc + ']8;;' + $esc + '\')) }"
 if not errorlevel 1 exit /b 0
 echo.
 echo Community links:
-echo   Xeoka pack - Telegram: https://t.me/CMEPT0HOCHbIU
+echo   xeoka pack - Telegram: https://t.me/CMEPT0HOCHbIU
 exit /b 0
 
 :__PSSCRIPT__

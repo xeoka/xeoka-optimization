@@ -23,7 +23,7 @@ function Write-Warn    { param($msg) Write-Host "[!] $msg" -ForegroundColor Yell
 
 
 $script:CommunityLinks = @(
-    [pscustomobject]@{ Label = "Xeoka pack - Telegram: https://t.me/CMEPT0HOCHbIU"; Url = "https://t.me/CMEPT0HOCHbIU" }
+    [pscustomobject]@{ Label = "xeoka pack - Telegram: https://t.me/CMEPT0HOCHbIU"; Url = "https://t.me/CMEPT0HOCHbIU" }
 )
 
 function Test-TerminalHyperlinkSupport {
