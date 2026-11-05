@@ -28,6 +28,7 @@ jobs:
         run: |
           New-Item -ItemType Directory -Force stage | Out-Null
           Copy-Item out/XEOKA-PACK.exe stage/
+          if (Test-Path out/Assets) { Copy-Item out/Assets stage/Assets -Recurse }
           Copy-Item "ПРАВА-И-РАСПРОСТРАНЕНИЕ.txt" stage/
           Get-ChildItem -Directory | Where-Object { $_.Name -match '^\d+\.' } | ForEach-Object { Copy-Item $_.FullName stage/ -Recurse }
           Compress-Archive -Path stage/* -DestinationPath XEOKA-PACK-full.zip -Force

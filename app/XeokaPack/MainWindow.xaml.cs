@@ -1,3 +1,4 @@
+using System.IO;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Reflection;
@@ -209,11 +210,42 @@ public partial class MainWindow : Window
     bool CheckLicense()
     {
         var lic = License.Check();
-        if (lic.Valid) { ActivationOverlay.Visibility = Visibility.Collapsed; return true; }
+        if (lic.Valid) { ActivationOverlay.Visibility = Visibility.Collapsed; StopActVideo(); return true; }
         ActHwidText.Text = License.HardwareId();
         ActError.Visibility = Visibility.Collapsed;
         ActivationOverlay.Visibility = Visibility.Visible;
+        StartActVideo();
         return false;
+    }
+
+    void StartActVideo()
+    {
+        try
+        {
+            var path = Path.Combine(AppContext.BaseDirectory, "Assets", "activation.mp4");
+            if (!File.Exists(path)) { ActVolumePanel.Visibility = Visibility.Collapsed; return; }
+            ActVideo.Volume = ActVolumeSlider.Value;
+            ActVideo.Source = new Uri(path, UriKind.Absolute);
+            ActVideo.Position = TimeSpan.Zero;
+            ActVideo.Play();
+            ActVolumePanel.Visibility = Visibility.Visible;
+        }
+        catch { ActVolumePanel.Visibility = Visibility.Collapsed; }
+    }
+
+    void StopActVideo()
+    {
+        try { ActVideo.Stop(); ActVideo.Source = null; } catch { }
+    }
+
+    void ActVideo_MediaEnded(object sender, RoutedEventArgs e)
+    {
+        try { ActVideo.Position = TimeSpan.Zero; ActVideo.Play(); } catch { }
+    }
+
+    void ActVolumeSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+    {
+        try { ActVideo.Volume = e.NewValue; } catch { }
     }
 
     void ActCopyHwid_Click(object sender, RoutedEventArgs e)
@@ -235,6 +267,7 @@ public partial class MainWindow : Window
         {
             SoundFx.Chime();
             ActivationOverlay.Visibility = Visibility.Collapsed;
+            StopActVideo();
             _ = RefreshPackAsync(autoDetect: true);
         }
         else
