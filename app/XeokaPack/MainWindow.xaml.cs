@@ -218,12 +218,15 @@ public partial class MainWindow : Window
         _ = RefreshStatesAsync();
     }
 
+    string? _unblockedRoot;
+
     void UpdatePackState()
     {
         bool ok = _pack.IsPack;
         PackDot.Fill = (Brush)FindResource(ok ? "OkBrush" : "WarnBrush");
         PackStatus.Text = ok ? Loc.L("Пак найден", "Pack found") : Loc.L("Пак не найден", "Pack not found");
         PackPath.Text = _pack.Root;
+        if (ok && _unblockedRoot != _pack.Root) { _unblockedRoot = _pack.Root; var root = _pack.Root; _ = Task.Run(() => ToolLauncher.UnblockTree(root)); }
         var vis = ok ? Visibility.Collapsed : Visibility.Visible;
         PackWarnPanelOpt.Visibility = vis;
         PackWarnPanelTools.Visibility = vis;
