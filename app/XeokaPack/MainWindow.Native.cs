@@ -20,6 +20,29 @@ public partial class MainWindow
     [DllImport("user32.dll")] static extern IntPtr MonitorFromWindow(IntPtr hwnd, uint flags);
     [DllImport("user32.dll")] static extern bool GetMonitorInfo(IntPtr hMonitor, ref MONITORINFO mi);
 
+    [DllImport("user32.dll")] static extern bool GetWindowRect(IntPtr hwnd, out RECT r);
+
+    /// <summary>При разворачивании окно без рамки выступает за экран на толщину рамки: сдвигаем содержимое внутрь, чтобы кнопки не обрезались.</summary>
+    void UpdateMaxMargin()
+    {
+        try
+        {
+            var hwnd = new WindowInteropHelper(this).Handle;
+            if (hwnd == IntPtr.Zero) return;
+            if (WindowState != WindowState.Maximized || _fullscreen) { Shell.Margin = new Thickness(0); return; }
+            var mon = MonitorFromWindow(hwnd, MONITOR_DEFAULTTONEAREST);
+            var mi = new MONITORINFO { cbSize = Marshal.SizeOf<MONITORINFO>() };
+            if (mon == IntPtr.Zero || !GetMonitorInfo(mon, ref mi) || !GetWindowRect(hwnd, out var r)) return;
+            var dpi = System.Windows.Media.VisualTreeHelper.GetDpi(this);
+            Shell.Margin = new Thickness(
+                Math.Max(0, mi.rcWork.left - r.left) / dpi.DpiScaleX,
+                Math.Max(0, mi.rcWork.top - r.top) / dpi.DpiScaleY,
+                Math.Max(0, r.right - mi.rcWork.right) / dpi.DpiScaleX,
+                Math.Max(0, r.bottom - mi.rcWork.bottom) / dpi.DpiScaleY);
+        }
+        catch { }
+    }
+
     protected override void OnSourceInitialized(EventArgs e)
     {
         base.OnSourceInitialized(e);
@@ -50,6 +73,7 @@ public partial class MainWindow
             catch { }
             handled = true;
         }
+        else if (msg == 0x0046 /* WM_WINDOWPOSCHANGED */) Dispatcher.BeginInvoke(UpdateMaxMargin, System.Windows.Threading.DispatcherPriority.Render);
         return IntPtr.Zero;
     }
 }

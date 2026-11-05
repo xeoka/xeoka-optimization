@@ -46,18 +46,30 @@ public static class ThemeManager
         if (win != null) Walk(win);
     }
 
+    static readonly Dictionary<(ResourceDictionary, object), Brush> ResOrig = new();
+
+    /// <summary>Общие кисти WPF замораживает, поэтому меняем их целиком: берём оригинал, красим копию и кладём в словарь. Всё оформление на DynamicResource обновляется само.</summary>
     static void ProcessDictionary(ResourceDictionary rd)
     {
         foreach (var key in rd.Keys.Cast<object>().ToList())
         {
             try
             {
-                var v = rd[key];
-                if (v is Brush b) ShiftBrush(b);
+                if (rd[key] is not Brush cur) continue;
+                if (!ResOrig.TryGetValue((rd, key), out var orig)) { orig = cur; ResOrig[(rd, key)] = orig; }
+                rd[key] = Recolor(orig);
             }
             catch { }
         }
         foreach (var m in rd.MergedDictionaries) ProcessDictionary(m);
+    }
+
+    static Brush Recolor(Brush orig)
+    {
+        var c = orig.CloneCurrentValue();
+        if (c is SolidColorBrush sb) sb.Color = Shift(sb.Color);
+        else if (c is GradientBrush gb) foreach (var st in gb.GradientStops) st.Color = Shift(st.Color);
+        return c;
     }
 
     static void Walk(DependencyObject d)
@@ -72,11 +84,23 @@ public static class ThemeManager
     {
         try
         {
+            var list = new List<LocalValueEntry>();
             var en = d.GetLocalValueEnumerator();
-            while (en.MoveNext())
+            while (en.MoveNext()) list.Add(en.Current);
+            foreach (var cur in list)
             {
-                var v = en.Current.Value;
-                if (v is Brush b) ShiftBrush(b);
+                var v = cur.Value;
+                if (v is Brush b)
+                {
+                    if (!b.IsFrozen) ShiftBrush(b);
+                    else if (!cur.Property.ReadOnly && d is not Freezable)
+                    {
+                        var nb = Recolor(b);
+                        if (nb is SolidColorBrush sc) { Originals.Add(sc, new[] { b is SolidColorBrush ob ? ob.Color : sc.Color }); }
+                        else if (nb is GradientBrush ng && b is GradientBrush og) { Originals.Add(ng, og.GradientStops.Select(x => x.Color).ToArray()); }
+                        d.SetValue(cur.Property, nb);
+                    }
+                }
                 else if (v is DropShadowEffect ef && !ef.IsFrozen) ShiftEffect(ef);
             }
         }

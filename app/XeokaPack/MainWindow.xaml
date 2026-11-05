@@ -15,13 +15,13 @@
         <!-- Карточка твика -->
         <DataTemplate x:Key="TweakCard">
             <Border x:Name="Card" Width="{Binding Source={StaticResource Layout}, Path=CardWidth}" MinHeight="98" Margin="0,0,12,12"
-                    CornerRadius="16" Background="{StaticResource CardBrush}" BorderBrush="{StaticResource LineBrush}" BorderThickness="1.2"
+                    CornerRadius="16" Background="{DynamicResource CardBrush}" BorderBrush="{DynamicResource LineBrush}" BorderThickness="1.2"
                     Cursor="Hand" Tag="{Binding}" MouseLeftButtonUp="TweakCard_Click" RenderTransformOrigin="0.5,0.5">
                 <Border.RenderTransform><TranslateTransform x:Name="CardT" Y="0"/></Border.RenderTransform>
                 <Grid>
-                    <Border x:Name="OnRing" CornerRadius="16" BorderThickness="1.2" BorderBrush="{StaticResource AccentBrush}" Opacity="0"/>
-                    <Border x:Name="Hover" CornerRadius="16" BorderThickness="1.2" BorderBrush="{StaticResource Accent2Brush}" Background="#1E8B5CF6" Opacity="0"/>
-                    <Border x:Name="Bar" Width="4" HorizontalAlignment="Left" Margin="0,24" CornerRadius="2" Background="{StaticResource Accent2Brush}" Opacity="0"/>
+                    <Border x:Name="OnRing" CornerRadius="16" BorderThickness="1.2" BorderBrush="{DynamicResource AccentBrush}" Opacity="0"/>
+                    <Border x:Name="Hover" CornerRadius="16" BorderThickness="1.2" BorderBrush="{DynamicResource Accent2Brush}" Background="#1E8B5CF6" Opacity="0"/>
+                    <Border x:Name="Bar" Width="4" HorizontalAlignment="Left" Margin="0,24" CornerRadius="2" Background="{DynamicResource Accent2Brush}" Opacity="0"/>
                     <Grid Margin="22,14,18,14">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/>
@@ -30,7 +30,7 @@
                         <ToggleButton Style="{StaticResource ToggleSwitch}" IsChecked="{Binding IsOn, Mode=OneWay}" IsHitTestVisible="False" VerticalAlignment="Center"/>
                         <StackPanel Grid.Column="1" Margin="18,0,0,0" VerticalAlignment="Center">
                             <TextBlock Text="{Binding Title}" FontSize="15" FontWeight="SemiBold" TextWrapping="Wrap"/>
-                            <TextBlock Text="{Binding Desc}" FontSize="12.5" Foreground="{StaticResource DimBrush}" TextWrapping="Wrap" Margin="0,4,0,0"/>
+                            <TextBlock Text="{Binding Desc}" FontSize="12.5" Foreground="{DynamicResource DimBrush}" TextWrapping="Wrap" Margin="0,4,0,0"/>
                             <TextBlock Text="{Binding StateText}" Foreground="{Binding StateBrush}" Visibility="{Binding StateVis}" FontSize="11.5" FontWeight="SemiBold" Margin="0,6,0,0"/>
                         </StackPanel>
                     </Grid>
@@ -71,11 +71,11 @@
         <!-- Карточка инструмента -->
         <DataTemplate x:Key="ToolCard">
             <Border x:Name="Card" Width="{Binding Source={StaticResource Layout}, Path=ToolWidth}" Height="84" Margin="0,0,12,12"
-                    CornerRadius="16" Background="{StaticResource CardBrush}" BorderBrush="{StaticResource LineBrush}" BorderThickness="1.2"
+                    CornerRadius="16" Background="{DynamicResource CardBrush}" BorderBrush="{DynamicResource LineBrush}" BorderThickness="1.2"
                     Cursor="Hand" Tag="{Binding}" Opacity="{Binding Opacity}" MouseLeftButtonUp="ToolCard_Click" RenderTransformOrigin="0.5,0.5">
                 <Border.RenderTransform><TranslateTransform x:Name="CardT" Y="0"/></Border.RenderTransform>
                 <Grid>
-                    <Border x:Name="Hover" CornerRadius="16" BorderThickness="1.2" BorderBrush="{StaticResource Accent2Brush}" Background="#1E8B5CF6" Opacity="0"/>
+                    <Border x:Name="Hover" CornerRadius="16" BorderThickness="1.2" BorderBrush="{DynamicResource Accent2Brush}" Background="#1E8B5CF6" Opacity="0"/>
                     <Grid Margin="18,0,16,0">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/>
@@ -90,7 +90,7 @@
                             <TextBlock Text="{Binding Title}" FontSize="15" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/>
                             <TextBlock Text="{Binding Info}" FontSize="12.5" Foreground="{Binding InfoBrush}" TextTrimming="CharacterEllipsis" Margin="0,3,0,0"/>
                         </StackPanel>
-                        <Path Grid.Column="2" Data="M0,0 L6,6 L0,12" Stroke="{StaticResource Accent2Brush}" StrokeThickness="2" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round" VerticalAlignment="Center" Opacity="0.7"/>
+                        <Path Grid.Column="2" Data="M0,0 L6,6 L0,12" Stroke="{DynamicResource Accent2Brush}" StrokeThickness="2" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round" VerticalAlignment="Center" Opacity="0.7"/>
                     </Grid>
                 </Grid>
             </Border>
@@ -114,13 +114,13 @@
 
         <!-- Строка журнала -->
         <DataTemplate x:Key="LogLine">
-            <TextBlock x:Name="T" Text="{Binding Text}" FontFamily="Consolas" FontSize="12.5" TextWrapping="Wrap" Margin="0,1" Foreground="{StaticResource TextBrush}"/>
+            <TextBlock x:Name="T" Text="{Binding Text}" FontFamily="Consolas" FontSize="12.5" TextWrapping="Wrap" Margin="0,1" Foreground="{DynamicResource TextBrush}"/>
             <DataTemplate.Triggers>
-                <DataTrigger Binding="{Binding Level}" Value="Ok"><Setter TargetName="T" Property="Foreground" Value="{StaticResource OkBrush}"/></DataTrigger>
-                <DataTrigger Binding="{Binding Level}" Value="Warn"><Setter TargetName="T" Property="Foreground" Value="{StaticResource WarnBrush}"/></DataTrigger>
-                <DataTrigger Binding="{Binding Level}" Value="Err"><Setter TargetName="T" Property="Foreground" Value="{StaticResource ErrBrush}"/></DataTrigger>
-                <DataTrigger Binding="{Binding Level}" Value="Dim"><Setter TargetName="T" Property="Foreground" Value="{StaticResource DimBrush}"/></DataTrigger>
-                <DataTrigger Binding="{Binding Level}" Value="Head"><Setter TargetName="T" Property="Foreground" Value="{StaticResource Accent2Brush}"/></DataTrigger>
+                <DataTrigger Binding="{Binding Level}" Value="Ok"><Setter TargetName="T" Property="Foreground" Value="{DynamicResource OkBrush}"/></DataTrigger>
+                <DataTrigger Binding="{Binding Level}" Value="Warn"><Setter TargetName="T" Property="Foreground" Value="{DynamicResource WarnBrush}"/></DataTrigger>
+                <DataTrigger Binding="{Binding Level}" Value="Err"><Setter TargetName="T" Property="Foreground" Value="{DynamicResource ErrBrush}"/></DataTrigger>
+                <DataTrigger Binding="{Binding Level}" Value="Dim"><Setter TargetName="T" Property="Foreground" Value="{DynamicResource DimBrush}"/></DataTrigger>
+                <DataTrigger Binding="{Binding Level}" Value="Head"><Setter TargetName="T" Property="Foreground" Value="{DynamicResource Accent2Brush}"/></DataTrigger>
             </DataTemplate.Triggers>
         </DataTemplate>
 
@@ -132,20 +132,20 @@
         <Style x:Key="Bullet" TargetType="Ellipse">
             <Setter Property="Width" Value="5"/>
             <Setter Property="Height" Value="5"/>
-            <Setter Property="Fill" Value="{StaticResource Accent2Brush}"/>
+            <Setter Property="Fill" Value="{DynamicResource Accent2Brush}"/>
             <Setter Property="VerticalAlignment" Value="Top"/>
             <Setter Property="Margin" Value="0,8,12,0"/>
         </Style>
         <Style x:Key="BulletText" TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
             <Setter Property="FontSize" Value="13.5"/>
-            <Setter Property="Foreground" Value="{StaticResource DimBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource DimBrush}"/>
             <Setter Property="TextWrapping" Value="Wrap"/>
             <Setter Property="LineHeight" Value="20"/>
         </Style>
         <Style x:Key="InfoCard" TargetType="Border">
             <Setter Property="CornerRadius" Value="20"/>
-            <Setter Property="Background" Value="{StaticResource CardBrush}"/>
-            <Setter Property="BorderBrush" Value="{StaticResource LineBrush}"/>
+            <Setter Property="Background" Value="{DynamicResource CardBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource LineBrush}"/>
             <Setter Property="BorderThickness" Value="1.2"/>
             <Setter Property="Padding" Value="22"/>
             <Setter Property="Margin" Value="0,0,14,14"/>
@@ -253,14 +253,14 @@
 
                 <!-- кнопки окна -->
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top" shell:WindowChrome.IsHitTestVisibleInChrome="True">
-                    <Button Style="{StaticResource WinButton}" Click="MinBtn_Click">
-                        <Path Data="M0,0.5 H10" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="1.3"/>
+                    <Button Style="{StaticResource WinButton}" Click="MinBtn_Click" ToolTip="{local:T win_min}">
+                        <Path Data="M0,0.5 H10" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="1.5"><Path.LayoutTransform><ScaleTransform ScaleX="1.25" ScaleY="1.25"/></Path.LayoutTransform></Path>
                     </Button>
-                    <Button Style="{StaticResource WinButton}" Click="MaxBtn_Click">
-                        <Path x:Name="MaxIcon" Data="M0.5,0.5 H9.5 V9.5 H0.5 Z" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="1.3"/>
+                    <Button Style="{StaticResource WinButton}" Click="MaxBtn_Click" ToolTip="{local:T win_max}">
+                        <Path x:Name="MaxIcon" Data="M0.5,0.5 H9.5 V9.5 H0.5 Z" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="1.5"><Path.LayoutTransform><ScaleTransform ScaleX="1.25" ScaleY="1.25"/></Path.LayoutTransform></Path>
                     </Button>
-                    <Button Style="{StaticResource CloseButton}" Click="CloseBtn_Click">
-                        <Path Data="M0,0 L10,10 M10,0 L0,10" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="1.3"/>
+                    <Button Style="{StaticResource CloseButton}" Click="CloseBtn_Click" ToolTip="{local:T win_close}">
+                        <Path Data="M0,0 L10,10 M10,0 L0,10" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="1.5"><Path.LayoutTransform><ScaleTransform ScaleX="1.25" ScaleY="1.25"/></Path.LayoutTransform></Path>
                     </Button>
                 </StackPanel>
 
@@ -292,7 +292,7 @@
                 </Grid.ColumnDefinitions>
 
                 <!-- боковое меню -->
-                <Border Grid.Column="0" BorderThickness="0,0,1,0" BorderBrush="{StaticResource LineBrush}">
+                <Border Grid.Column="0" BorderThickness="0,0,1,0" BorderBrush="{DynamicResource LineBrush}">
                     <Border.Background>
                         <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
                             <GradientStop Color="#8C2A1260" Offset="0"/>
@@ -309,7 +309,7 @@
                                 </LinearGradientBrush>
                             </Border.Background>
                             <Border.RenderTransform><TranslateTransform x:Name="NavIndT" Y="0"/></Border.RenderTransform>
-                            <Border Width="3.5" Height="24" HorizontalAlignment="Left" Margin="-1,0,0,0" CornerRadius="2" Background="{StaticResource Accent2Brush}"/>
+                            <Border Width="3.5" Height="24" HorizontalAlignment="Left" Margin="-1,0,0,0" CornerRadius="2" Background="{DynamicResource Accent2Brush}"/>
                         </Border>
                         <StackPanel Margin="12,18,12,0" VerticalAlignment="Top">
                             <RadioButton x:Name="NavOpt" Style="{StaticResource NavItem}" IsChecked="True" Tag="0" Click="Nav_Click" Margin="0,0,0,8">
@@ -342,17 +342,17 @@
                             <Border x:Name="SoundBtn" Cursor="Hand" Background="Transparent" Margin="6,0,0,10" MouseLeftButtonUp="SoundBtn_Click">
                                 <StackPanel Orientation="Horizontal">
                                     <Path x:Name="SoundIcon" Data="M3,9 H7 L12,5 V19 L7,15 H3 Z M15,9 Q18,12 15,15 M17.5,6.5 Q23,12 17.5,17.5" Fill="#9D92BE" Stroke="#9D92BE" StrokeThickness="1.6" Width="18" Height="18" Stretch="Uniform"/>
-                                    <TextBlock x:Name="SoundText" Text="{local:T snd_on}" FontSize="12" Foreground="{StaticResource DimBrush}" Margin="10,0,0,0" VerticalAlignment="Center"/>
+                                    <TextBlock x:Name="SoundText" Text="{local:T snd_on}" FontSize="12" Foreground="{DynamicResource DimBrush}" Margin="10,0,0,0" VerticalAlignment="Center"/>
                                 </StackPanel>
                             </Border>
                             <TextBlock Text="{local:T hint_f11}" FontSize="11" Foreground="#6F6596" Margin="6,0,0,10"/>
-                            <Border CornerRadius="14" Background="#CC120B22" BorderBrush="{StaticResource LineBrush}" BorderThickness="1.2" Padding="14,12">
+                            <Border CornerRadius="14" Background="#CC120B22" BorderBrush="{DynamicResource LineBrush}" BorderThickness="1.2" Padding="14,12">
                                 <StackPanel>
                                     <StackPanel Orientation="Horizontal">
-                                        <Ellipse x:Name="PackDot" Width="9" Height="9" Fill="{StaticResource WarnBrush}" VerticalAlignment="Center"/>
+                                        <Ellipse x:Name="PackDot" Width="9" Height="9" Fill="{DynamicResource WarnBrush}" VerticalAlignment="Center"/>
                                         <TextBlock x:Name="PackStatus" Text="{local:T pack_searching}" FontSize="13" FontWeight="SemiBold" Margin="9,0,0,0"/>
                                     </StackPanel>
-                                    <TextBlock x:Name="PackPath" Text="" FontSize="10.5" Foreground="{StaticResource DimBrush}" TextWrapping="Wrap" Margin="0,6,0,0" MaxHeight="46" TextTrimming="CharacterEllipsis"/>
+                                    <TextBlock x:Name="PackPath" Text="" FontSize="10.5" Foreground="{DynamicResource DimBrush}" TextWrapping="Wrap" Margin="0,6,0,0" MaxHeight="46" TextTrimming="CharacterEllipsis"/>
                                 </StackPanel>
                             </Border>
                         </StackPanel>
@@ -374,7 +374,7 @@
                         <Grid Grid.Row="0" Margin="0,0,0,12">
                             <TextBlock Text="{local:T opt_title}" Style="{StaticResource H1}" VerticalAlignment="Center"/>
                             <StackPanel x:Name="PackWarnPanelOpt" Orientation="Horizontal" HorizontalAlignment="Right" Visibility="Collapsed">
-                                <TextBlock Text="{local:T pack_missing}" Foreground="{StaticResource WarnBrush}" FontSize="13" VerticalAlignment="Center" Margin="0,0,14,0"/>
+                                <TextBlock Text="{local:T pack_missing}" Foreground="{DynamicResource WarnBrush}" FontSize="13" VerticalAlignment="Center" Margin="0,0,14,0"/>
                                 <Button Content="{local:T pick_pack}" Style="{StaticResource GhostButton}" Height="38" Padding="18,0" Click="PickBtn_Click"/>
                             </StackPanel>
                         </Grid>
@@ -388,7 +388,7 @@
                                             <ItemsControl.ItemTemplate>
                                                 <DataTemplate>
                                                     <StackPanel Width="{Binding Source={StaticResource Layout}, Path=SumWidth}" Margin="0,0,12,10">
-                                                        <TextBlock Text="{Binding Label}" FontSize="11" Foreground="{StaticResource DimBrush}"/>
+                                                        <TextBlock Text="{Binding Label}" FontSize="11" Foreground="{DynamicResource DimBrush}"/>
                                                         <TextBlock Text="{Binding Value}" FontSize="13.5" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" ToolTip="{Binding Value}"/>
                                                     </StackPanel>
                                                 </DataTemplate>
@@ -399,7 +399,7 @@
                                 <Grid Margin="0,2,0,12">
                                     <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
                                     <TextBlock Text="{local:T grp_rec}" Style="{StaticResource GroupLabel}" VerticalAlignment="Center"/>
-                                    <Rectangle Grid.Column="1" Height="1" Fill="{StaticResource LineBrush}" Margin="14,0,0,0" VerticalAlignment="Center"/>
+                                    <Rectangle Grid.Column="1" Height="1" Fill="{DynamicResource LineBrush}" Margin="14,0,0,0" VerticalAlignment="Center"/>
                                 </Grid>
                                 <ItemsControl x:Name="RecList" ItemTemplate="{StaticResource TweakCard}">
                                     <ItemsControl.ItemsPanel><ItemsPanelTemplate><WrapPanel/></ItemsPanelTemplate></ItemsControl.ItemsPanel>
@@ -407,7 +407,7 @@
                                 <Grid Margin="0,6,0,12">
                                     <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
                                     <TextBlock Text="{local:T grp_opt}" Style="{StaticResource GroupLabel}" VerticalAlignment="Center"/>
-                                    <Rectangle Grid.Column="1" Height="1" Fill="{StaticResource LineBrush}" Margin="14,0,0,0" VerticalAlignment="Center"/>
+                                    <Rectangle Grid.Column="1" Height="1" Fill="{DynamicResource LineBrush}" Margin="14,0,0,0" VerticalAlignment="Center"/>
                                 </Grid>
                                 <ItemsControl x:Name="OptList" ItemTemplate="{StaticResource TweakCard}">
                                     <ItemsControl.ItemsPanel><ItemsPanelTemplate><WrapPanel/></ItemsPanelTemplate></ItemsControl.ItemsPanel>
@@ -424,12 +424,12 @@
                             <Button x:Name="RevertBtn" Grid.Column="1" Content="{local:T btn_revert}" Style="{StaticResource GhostButton}" Margin="0,4,12,4" Click="RevertBtn_Click"/>
                             <Button x:Name="AllBtn" Grid.Column="2" Content="{local:T btn_all}" Style="{StaticResource GhostButton}" Margin="0,4,0,4" Click="AllBtn_Click"/>
                         </Grid>
-                        <Border x:Name="ProgTrack" Grid.Row="3" Height="8" CornerRadius="4" Margin="0,14,0,0" Background="{StaticResource Panel2Brush}" Visibility="Collapsed">
-                            <Border x:Name="ProgFill" CornerRadius="4" HorizontalAlignment="Stretch" RenderTransformOrigin="0,0.5" Background="{StaticResource AccentGradient}">
+                        <Border x:Name="ProgTrack" Grid.Row="3" Height="8" CornerRadius="4" Margin="0,14,0,0" Background="{DynamicResource Panel2Brush}" Visibility="Collapsed">
+                            <Border x:Name="ProgFill" CornerRadius="4" HorizontalAlignment="Stretch" RenderTransformOrigin="0,0.5" Background="{DynamicResource AccentGradient}">
                                 <Border.RenderTransform><ScaleTransform x:Name="ProgScale" ScaleX="0"/></Border.RenderTransform>
                             </Border>
                         </Border>
-                        <Border Grid.Row="4" Height="150" Margin="0,14,0,0" CornerRadius="16" Background="#E6120B22" BorderBrush="{StaticResource LineBrush}" BorderThickness="1.2" Padding="16,10,6,10">
+                        <Border Grid.Row="4" Height="150" Margin="0,14,0,0" CornerRadius="16" Background="#E6120B22" BorderBrush="{DynamicResource LineBrush}" BorderThickness="1.2" Padding="16,10,6,10">
                             <local:SmoothScrollViewer x:Name="LogScroll" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                                 <ItemsControl x:Name="LogList" ItemTemplate="{StaticResource LogLine}" Margin="0,0,10,0"/>
                             </local:SmoothScrollViewer>
@@ -440,17 +440,17 @@
                             <Rectangle Fill="#D9030208" RadiusX="18" RadiusY="18"/>
                             <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
                                 <Grid Width="120" Height="120" HorizontalAlignment="Center">
-                                    <Ellipse Stroke="{StaticResource LineBrush}" StrokeThickness="5" Margin="8"/>
-                                    <Path x:Name="FxArc" Data="M60,8 A52,52 0 0 1 112,60" Stroke="{StaticResource AccentGradient}" StrokeThickness="5" StrokeStartLineCap="Round" StrokeEndLineCap="Round" RenderTransformOrigin="0.5,0.5">
+                                    <Ellipse Stroke="{DynamicResource LineBrush}" StrokeThickness="5" Margin="8"/>
+                                    <Path x:Name="FxArc" Data="M60,8 A52,52 0 0 1 112,60" Stroke="{DynamicResource AccentGradient}" StrokeThickness="5" StrokeStartLineCap="Round" StrokeEndLineCap="Round" RenderTransformOrigin="0.5,0.5">
                                         <Path.RenderTransform><RotateTransform x:Name="FxRot"/></Path.RenderTransform>
                                         <Path.Effect><DropShadowEffect Color="#8B5CF6" BlurRadius="16" ShadowDepth="0" Opacity="0.9"/></Path.Effect>
                                     </Path>
-                                    <Path x:Name="FxCheck" Data="M36,62 L54,80 L86,42" Stroke="{StaticResource OkBrush}" StrokeThickness="7" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round" Opacity="0" RenderTransformOrigin="0.5,0.5">
+                                    <Path x:Name="FxCheck" Data="M36,62 L54,80 L86,42" Stroke="{DynamicResource OkBrush}" StrokeThickness="7" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round" Opacity="0" RenderTransformOrigin="0.5,0.5">
                                         <Path.RenderTransform><ScaleTransform x:Name="FxCheckScale" ScaleX="0.4" ScaleY="0.4"/></Path.RenderTransform>
                                     </Path>
                                 </Grid>
                                 <TextBlock x:Name="FxTitle" Text="{local:T fx_working}" FontSize="22" FontWeight="SemiBold" HorizontalAlignment="Center" Margin="0,18,0,0"/>
-                                <TextBlock x:Name="FxStep" FontSize="14" Foreground="{StaticResource DimBrush}" HorizontalAlignment="Center" Margin="0,6,0,0"/>
+                                <TextBlock x:Name="FxStep" FontSize="14" Foreground="{DynamicResource DimBrush}" HorizontalAlignment="Center" Margin="0,6,0,0"/>
                             </StackPanel>
                         </Grid>
                     </Grid>
@@ -467,15 +467,15 @@
                             <StackPanel>
                                 <TextBlock Text="{local:T tools_title}" Style="{StaticResource H1}"/>
                                 <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
-                                    <TextBlock Text="{local:T tools_sub}" FontSize="13" Foreground="{StaticResource DimBrush}"/>
+                                    <TextBlock Text="{local:T tools_sub}" FontSize="13" Foreground="{DynamicResource DimBrush}"/>
                                 </StackPanel>
                                 <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
-                                    <Ellipse Width="9" Height="9" Fill="{StaticResource AmberGradient}" VerticalAlignment="Center"/>
-                                    <TextBlock Text="{local:T tools_risk}" FontSize="12.5" Foreground="{StaticResource DimBrush}" Margin="8,0,0,0"/>
+                                    <Ellipse Width="9" Height="9" Fill="{DynamicResource AmberGradient}" VerticalAlignment="Center"/>
+                                    <TextBlock Text="{local:T tools_risk}" FontSize="12.5" Foreground="{DynamicResource DimBrush}" Margin="8,0,0,0"/>
                                 </StackPanel>
                             </StackPanel>
                             <StackPanel x:Name="PackWarnPanelTools" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top" Visibility="Collapsed">
-                                <TextBlock Text="{local:T pack_missing}" Foreground="{StaticResource WarnBrush}" FontSize="13" VerticalAlignment="Center" Margin="0,0,14,0"/>
+                                <TextBlock Text="{local:T pack_missing}" Foreground="{DynamicResource WarnBrush}" FontSize="13" VerticalAlignment="Center" Margin="0,0,14,0"/>
                                 <Button Content="{local:T pick_pack}" Style="{StaticResource GhostButton}" Height="38" Padding="18,0" Click="PickBtn_Click"/>
                             </StackPanel>
                         </Grid>
@@ -519,16 +519,16 @@
                                             <TextBlock x:Name="AboutVersion" Text="{local:T sub_title}" FontSize="14" Foreground="#CFC3F5" Margin="3,0,0,14"/>
                                             <WrapPanel>
                                                 <Border CornerRadius="15" Background="#30000000" BorderBrush="#66A78BFA" BorderThickness="1" Padding="12,6" Margin="0,0,10,8">
-                                                    <StackPanel Orientation="Horizontal"><Ellipse Width="8" Height="8" Fill="{StaticResource OkBrush}" VerticalAlignment="Center"/><TextBlock Text="{local:T chip_rp}" Style="{StaticResource ChipText}"/></StackPanel>
+                                                    <StackPanel Orientation="Horizontal"><Ellipse Width="8" Height="8" Fill="{DynamicResource OkBrush}" VerticalAlignment="Center"/><TextBlock Text="{local:T chip_rp}" Style="{StaticResource ChipText}"/></StackPanel>
                                                 </Border>
                                                 <Border CornerRadius="15" Background="#30000000" BorderBrush="#66A78BFA" BorderThickness="1" Padding="12,6" Margin="0,0,10,8">
-                                                    <StackPanel Orientation="Horizontal"><Ellipse Width="8" Height="8" Fill="{StaticResource OkBrush}" VerticalAlignment="Center"/><TextBlock Text="{local:T chip_revert}" Style="{StaticResource ChipText}"/></StackPanel>
+                                                    <StackPanel Orientation="Horizontal"><Ellipse Width="8" Height="8" Fill="{DynamicResource OkBrush}" VerticalAlignment="Center"/><TextBlock Text="{local:T chip_revert}" Style="{StaticResource ChipText}"/></StackPanel>
                                                 </Border>
                                                 <Border CornerRadius="15" Background="#30000000" BorderBrush="#66A78BFA" BorderThickness="1" Padding="12,6" Margin="0,0,10,8">
-                                                    <StackPanel Orientation="Horizontal"><Ellipse Width="8" Height="8" Fill="{StaticResource OkBrush}" VerticalAlignment="Center"/><TextBlock Text="{local:T chip_auto}" Style="{StaticResource ChipText}"/></StackPanel>
+                                                    <StackPanel Orientation="Horizontal"><Ellipse Width="8" Height="8" Fill="{DynamicResource OkBrush}" VerticalAlignment="Center"/><TextBlock Text="{local:T chip_auto}" Style="{StaticResource ChipText}"/></StackPanel>
                                                 </Border>
                                                 <Border CornerRadius="15" Background="#30000000" BorderBrush="#66A78BFA" BorderThickness="1" Padding="12,6" Margin="0,0,10,8">
-                                                    <StackPanel Orientation="Horizontal"><Ellipse Width="8" Height="8" Fill="{StaticResource OkBrush}" VerticalAlignment="Center"/><TextBlock Text="{local:T chip_admin}" Style="{StaticResource ChipText}"/></StackPanel>
+                                                    <StackPanel Orientation="Horizontal"><Ellipse Width="8" Height="8" Fill="{DynamicResource OkBrush}" VerticalAlignment="Center"/><TextBlock Text="{local:T chip_admin}" Style="{StaticResource ChipText}"/></StackPanel>
                                                 </Border>
                                             </WrapPanel>
                                         </StackPanel>
@@ -541,7 +541,7 @@
                                         <StackPanel>
                                             <StackPanel Orientation="Horizontal" Margin="0,0,0,14">
                                                 <Grid Width="40" Height="40">
-                                                    <Ellipse Fill="{StaticResource AccentGradient}"/>
+                                                    <Ellipse Fill="{DynamicResource AccentGradient}"/>
                                                     <Path Data="M12,20 L18,26 L28,14" Stroke="White" StrokeThickness="2.6" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
                                                 </Grid>
                                                 <TextBlock Text="{local:T c1_title}" FontSize="17" FontWeight="SemiBold" Margin="14,0,0,0" VerticalAlignment="Center"/>
@@ -555,7 +555,7 @@
                                         <StackPanel>
                                             <StackPanel Orientation="Horizontal" Margin="0,0,0,14">
                                                 <Grid Width="40" Height="40">
-                                                    <Ellipse Fill="{StaticResource AccentGradient}"/>
+                                                    <Ellipse Fill="{DynamicResource AccentGradient}"/>
                                                     <Path Data="M12,12 H19 V19 H12 Z M21,12 H28 V19 H21 Z M12,21 H19 V28 H12 Z M21,21 H28 V28 H21 Z" Fill="White"/>
                                                 </Grid>
                                                 <TextBlock Text="{local:T c2_title}" FontSize="17" FontWeight="SemiBold" Margin="14,0,0,0" VerticalAlignment="Center"/>
@@ -568,7 +568,7 @@
                                         <StackPanel>
                                             <StackPanel Orientation="Horizontal" Margin="0,0,0,14">
                                                 <Grid Width="40" Height="40">
-                                                    <Ellipse Fill="{StaticResource AmberGradient}"/>
+                                                    <Ellipse Fill="{DynamicResource AmberGradient}"/>
                                                     <Path Data="M20,12 V22" Stroke="White" StrokeThickness="2.6" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
                                                     <Ellipse Width="3.6" Height="3.6" Fill="White" Margin="0,16,0,0"/>
                                                 </Grid>
@@ -608,7 +608,7 @@
                                 </Border>
 
                                 <Grid Margin="0,0,14,6">
-                                    <TextBlock x:Name="LogPathText" FontSize="11.5" Foreground="{StaticResource DimBrush}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Margin="2,0,420,0"/>
+                                    <TextBlock x:Name="LogPathText" FontSize="11.5" Foreground="{DynamicResource DimBrush}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Margin="2,0,420,0"/>
                                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                                         <Button Content="{local:T open_logs}" Style="{StaticResource GhostButton}" Width="180" Height="42" Margin="0,0,12,0" Click="OpenLogsBtn_Click"/>
                                         <Button Content="{local:T open_pack}" Style="{StaticResource GhostButton}" Width="200" Height="42" Click="OpenPackBtn_Click"/>
@@ -631,7 +631,7 @@
                                 <Border Style="{StaticResource InfoCard}" Margin="0,0,0,14">
                                     <StackPanel>
                                         <TextBlock Text="{local:T set_lang}" FontSize="16" FontWeight="SemiBold"/>
-                                        <TextBlock Text="{local:T set_lang_sub}" FontSize="12.5" Foreground="{StaticResource DimBrush}" Margin="0,3,0,12"/>
+                                        <TextBlock Text="{local:T set_lang_sub}" FontSize="12.5" Foreground="{DynamicResource DimBrush}" Margin="0,3,0,12"/>
                                         <StackPanel Orientation="Horizontal">
                                             <Button x:Name="LangRu" Content="Русский" Tag="ru" Style="{StaticResource GhostButton}" Width="140" Height="42" Margin="0,0,10,0" Click="Lang_Click"/>
                                             <Button x:Name="LangEn" Content="English" Tag="en" Style="{StaticResource GhostButton}" Width="140" Height="42" Margin="0,0,10,0" Click="Lang_Click"/>
@@ -642,7 +642,7 @@
                                 <Border Style="{StaticResource InfoCard}" Margin="0,0,0,14">
                                     <StackPanel>
                                         <TextBlock Text="{local:T set_theme}" FontSize="16" FontWeight="SemiBold"/>
-                                        <TextBlock Text="{local:T set_theme_sub}" FontSize="12.5" Foreground="{StaticResource DimBrush}" Margin="0,3,0,12"/>
+                                        <TextBlock Text="{local:T set_theme_sub}" FontSize="12.5" Foreground="{DynamicResource DimBrush}" Margin="0,3,0,12"/>
                                         <ItemsControl x:Name="ThemeList">
                                             <ItemsControl.ItemsPanel><ItemsPanelTemplate><WrapPanel/></ItemsPanelTemplate></ItemsControl.ItemsPanel>
                                             <ItemsControl.ItemTemplate>
@@ -664,7 +664,7 @@
                                         <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
                                         <StackPanel>
                                             <TextBlock Text="{local:T set_sound}" FontSize="16" FontWeight="SemiBold"/>
-                                            <TextBlock Text="{local:T set_sound_sub}" FontSize="12.5" Foreground="{StaticResource DimBrush}" Margin="0,3,0,0"/>
+                                            <TextBlock Text="{local:T set_sound_sub}" FontSize="12.5" Foreground="{DynamicResource DimBrush}" Margin="0,3,0,0"/>
                                         </StackPanel>
                                         <Button x:Name="SetSoundBtn" Grid.Column="1" Style="{StaticResource GhostButton}" Width="120" Height="42" VerticalAlignment="Center" Click="SetSoundBtn_Click"/>
                                     </Grid>
@@ -672,7 +672,7 @@
                                 <Border Style="{StaticResource InfoCard}" Margin="0,0,0,14">
                                     <StackPanel>
                                         <TextBlock Text="{local:T set_support}" FontSize="16" FontWeight="SemiBold"/>
-                                        <TextBlock Text="{local:T set_support_sub}" FontSize="12.5" Foreground="{StaticResource DimBrush}" TextWrapping="Wrap" Margin="0,3,0,12"/>
+                                        <TextBlock Text="{local:T set_support_sub}" FontSize="12.5" Foreground="{DynamicResource DimBrush}" TextWrapping="Wrap" Margin="0,3,0,12"/>
                                         <StackPanel Orientation="Horizontal">
                                             <Button x:Name="SupportBtn" Content="{local:T btn_support}" Style="{StaticResource PrimaryButton}" Width="210" Height="48" Margin="0,0,12,0" Click="SupportBtn_Click"/>
                                             <Button Content="{local:T btn_data}" Style="{StaticResource GhostButton}" Width="170" Height="44" VerticalAlignment="Center" Click="OpenLogsBtn_Click"/>
