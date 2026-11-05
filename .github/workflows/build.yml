@@ -30,4 +30,4 @@ jobs:
           Get-ChildItem -Directory | Where-Object { $_.Name -match '^\d+\.' } | ForEach-Object { Copy-Item $_.FullName stage/ -Recurse }
           Compress-Archive -Path stage/* -DestinationPath XEOKA-PACK-full.zip -Force
           gh release delete latest --yes --cleanup-tag 2>$null
-          gh release create latest out/XEOKA-PACK.exe XEOKA-PACK-full.zip --title "Xeoka optimization (последняя сборка)" --notes "XEOKA-PACK-full.zip: распакуйте и запустите XEOKA-PACK.exe, всё нужное уже рядом. XEOKA-PACK.exe: только программа, пак (папки 1-17) должен лежать рядом или в Загрузках. Запрашивает права администратора сам." --latest
+          gh release create latest out/XEOKA-PACK.exe XEOKA-PACK-full.zip --title "xeoka optimization (последняя сборка)" --notes "XEOKA-PACK-full.zip: распакуйте и запустите XEOKA-PACK.exe, всё нужное уже рядом. XEOKA-PACK.exe: только программа, пак (папки 1-17) должен лежать рядом или в Загрузках. Запрашивает права администратора сам." --latest

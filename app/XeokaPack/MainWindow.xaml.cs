@@ -470,7 +470,7 @@ public partial class MainWindow : Window
             Loc.L($"Успешно: {res.Ok}, с ошибками: {res.Fail}.\n\nДля применения всех изменений нужна перезагрузка. Перезагрузить сейчас?", $"Succeeded: {res.Ok}, failed: {res.Fail}.\n\nA restart is needed for all changes to take effect. Restart now?"), Loc.L("Перезагрузить", "Restart"), Loc.L("Позже", "Later"));
         if (reboot)
         {
-            try { Process.Start(new ProcessStartInfo("shutdown.exe", "/r /t 5 /c \"Xeoka optimization\"") { CreateNoWindow = true, UseShellExecute = false }); } catch { }
+            try { Process.Start(new ProcessStartInfo("shutdown.exe", "/r /t 5 /c \"xeoka optimization\"") { CreateNoWindow = true, UseShellExecute = false }); } catch { }
         }
     }
 

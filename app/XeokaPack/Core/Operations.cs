@@ -9,7 +9,7 @@ public static class Operations
         log.Head(Loc.L("Создаю точку восстановления...", "Creating a restore point..."));
         try
         {
-            var r = Sys.PowerShell("Enable-ComputerRestore -Drive \"$env:SystemDrive\\\" -ErrorAction SilentlyContinue; Checkpoint-Computer -Description 'Xeoka pack' -RestorePointType MODIFY_SETTINGS -ErrorAction Stop", 180000);
+            var r = Sys.PowerShell("Enable-ComputerRestore -Drive \"$env:SystemDrive\\\" -ErrorAction SilentlyContinue; Checkpoint-Computer -Description 'xeoka pack' -RestorePointType MODIFY_SETTINGS -ErrorAction Stop", 180000);
             if (r.Code == 0) log.Ok(Loc.L("  точка восстановления создана", "  restore point created"));
             else log.Warn(Loc.L("  точку создать не удалось (", "  could not create a restore point (") + (r.Output.Trim().Split('\n').FirstOrDefault() ?? Loc.L("ошибка", "error")) + Loc.L("). Продолжаю, откат реестра доступен.", "). Continuing, registry revert is available."));
         }

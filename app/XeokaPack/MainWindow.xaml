@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:shell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework"
         xmlns:local="clr-namespace:XeokaPack"
-        Title="XEOKA OPTIMIZATION" Width="1240" Height="820" MinWidth="980" MinHeight="640"
+        Title="xeoka optimization" Width="1240" Height="820" MinWidth="980" MinHeight="640"
         WindowStyle="None" ResizeMode="CanResize" Background="#030208" Opacity="0"
         UseLayoutRounding="True" WindowStartupLocation="CenterScreen"
         PreviewKeyDown="Window_PreviewKeyDown" SizeChanged="Window_SizeChanged" Loaded="Window_Loaded">
@@ -238,8 +238,8 @@
 
                 <StackPanel Margin="32,14,0,0" VerticalAlignment="Top" HorizontalAlignment="Left">
                     <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="XEOKA" FontSize="34" FontWeight="Black" Foreground="White"/>
-                        <TextBlock x:Name="PackWord" Text="OPTIMIZATION" FontSize="34" FontWeight="Black" Margin="12,0,0,0">
+                        <TextBlock Text="xeoka" FontSize="34" FontWeight="Black" Foreground="White"/>
+                        <TextBlock x:Name="PackWord" Text="optimization" FontSize="34" FontWeight="Black" Margin="12,0,0,0">
                             <TextBlock.Foreground>
                                 <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
                                     <GradientStop Color="#E9D5FF" Offset="0"/>
@@ -513,8 +513,8 @@
                                         <Ellipse Width="240" Height="240" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,150,-120" Fill="#18C084FC"/>
                                         <StackPanel Margin="34,26,34,26" VerticalAlignment="Center">
                                             <StackPanel Orientation="Horizontal">
-                                                <TextBlock Text="XEOKA" FontSize="46" FontWeight="Black" Foreground="White"/>
-                                                <TextBlock Text="OPTIMIZATION" FontSize="46" FontWeight="Black" Foreground="#E3C9FF" Margin="14,0,0,0"/>
+                                                <TextBlock Text="xeoka" FontSize="46" FontWeight="Black" Foreground="White"/>
+                                                <TextBlock Text="optimization" FontSize="46" FontWeight="Black" Foreground="#E3C9FF" Margin="14,0,0,0"/>
                                             </StackPanel>
                                             <TextBlock x:Name="AboutVersion" Text="{local:T sub_title}" FontSize="14" Foreground="#CFC3F5" Margin="3,0,0,14"/>
                                             <WrapPanel>
@@ -701,7 +701,7 @@
                     <ScaleTransform x:Name="DlgScale" ScaleX="0.94" ScaleY="0.94"/>
                 </Border.RenderTransform>
                 <StackPanel>
-                    <TextBlock x:Name="DlgTitle" FontSize="20" FontWeight="SemiBold" Text="Xeoka optimization"/>
+                    <TextBlock x:Name="DlgTitle" FontSize="20" FontWeight="SemiBold" Text="xeoka optimization"/>
                     <TextBlock x:Name="DlgText" FontSize="14" Foreground="#C9C0E8" TextWrapping="Wrap" Margin="0,12,0,22" LineHeight="21"/>
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                         <Button x:Name="DlgNo" Content="{local:T dlg_cancel}" Style="{StaticResource GhostButton}" Width="130" Height="44" Margin="0,0,12,0" Click="DlgNo_Click"/>

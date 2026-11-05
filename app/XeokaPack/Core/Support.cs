@@ -16,7 +16,7 @@ public static class Support
 
         var sb = new StringBuilder();
         var ver = Assembly.GetExecutingAssembly().GetName().Version;
-        sb.AppendLine("Xeoka optimization support report");
+        sb.AppendLine("xeoka optimization support report");
         sb.AppendLine("App version : " + ver);
         sb.AppendLine("Created     : " + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
         sb.AppendLine("Language    : " + (Loc.En ? "en" : "ru") + "  (setting: " + st.Lang + ")");
