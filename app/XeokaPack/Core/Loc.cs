@@ -70,6 +70,7 @@ public static partial class Strings
         ["open_logs"] = ("Открыть журнал", "Open logs"),
         ["dlg_cancel"] = ("Отмена", "Cancel"),
         ["dlg_continue"] = ("Продолжить", "Continue"),
+        ["legal"] = ("Программа и пак принадлежат автору. Распространять, выкладывать в открытый доступ и перепродавать их без разрешения автора запрещено. Разрешение: t.me/CMEPT0HOCHbIU", "The program and the pack belong to the author. Redistribution, public re-uploading and resale without the author's permission are prohibited. Permission: t.me/CMEPT0HOCHbIU"),
         ["win_min"] = ("Свернуть", "Minimize"),
         ["win_max"] = ("Развернуть", "Maximize"),
         ["win_close"] = ("Закрыть", "Close"),
