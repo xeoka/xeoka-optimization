@@ -74,6 +74,8 @@ public partial class MainWindow
             handled = true;
         }
         else if (msg == 0x0046 /* WM_WINDOWPOSCHANGED */) Dispatcher.BeginInvoke(UpdateMaxMargin, System.Windows.Threading.DispatcherPriority.Render);
+        else if (msg == 0x0231 /* WM_ENTERSIZEMOVE */) PauseBackground();
+        else if (msg == 0x0232 /* WM_EXITSIZEMOVE */) ResumeBackground();
         return IntPtr.Zero;
     }
 }
