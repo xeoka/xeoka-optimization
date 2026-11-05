@@ -1,16 +1,37 @@
 using System.Diagnostics;
 using System.IO;
+using System.Runtime.InteropServices;
 
 namespace XeokaPack.Core;
 
 public static class ToolLauncher
 {
+    [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+    static extern bool DeleteFileW(string path);
+
+    /// <summary>Снимает пометку «файл из интернета» (Zone.Identifier), из-за неё Windows спрашивает «Вы хотите запустить этот файл?».</summary>
+    public static void Unblock(string file)
+    {
+        try { DeleteFileW(file + ":Zone.Identifier"); } catch { }
+    }
+
+    public static void UnblockTree(string root)
+    {
+        try
+        {
+            if (!Directory.Exists(root)) return;
+            foreach (var f in Directory.EnumerateFiles(root, "*", SearchOption.AllDirectories)) Unblock(f);
+        }
+        catch { }
+    }
+
     public static string? Resolve(PackLocator pack, ToolDef t) => pack.Find(t.Prefix, t.File);
 
     public static void Launch(PackLocator pack, ToolDef t)
     {
         var p = Resolve(pack, t) ?? throw new FileNotFoundException(Loc.L("Файл «" + t.File + "» не найден в паке.", "File \"" + t.File + "\" was not found in the pack."));
         var dir = Path.GetDirectoryName(p)!;
+        UnblockTree(dir);
         switch (t.Kind)
         {
             case ToolKind.Nvidia:
