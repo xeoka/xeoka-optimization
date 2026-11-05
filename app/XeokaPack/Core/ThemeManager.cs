@@ -72,12 +72,23 @@ public static class ThemeManager
         return c;
     }
 
-    static void Walk(DependencyObject d)
+    static void Walk(DependencyObject root)
     {
-        ProcessElement(d);
-        int n = VisualTreeHelper.GetChildrenCount(d);
-        for (int i = 0; i < n; i++) Walk(VisualTreeHelper.GetChild(d, i));
-        if (d is FrameworkElement fe && fe.Resources.Count > 0) ProcessDictionary(fe.Resources);
+        var seen = new HashSet<DependencyObject>();
+        void Go(DependencyObject d)
+        {
+            if (!seen.Add(d)) return;
+            ProcessElement(d);
+            if (d is Visual or System.Windows.Media.Media3D.Visual3D)
+            {
+                int n = VisualTreeHelper.GetChildrenCount(d);
+                for (int i = 0; i < n; i++) Go(VisualTreeHelper.GetChild(d, i));
+            }
+            // логическое дерево: содержимое страниц, которые ещё ни разу не показывались
+            foreach (var ch in LogicalTreeHelper.GetChildren(d)) if (ch is DependencyObject dc) Go(dc);
+            if (d is FrameworkElement fe && fe.Resources.Count > 0) ProcessDictionary(fe.Resources);
+        }
+        Go(root);
     }
 
     static void ProcessElement(DependencyObject d)
@@ -133,10 +144,20 @@ public static class ThemeManager
     {
         RgbToHsv(c, out var h, out var s, out var v);
         if (s < 0.12 || h < 228 || h > 312) return c;
+        if (Current.Id == "violet") return c;
         h = (h + _delta + 360) % 360;
         s = Math.Clamp(s * _satMul, 0, 1);
-        return HsvToRgb(h, s, v, c.A);
+        // сохраняем яркость исходного цвета, чтобы белый текст читался так же, как на фиолетовой теме
+        double target = Lum(c), lo = 0, hi = 1;
+        for (int i = 0; i < 14; i++)
+        {
+            double mid = (lo + hi) / 2;
+            if (Lum(HsvToRgb(h, s, mid, 255)) < target) lo = mid; else hi = mid;
+        }
+        return HsvToRgb(h, s, Math.Min(1, (lo + hi) / 2), c.A);
     }
+
+    static double Lum(Color c) => 0.2126 * c.R + 0.7152 * c.G + 0.0722 * c.B;
 
     static void RgbToHsv(Color c, out double h, out double s, out double v)
     {

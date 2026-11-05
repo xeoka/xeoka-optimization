@@ -98,7 +98,7 @@ function New-TerminalHyperlink {
 
 function Write-CommunityLinks {
     $links = @(
-        [pscustomobject]@{ Text = 'XEOKA PACK - TELEGRAM'; Uri = 'https://t.me/CMEPT0HOCHbIU' }
+        [pscustomobject]@{ Text = 'Xeoka pack - Telegram: https://t.me/CMEPT0HOCHbIU'; Uri = 'https://t.me/CMEPT0HOCHbIU' }
     )
 
     Write-Host "Community links:" -ForegroundColor Cyan
@@ -157,4 +157,4 @@ if (-not $results -or $results.Count -eq 0) {
 Write-Host ""
 Write-CommunityLinks
 Write-Host ""
-Read-Host "Press Enter to exit"
+Read-Host "Press Enter to exit"

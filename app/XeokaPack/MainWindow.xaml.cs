@@ -346,6 +346,7 @@ public partial class MainWindow : Window
         SoundFx.Tick();
         NavIndT.BeginAnimation(TranslateTransform.YProperty, new DoubleAnimation(idx * 54, TimeSpan.FromMilliseconds(380))
         { EasingFunction = new BackEase { EasingMode = EasingMode.EaseOut, Amplitude = 0.25 } });
+        Dispatcher.BeginInvoke(() => ThemeManager.Apply(_settings.Theme, this), System.Windows.Threading.DispatcherPriority.Loaded);
         _pages[_page].Visibility = Visibility.Collapsed;
         _page = idx;
         var pg = _pages[idx];
@@ -465,7 +466,7 @@ public partial class MainWindow : Window
             Loc.L($"Успешно: {res.Ok}, с ошибками: {res.Fail}.\n\nДля применения всех изменений нужна перезагрузка. Перезагрузить сейчас?", $"Succeeded: {res.Ok}, failed: {res.Fail}.\n\nA restart is needed for all changes to take effect. Restart now?"), Loc.L("Перезагрузить", "Restart"), Loc.L("Позже", "Later"));
         if (reboot)
         {
-            try { Process.Start(new ProcessStartInfo("shutdown.exe", "/r /t 5 /c \"XEOKA PACK\"") { CreateNoWindow = true, UseShellExecute = false }); } catch { }
+            try { Process.Start(new ProcessStartInfo("shutdown.exe", "/r /t 5 /c \"Xeoka optimization\"") { CreateNoWindow = true, UseShellExecute = false }); } catch { }
         }
     }
 

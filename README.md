@@ -1,4 +1,4 @@
-# XEOKA Pack
+# Xeoka pack
 
 Набор инструментов и настроек для оптимизации Windows 10/11 (задержки, драйверы, службы, сеть, питание, BIOS).
 Telegram: https://t.me/CMEPT0HOCHbIU
@@ -50,3 +50,6 @@ Telegram: https://t.me/CMEPT0HOCHbIU
 - pci.ids (pci-ids.ucw.cz)
 - **DEVICE-TWEAKER** - автор BYND_PERF (LLG), https://x.com/BEYONDPERF_LLG . Скрипт включён без изменений в содержимом, в нём сохранены ссылки автора.
 - Часть скриптов и твиков (Windows Defender Switcher, Windows Update Blocker, MMCSS, сеть и др.) основана на публичных материалах сообщества Low Latency Corp (LLC). 
+
+## Авторские права
+Программа и пак принадлежат автору. Распространять, выкладывать в открытый доступ и перепродавать их без разрешения автора запрещено. Разрешение: https://t.me/CMEPT0HOCHbIU

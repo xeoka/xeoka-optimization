@@ -5709,9 +5709,9 @@ function Invoke-EnableDefender {
 function Show-CommunityLinks {
     Write-Host ""
     Write-Host "  ─────────────────────────────────────────────────────────────" -ForegroundColor DarkCyan
-    Write-Host "  XEOKA PACK — Community Links:" -ForegroundColor Cyan
+    Write-Host "  Xeoka pack — Community Links:" -ForegroundColor Cyan
     $links = @(
-        @{ Label = "XEOKA PACK - TELEGRAM"; Url = "https://t.me/CMEPT0HOCHbIU" }
+        @{ Label = "Xeoka pack - Telegram: https://t.me/CMEPT0HOCHbIU"; Url = "https://t.me/CMEPT0HOCHbIU" }
     )
     foreach ($link in $links) {
         $esc = [char]27

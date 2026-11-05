@@ -70,22 +70,20 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="Thumb">
-                    <Border x:Name="T" Width="6" HorizontalAlignment="Center" CornerRadius="3" Margin="0,2">
-                        <Border.Background>
-                            <SolidColorBrush x:Name="TB" Color="#4A3A80"/>
-                        </Border.Background>
+                    <Border x:Name="T" Width="6" HorizontalAlignment="Center" CornerRadius="3" Margin="0,2" Background="{DynamicResource LineBrush}">
+                        <Border x:Name="Hot" CornerRadius="3" Background="{DynamicResource Accent2Brush}" Opacity="0"/>
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
                             <Trigger.EnterActions>
                                 <BeginStoryboard><Storyboard>
-                                    <ColorAnimation Storyboard.TargetName="TB" Storyboard.TargetProperty="Color" To="#A78BFA" Duration="0:0:0.15"/>
+                                    <DoubleAnimation Storyboard.TargetName="Hot" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.15"/>
                                     <DoubleAnimation Storyboard.TargetName="T" Storyboard.TargetProperty="Width" To="8" Duration="0:0:0.15"/>
                                 </Storyboard></BeginStoryboard>
                             </Trigger.EnterActions>
                             <Trigger.ExitActions>
                                 <BeginStoryboard><Storyboard>
-                                    <ColorAnimation Storyboard.TargetName="TB" Storyboard.TargetProperty="Color" To="#4A3A80" Duration="0:0:0.25"/>
+                                    <DoubleAnimation Storyboard.TargetName="Hot" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.25"/>
                                     <DoubleAnimation Storyboard.TargetName="T" Storyboard.TargetProperty="Width" To="6" Duration="0:0:0.25"/>
                                 </Storyboard></BeginStoryboard>
                             </Trigger.ExitActions>
@@ -128,14 +126,13 @@
                     <Grid Width="52" Height="28" Background="Transparent">
                         <Border CornerRadius="14" Background="{DynamicResource Panel2Brush}" BorderBrush="{DynamicResource LineBrush}" BorderThickness="1.2"/>
                         <Border x:Name="OnFill" CornerRadius="14" Opacity="0" Background="{DynamicResource AccentGradient}"/>
-                        <Ellipse x:Name="Knob" Width="20" Height="20" HorizontalAlignment="Left" Margin="4,0,0,0">
-                            <Ellipse.Fill>
-                                <SolidColorBrush x:Name="KnobBrush" Color="#9D92BE"/>
-                            </Ellipse.Fill>
-                            <Ellipse.RenderTransform>
+                        <Grid x:Name="Knob" Width="20" Height="20" HorizontalAlignment="Left" Margin="4,0,0,0">
+                            <Ellipse Fill="{DynamicResource DimBrush}"/>
+                            <Ellipse x:Name="KnobOn" Fill="White" Opacity="0"/>
+                            <Grid.RenderTransform>
                                 <TranslateTransform x:Name="KnobT" X="0"/>
-                            </Ellipse.RenderTransform>
-                        </Ellipse>
+                            </Grid.RenderTransform>
+                        </Grid>
                     </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsChecked" Value="True">
@@ -145,7 +142,7 @@
                                         <DoubleAnimation.EasingFunction><BackEase EasingMode="EaseOut" Amplitude="0.4"/></DoubleAnimation.EasingFunction>
                                     </DoubleAnimation>
                                     <DoubleAnimation Storyboard.TargetName="OnFill" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.22"/>
-                                    <ColorAnimation Storyboard.TargetName="KnobBrush" Storyboard.TargetProperty="Color" To="#FFFFFF" Duration="0:0:0.2"/>
+                                    <DoubleAnimation Storyboard.TargetName="KnobOn" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.2"/>
                                 </Storyboard></BeginStoryboard>
                             </Trigger.EnterActions>
                             <Trigger.ExitActions>
@@ -154,7 +151,7 @@
                                         <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut"/></DoubleAnimation.EasingFunction>
                                     </DoubleAnimation>
                                     <DoubleAnimation Storyboard.TargetName="OnFill" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.22"/>
-                                    <ColorAnimation Storyboard.TargetName="KnobBrush" Storyboard.TargetProperty="Color" To="#9D92BE" Duration="0:0:0.2"/>
+                                    <DoubleAnimation Storyboard.TargetName="KnobOn" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.2"/>
                                 </Storyboard></BeginStoryboard>
                             </Trigger.ExitActions>
                         </Trigger>
