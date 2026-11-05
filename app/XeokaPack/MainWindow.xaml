@@ -717,9 +717,20 @@
         </Grid>
 
         <!-- ================= Активация ================= -->
-        <Grid x:Name="ActivationOverlay" Visibility="Collapsed" Panel.ZIndex="200">
+        <Grid x:Name="ActivationOverlay" Visibility="Collapsed" Panel.ZIndex="200" ClipToBounds="True">
             <Rectangle Fill="#030208" Margin="0,96,0,0"/>
-            <Rectangle Fill="#22000000" Margin="0,96,0,0"/>
+            <MediaElement x:Name="ActVideo" Margin="0,96,0,0" Stretch="UniformToFill" LoadedBehavior="Manual" UnloadedBehavior="Manual"
+                          IsHitTestVisible="False" MediaEnded="ActVideo_MediaEnded" Volume="0.2"/>
+            <Rectangle Fill="#4A000000" Margin="0,96,0,0"/>
+
+            <!-- Громкость видео -->
+            <Border x:Name="ActVolumePanel" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="26,0,0,26" CornerRadius="14" Background="#55000000" Padding="16,10" Visibility="Collapsed">
+                <StackPanel Orientation="Horizontal">
+                    <Path Data="F1 M3,9 H7 L12,5 V19 L7,15 H3 Z M15,9 C17,10.5 17,13.5 15,15 M18,6 C22,9.5 22,14.5 18,18" Stroke="White" StrokeThickness="1.6" StrokeLineJoin="Round" Width="22" Height="22" Stretch="Uniform"/>
+                    <Slider x:Name="ActVolumeSlider" Width="140" Minimum="0" Maximum="1" Value="0.2" Margin="12,0,0,0" VerticalAlignment="Center" ValueChanged="ActVolumeSlider_ValueChanged"/>
+                </StackPanel>
+            </Border>
+
             <Border Width="560" MaxWidth="620" HorizontalAlignment="Center" VerticalAlignment="Center" CornerRadius="22" BorderThickness="1.2" BorderBrush="{DynamicResource Accent2Brush}" Padding="32,28">
                 <Border.Background>
                     <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
