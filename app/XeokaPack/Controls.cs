@@ -73,7 +73,7 @@ public sealed class ToolVM : Notify
     public Brush InfoBrush => (Brush)Application.Current.FindResource(Found ? "DimBrush" : "WarnBrush");
     public Brush Badge => (Brush)Application.Current.FindResource(!Found ? "MutedGradient" : Def.Risk ? "AmberGradient" : "AccentGradient");
     public double Opacity => Found ? 1.0 : 0.75;
-    public void Refresh() { Raise(nameof(Title)); Raise(nameof(Info)); }
+    public void Refresh() { Raise(nameof(Title)); Raise(nameof(Info)); Raise(nameof(Badge)); Raise(nameof(InfoBrush)); }
 }
 
 public sealed class ThemeVM : Notify

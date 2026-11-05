@@ -135,6 +135,7 @@ public partial class MainWindow : Window
         ThemeManager.Apply(_settings.Theme, this);
         ToolsRiskText.Text = Loc.L(ThemeManager.Current.RiskRu, ThemeManager.Current.RiskEn) + Loc.T("tools_risk");
         foreach (var t in _themes) t.Refresh();
+        foreach (var t in _tools) t.Refresh();
         foreach (var v in AllTweaks) v.Refresh();
     }
 
