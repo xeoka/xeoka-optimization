@@ -5,7 +5,7 @@ using System.Windows.Media.Effects;
 
 namespace XeokaPack.Core;
 
-public sealed record ThemeDef(string Id, string NameRu, string NameEn, double Hue, double Sat, string Swatch);
+public sealed record ThemeDef(string Id, string NameRu, string NameEn, double Hue, double Sat, string Swatch, double RiskHue, string RiskRu, string RiskEn);
 
 /// <summary>Темы: сдвиг оттенка фиолетовой палитры. Кисти меняются «на месте», поэтому всё окно перекрашивается сразу и плавно.</summary>
 public static class ThemeManager
@@ -13,12 +13,12 @@ public static class ThemeManager
     public const double BaseHue = 262;
     public static readonly List<ThemeDef> All = new()
     {
-        new("violet",  "Фиолетовая", "Violet",  262, 1.00, "#8B5CF6"),
-        new("cyan",    "Океан",      "Ocean",   196, 1.00, "#22B8E8"),
-        new("emerald", "Изумруд",    "Emerald", 152, 0.95, "#2FD08A"),
-        new("rose",    "Роза",       "Rose",    334, 1.00, "#E8509A"),
-        new("crimson", "Рубин",      "Ruby",    352, 1.00, "#E8465E"),
-        new("mono",    "Графит",     "Graphite",262, 0.12, "#A8A8B8"),
+        new("violet",  "Фиолетовая", "Violet",  262, 1.00, "#8B5CF6", 300, "розовые", "pink"),
+        new("cyan",    "Океан",      "Ocean",   196, 1.00, "#22B8E8", 22, "оранжевые", "orange"),
+        new("emerald", "Изумруд",    "Emerald", 152, 0.95, "#2FD08A", 318, "розовые", "pink"),
+        new("rose",    "Роза",       "Rose",    334, 1.00, "#E8509A", 24, "оранжевые", "orange"),
+        new("crimson", "Рубин",      "Ruby",    352, 1.00, "#E8465E", 30, "оранжевые", "orange"),
+        new("mono",    "Графит",     "Graphite",262, 0.12, "#A8A8B8", 320, "розовые", "pink"),
     };
 
     public static ThemeDef Current { get; private set; } = All[0];
@@ -57,11 +57,26 @@ public static class ThemeManager
             {
                 if (rd[key] is not Brush cur) continue;
                 if (!ResOrig.TryGetValue((rd, key), out var orig)) { orig = cur; ResOrig[(rd, key)] = orig; }
-                rd[key] = Recolor(orig);
+                rd[key] = key is "AmberGradient" ? RecolorRisk(orig) : Recolor(orig);
             }
             catch { }
         }
         foreach (var m in rd.MergedDictionaries) ProcessDictionary(m);
+    }
+
+    /// <summary>Значки «осторожно»: отдельный оттенок под тему, чтобы отличались от обычных, при той же яркости.</summary>
+    static Brush RecolorRisk(Brush orig)
+    {
+        var c = orig.CloneCurrentValue();
+        if (c is GradientBrush gb)
+            foreach (var st in gb.GradientStops)
+            {
+                RgbToHsv(st.Color, out _, out var s, out var v);
+                double target = Lum(st.Color), lo = 0, hi = 1;
+                for (int i = 0; i < 14; i++) { double m = (lo + hi) / 2; if (Lum(HsvToRgb(Current.RiskHue, s, m, 255)) < target) lo = m; else hi = m; }
+                st.Color = HsvToRgb(Current.RiskHue, s, Math.Min(1, (lo + hi) / 2), st.Color.A);
+            }
+        return c;
     }
 
     static Brush Recolor(Brush orig)

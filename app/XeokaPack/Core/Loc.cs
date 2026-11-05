@@ -47,7 +47,7 @@ public static partial class Strings
         ["btn_all"] = ("Все / никакие", "All / none"),
         ["tools_title"] = ("Инструменты пака", "Pack tools"),
         ["tools_sub"] = ("Запускаются отдельно: то, что нельзя безопасно применить одной кнопкой.", "Run separately: things that cannot be applied safely with one button."),
-        ["tools_risk"] = ("розовые значки: меняют защиту или стабильность системы, запускайте внимательно", "pink badges change protection or system stability: run them with care"),
+        ["tools_risk"] = (" значки: меняют защиту или стабильность системы, запускайте внимательно", " badges change protection or system stability: run them with care"),
         ["open_pack"] = ("Открыть папку пака", "Open pack folder"),
         ["chip_rp"] = ("Точка восстановления", "Restore point"),
         ["chip_revert"] = ("Откат изменений", "Revert changes"),
