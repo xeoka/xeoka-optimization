@@ -715,5 +715,45 @@
                 </StackPanel>
             </Border>
         </Grid>
+
+        <!-- ================= Активация ================= -->
+        <Grid x:Name="ActivationOverlay" Visibility="Collapsed" Panel.ZIndex="200">
+            <Rectangle Fill="#030208"/>
+            <Rectangle Fill="#22000000"/>
+            <Border Width="560" MaxWidth="92%" HorizontalAlignment="Center" VerticalAlignment="Center" CornerRadius="22" BorderThickness="1.2" BorderBrush="{DynamicResource Accent2Brush}" Padding="32,28">
+                <Border.Background>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                        <GradientStop Color="#1F1240" Offset="0"/>
+                        <GradientStop Color="#0E0820" Offset="1"/>
+                    </LinearGradientBrush>
+                </Border.Background>
+                <StackPanel>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="XEOKA" FontSize="26" FontWeight="Black" Foreground="White"/>
+                        <TextBlock Text="OPTIMIZATION" FontSize="26" FontWeight="Black" Foreground="{DynamicResource Accent2Brush}" Margin="10,0,0,0"/>
+                    </StackPanel>
+                    <TextBlock Text="{local:T act_title}" FontSize="14" Foreground="{DynamicResource DimBrush}" Margin="0,4,0,20" TextWrapping="Wrap"/>
+
+                    <TextBlock Text="{local:T act_hwid_label}" FontSize="12.5" Foreground="{DynamicResource DimBrush}"/>
+                    <Grid Margin="0,6,0,20">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                        <Border Background="#30000000" BorderBrush="{DynamicResource LineBrush}" BorderThickness="1" CornerRadius="10" Padding="14,10">
+                            <TextBlock x:Name="ActHwidText" FontSize="16" FontFamily="Consolas" FontWeight="SemiBold" Foreground="{DynamicResource TextBrush}"/>
+                        </Border>
+                        <Button Grid.Column="1" Content="{local:T act_copy}" Style="{StaticResource GhostButton}" Width="110" Height="42" Margin="10,0,0,0" Click="ActCopyHwid_Click"/>
+                    </Grid>
+
+                    <TextBlock Text="{local:T act_code_label}" FontSize="12.5" Foreground="{DynamicResource DimBrush}"/>
+                    <TextBox x:Name="ActCodeBox" Margin="0,6,0,10" Padding="12,10" FontSize="13" FontFamily="Consolas" TextWrapping="Wrap" AcceptsReturn="True" MaxHeight="90" VerticalScrollBarVisibility="Auto"
+                             Background="#30000000" Foreground="{DynamicResource TextBrush}" BorderBrush="{DynamicResource LineBrush}" BorderThickness="1"/>
+                    <TextBlock x:Name="ActError" FontSize="12.5" Foreground="{DynamicResource ErrBrush}" TextWrapping="Wrap" Margin="0,0,0,10" Visibility="Collapsed"/>
+
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,8,0,0">
+                        <Button Content="{local:T act_buy}" Style="{StaticResource GhostButton}" Width="150" Height="46" Margin="0,0,12,0" Click="ActBuy_Click"/>
+                        <Button x:Name="ActActivateBtn" Content="{local:T act_activate}" Style="{StaticResource PrimaryButton}" Width="170" Height="46" Click="ActActivate_Click"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </Grid>
     </Grid>
 </Window>

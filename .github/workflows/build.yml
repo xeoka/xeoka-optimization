@@ -15,6 +15,8 @@ jobs:
         with: { dotnet-version: '8.0.x' }
       - name: Publish
         run: dotnet publish app/XeokaPack/XeokaPack.csproj -c Release -o out
+      - name: Build license generator (проверка, в релиз не идёт)
+        run: dotnet build tools/LicenseGen/LicenseGen.csproj -c Release
       - uses: actions/upload-artifact@v4
         with:
           name: XEOKA-PACK

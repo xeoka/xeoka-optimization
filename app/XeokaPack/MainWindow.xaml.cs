@@ -201,7 +201,47 @@ public partial class MainWindow : Window
         AddLog(Loc.L("Выберите твики и нажмите «ОПТИМИЗИРОВАТЬ».", "Pick tweaks and press OPTIMIZE."), LogLevel.Dim);
         ThemeManager.Apply(_settings.Theme, this);
         RefreshTexts();
+        if (!CheckLicense()) return;
         _ = RefreshPackAsync(autoDetect: true);
+    }
+
+    // ------------------------------------------------------------ лицензия
+    bool CheckLicense()
+    {
+        var lic = License.Check();
+        if (lic.Valid) { ActivationOverlay.Visibility = Visibility.Collapsed; return true; }
+        ActHwidText.Text = License.HardwareId();
+        ActError.Visibility = Visibility.Collapsed;
+        ActivationOverlay.Visibility = Visibility.Visible;
+        return false;
+    }
+
+    void ActCopyHwid_Click(object sender, RoutedEventArgs e)
+    {
+        SoundFx.Tap();
+        try { Clipboard.SetText(ActHwidText.Text); } catch { }
+    }
+
+    void ActBuy_Click(object sender, RoutedEventArgs e)
+    {
+        SoundFx.Tap();
+        Sys.OpenUrl(TgUrl);
+    }
+
+    void ActActivate_Click(object sender, RoutedEventArgs e)
+    {
+        SoundFx.Tick();
+        if (License.Activate(ActCodeBox.Text, out var error))
+        {
+            SoundFx.Chime();
+            ActivationOverlay.Visibility = Visibility.Collapsed;
+            _ = RefreshPackAsync(autoDetect: true);
+        }
+        else
+        {
+            ActError.Text = error;
+            ActError.Visibility = Visibility.Visible;
+        }
     }
 
     async Task RefreshPackAsync(bool autoDetect)
