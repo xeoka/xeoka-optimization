@@ -273,14 +273,19 @@ public partial class MainWindow : Window
     }
 
     // ------------------------------------------------------------ фон
-    static void Loop(Animatable target, DependencyProperty p, double from, double to, double seconds)
+    readonly List<ClockController> _bgClocks = new();
+
+    void Loop(Animatable target, DependencyProperty p, double from, double to, double seconds)
     {
-        target.BeginAnimation(p, new DoubleAnimation(from, to, TimeSpan.FromSeconds(seconds))
+        var anim = new DoubleAnimation(from, to, TimeSpan.FromSeconds(seconds))
         {
             AutoReverse = true,
             RepeatBehavior = RepeatBehavior.Forever,
             EasingFunction = new SineEase { EasingMode = EasingMode.EaseInOut }
-        });
+        };
+        var clock = anim.CreateClock();
+        target.ApplyAnimationClock(p, clock);
+        _bgClocks.Add(clock.Controller!);
     }
 
     void StartBackground()
@@ -289,8 +294,15 @@ public partial class MainWindow : Window
         Loop(Blob2T, TranslateTransform.XProperty, 110, -150, 19); Loop(Blob2T, TranslateTransform.YProperty, 70, -100, 25);
         Loop(Blob3T, TranslateTransform.XProperty, -70, 170, 21); Loop(Blob3T, TranslateTransform.YProperty, 60, -90, 27);
         var w = SystemParameters.PrimaryScreenWidth + 900;
-        StreakT.BeginAnimation(TranslateTransform.XProperty, new DoubleAnimation(-700, w, TimeSpan.FromSeconds(13)) { RepeatBehavior = RepeatBehavior.Forever });
+        var streak = new DoubleAnimation(-700, w, TimeSpan.FromSeconds(13)) { RepeatBehavior = RepeatBehavior.Forever };
+        var sc = streak.CreateClock();
+        StreakT.ApplyAnimationClock(TranslateTransform.XProperty, sc);
+        _bgClocks.Add(sc.Controller!);
     }
+
+    /// <summary>Пока окно двигают или меняют его размер, на время останавливаем фоновую анимацию — иначе перетаскивание дёргается.</summary>
+    internal void PauseBackground() { foreach (var c in _bgClocks) c.Pause(); }
+    internal void ResumeBackground() { foreach (var c in _bgClocks) c.Resume(); }
 
     // ------------------------------------------------------------ окно
     void MinBtn_Click(object s, RoutedEventArgs e) { SoundFx.Tap(); WindowState = WindowState.Minimized; }
@@ -442,9 +454,11 @@ public partial class MainWindow : Window
     void AllBtn_Click(object sender, RoutedEventArgs e)
     {
         if (_busy) return;
+        SoundFx.Tick();
         bool any = AllTweaks.Any(v => v.IsOn);
-        foreach (var v in AllTweaks) v.IsOn = false;
-        if (!any) foreach (var v in AllTweaks.Where(v => v.T.Default)) v.IsOn = true;
+        foreach (var v in AllTweaks) v.SetSilently(false);
+        if (!any) foreach (var v in AllTweaks.Where(v => v.T.Default)) v.SetSilently(true);
+        if (AllTweaks.Any(v => v.Id == "fse" && v.IsOn)) foreach (var o in AllTweaks.Where(x => x.Id == "fso")) o.SetSilently(false);
     }
 
     void AddLog(string text, LogLevel level)

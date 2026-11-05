@@ -718,8 +718,8 @@
 
         <!-- ================= Активация ================= -->
         <Grid x:Name="ActivationOverlay" Visibility="Collapsed" Panel.ZIndex="200">
-            <Rectangle Fill="#030208"/>
-            <Rectangle Fill="#22000000"/>
+            <Rectangle Fill="#030208" Margin="0,96,0,0"/>
+            <Rectangle Fill="#22000000" Margin="0,96,0,0"/>
             <Border Width="560" MaxWidth="620" HorizontalAlignment="Center" VerticalAlignment="Center" CornerRadius="22" BorderThickness="1.2" BorderBrush="{DynamicResource Accent2Brush}" Padding="32,28">
                 <Border.Background>
                     <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
