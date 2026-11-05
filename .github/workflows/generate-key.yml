@@ -1,0 +1,26 @@
+name: Generate License
+on:
+  workflow_dispatch:
+    inputs:
+      hw_id:
+        description: 'ID компьютера покупателя (HWID)'
+        required: true
+        type: string
+      note:
+        description: 'Имя покупателя / заметка'
+        required: true
+        type: string
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      - name: Create private key file
+        run: echo "${{ secrets.LICENSE_PRIVATE_KEY }}" > private.pem
+      - name: Run LicenseGen
+        run: dotnet run --project tools/LicenseGen -- --key private.pem --hw "${{ github.event.inputs.hw_id }}" --note "${{ github.event.inputs.note }}"
