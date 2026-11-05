@@ -88,7 +88,7 @@ public static class Tweaks
             if (r.Code == 0 && g != null) { guid = g; break; }
         }
         if (guid == null) throw new InvalidOperationException(Loc.L("Не удалось создать схему питания.", "Could not create a power plan."));
-        Sys.Powercfg("-changename", guid, "Xeoka Performance", "План питания Xeoka pack");
+        Sys.Powercfg("-changename", guid, "xeoka Performance", "План питания xeoka pack");
         var sets = new (string Sub, string Setting, int Val)[]
         {
             ("54533251-82be-4824-96c1-47b60b740d00", "893dee8e-2bef-41e0-89c6-b55d0929964c", 100), // мин. состояние процессора
@@ -118,9 +118,9 @@ public static class Tweaks
         {
             var r = Sys.Powercfg("/import", pow);
             guid = Sys.GuidFrom(r.Output);
-            if (r.Code != 0 || guid == null) { c.Log.Warn(Loc.L("  xeoka.pow не открывается (файл повреждён). Создаю схему Xeoka Performance встроенным способом", "  xeoka.pow cannot be opened (file is damaged). Creating the Xeoka Performance plan the built-in way")); guid = null; }
+            if (r.Code != 0 || guid == null) { c.Log.Warn(Loc.L("  xeoka.pow не открывается (файл повреждён). Создаю схему xeoka Performance встроенным способом", "  xeoka.pow cannot be opened (file is damaged). Creating the xeoka Performance plan the built-in way")); guid = null; }
         }
-        else c.Log.Warn(Loc.L("  xeoka.pow не найден. Создаю схему Xeoka Performance встроенным способом", "  xeoka.pow not found. Creating the Xeoka Performance plan the built-in way"));
+        else c.Log.Warn(Loc.L("  xeoka.pow не найден. Создаю схему xeoka Performance встроенным способом", "  xeoka.pow not found. Creating the xeoka Performance plan the built-in way"));
         guid ??= BuiltinPowerPlan(c);
         var r2 = Sys.Powercfg("/setactive", guid);
         if (r2.Code != 0) throw new InvalidOperationException("powercfg /setactive: " + r2.Output.Trim());
@@ -224,9 +224,9 @@ public static class Tweaks
     public static readonly List<Tweak> All = new()
     {
         new Tweak { Id = "power", Group = "rec", Default = true,
-            TitleRu = "План питания Xeoka", TitleEn = "Xeoka power plan",
-            DescRu = "Включает схему питания Xeoka Performance. Прежняя схема запоминается для отката.",
-            DescEn = "Activates the Xeoka Performance power plan. The previous plan is remembered for revert.",
+            TitleRu = "План питания xeoka", TitleEn = "xeoka power plan",
+            DescRu = "Включает схему питания xeoka Performance. Прежняя схема запоминается для отката.",
+            DescEn = "Activates the xeoka Performance power plan. The previous plan is remembered for revert.",
             Run = Power, Check = PowerCheck },
         new Tweak { Id = "prio", Group = "rec", Default = true,
             TitleRu = "Приоритет процессов (Win32PrioritySeparation = 0x18)", TitleEn = "Process priority (Win32PrioritySeparation = 0x18)",

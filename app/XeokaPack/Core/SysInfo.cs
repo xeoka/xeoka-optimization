@@ -93,7 +93,7 @@ public static class SysInfo
         list.Add(new(Loc.L("Работает без перезагрузки", "Uptime"), up.Days > 0 ? $"{up.Days} " + Loc.L("д", "d") + $" {up.Hours} " + Loc.L("ч", "h") : $"{up.Hours} " + Loc.L("ч", "h") + $" {up.Minutes} " + Loc.L("мин", "min")));
 
         // Пак
-        list.Add(new(Loc.L("Пак Xeoka", "Xeoka pack"), pack.IsPack ? Loc.L("найден", "found") : Loc.L("не найден", "not found")));
+        list.Add(new(Loc.L("Пак xeoka", "xeoka pack"), pack.IsPack ? Loc.L("найден", "found") : Loc.L("не найден", "not found")));
         return list;
     }
 }

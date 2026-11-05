@@ -1,4 +1,4 @@
-# Xeoka pack
+# xeoka pack
 
 Набор инструментов и настроек для оптимизации Windows 10/11 (задержки, драйверы, службы, сеть, питание, BIOS).
 Telegram: https://t.me/CMEPT0HOCHbIU
