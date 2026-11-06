@@ -113,7 +113,7 @@ public static class Tweaks
         var cur = Sys.Powercfg("/getactivescheme");
         c.State.PowerPrev = Sys.GuidFrom(cur.Output);
         string? guid = null;
-        var pow = c.Pack.Find("4.", "xeoka.pow");
+        var pow = c.Pack.Find("", "xeoka.pow");
         if (pow != null)
         {
             var r = Sys.Powercfg("/import", pow);
@@ -134,7 +134,7 @@ public static class Tweaks
         var ad = NetInfo.Primary();
         if (ad != null) type = NetInfo.DriverType(ad.SubKey);
         c.Log.Dim(Loc.L("  тип драйвера сетевой карты: ", "  network driver type: ") + type);
-        c.Reg("15.", type == "NetAdapterCx" ? "DISABLE-MMCSS.reg" : "XEOKA-OPTIMIZED-MMCSS-SETTINGS.reg");
+        c.Reg("", type == "NetAdapterCx" ? "DISABLE-MMCSS.reg" : "XEOKA-OPTIMIZED-MMCSS-SETTINGS.reg");
     }
 
     static void Network(TweakContext c)
@@ -142,8 +142,8 @@ public static class Tweaks
         var ad = NetInfo.Primary() ?? throw new InvalidOperationException(Loc.L("Не найден активный сетевой адаптер.", "No active network adapter was found."));
         if (!ad.Ethernet) throw new InvalidOperationException(Loc.L("Активное подключение не Ethernet (Wi-Fi пропущен для безопасности).", "The active connection is not Ethernet (Wi-Fi is skipped for safety)."));
         c.Log.Dim(Loc.L($"  адаптер: {ad.Name} ({ad.Description}), ключ {ad.SubKey}", $"  adapter: {ad.Name} ({ad.Description}), key {ad.SubKey}"));
-        c.Reg("9.", "OPTIMIZE-NETWORKING.reg", ad.SubKey);
-        c.Reg("9.", "DISABLE-POWERSAVING.reg", ad.SubKey);
+        c.Reg("", "OPTIMIZE-NETWORKING.reg", ad.SubKey);
+        c.Reg("", "DISABLE-POWERSAVING.reg", ad.SubKey);
         try
         {
             var r = Sys.PowerShell("$g = Get-NetOffloadGlobalSetting; \"$($g.ReceiveSegmentCoalescing)|$($g.PacketCoalescingFilter)\"");
@@ -168,7 +168,7 @@ public static class Tweaks
 
     static void DevicePower(TweakContext c)
     {
-        var bat = c.Pack.Find("11.", "Disable-All-Device-PowerSaving.bat") ?? throw new FileNotFoundException(Loc.L("Disable-All-Device-PowerSaving.bat не найден.", "Disable-All-Device-PowerSaving.bat was not found."));
+        var bat = c.Pack.Find("", "Disable-All-Device-PowerSaving.bat") ?? throw new FileNotFoundException(Loc.L("Disable-All-Device-PowerSaving.bat не найден.", "Disable-All-Device-PowerSaving.bat was not found."));
         c.Log.Dim(Loc.L("  откроется окно с отчётом: нажмите любую клавишу в нём, когда прочитаете результат", "  a report window will open: press any key in it when you have read the result"));
         var psi = new ProcessStartInfo("cmd.exe", "/c \"\"" + bat + "\"\"") { WorkingDirectory = Path.GetDirectoryName(bat)!, UseShellExecute = true };
         using var p = Process.Start(psi)!;
@@ -186,7 +186,7 @@ public static class Tweaks
         var type = "NDIS";
         var ad = NetInfo.Primary();
         if (ad != null) type = NetInfo.DriverType(ad.SubKey);
-        var r = c.RegMatch("15.", type == "NetAdapterCx" ? "DISABLE-MMCSS.reg" : "XEOKA-OPTIMIZED-MMCSS-SETTINGS.reg");
+        var r = c.RegMatch("", type == "NetAdapterCx" ? "DISABLE-MMCSS.reg" : "XEOKA-OPTIMIZED-MMCSS-SETTINGS.reg");
         return TweakContext.ToState(r.Match, r.Total);
     }
 
@@ -194,8 +194,8 @@ public static class Tweaks
     {
         var ad = NetInfo.Primary();
         if (ad == null || !ad.Ethernet) return TweakState.Unknown;
-        var a = c.RegMatch("9.", "OPTIMIZE-NETWORKING.reg", ad.SubKey);
-        var b = c.RegMatch("9.", "DISABLE-POWERSAVING.reg", ad.SubKey);
+        var a = c.RegMatch("", "OPTIMIZE-NETWORKING.reg", ad.SubKey);
+        var b = c.RegMatch("", "DISABLE-POWERSAVING.reg", ad.SubKey);
         return TweakContext.ToState(a.Match + b.Match, a.Total + b.Total);
     }
 
@@ -231,11 +231,11 @@ public static class Tweaks
         new Tweak { Id = "prio", Group = "rec", Default = true,
             TitleRu = "Приоритет процессов (Win32PrioritySeparation = 0x18)", TitleEn = "Process priority (Win32PrioritySeparation = 0x18)",
             DescRu = "Больше процессорного времени активному окну (игре).", DescEn = "More CPU time for the active window (the game).",
-            Run = c => c.Reg("17.", "Win32PrioritySeparation-18.reg"), Check = RegChk("17.", "Win32PrioritySeparation-18.reg") },
+            Run = c => c.Reg("", "Win32PrioritySeparation-18.reg"), Check = RegChk("", "Win32PrioritySeparation-18.reg") },
         new Tweak { Id = "timer", Group = "rec", Default = true,
             TitleRu = "Прерывания системного таймера", TitleEn = "System timer interrupts",
             DescRu = "SerializeTimerExpiration = 1.", DescEn = "SerializeTimerExpiration = 1.",
-            Run = c => c.Reg("14.", "SerializeTimerExpiration-1.reg"), Check = RegChk("14.", "SerializeTimerExpiration-1.reg") },
+            Run = c => c.Reg("", "SerializeTimerExpiration-1.reg"), Check = RegChk("", "SerializeTimerExpiration-1.reg") },
         new Tweak { Id = "mmcss", Group = "rec", Default = true,
             TitleRu = "MMCSS (по типу драйвера сетевой карты)", TitleEn = "MMCSS (by network driver type)",
             DescRu = "NDIS: оптимизированные параметры. NetAdapterCx: служба MMCSS отключается. Определяется автоматически.",
@@ -255,7 +255,7 @@ public static class Tweaks
             TitleRu = "Полноэкранный режим: FSE (эксклюзивный)", TitleEn = "Fullscreen mode: FSE (exclusive)",
             DescRu = "Отключает полноэкранные оптимизации. Взаимоисключается с FSO ниже.",
             DescEn = "Disables fullscreen optimizations. Mutually exclusive with FSO below.",
-            Run = c => c.Reg("16.", "FSE.reg"), Check = RegChk("16.", "FSE.reg") },
+            Run = c => c.Reg("", "FSE.reg"), Check = RegChk("", "FSE.reg") },
         new Tweak { Id = "devpow", Group = "rec", Default = true,
             TitleRu = "Энергосбережение всех устройств", TitleEn = "Power saving of all devices",
             DescRu = "Запрещает отключать устройства для экономии энергии и будить ПК. Откроет окно с отчётом. Не откатывается кнопкой отката.",
@@ -264,6 +264,6 @@ public static class Tweaks
         new Tweak { Id = "fso", Group = "opt", Default = false,
             TitleRu = "Полноэкранный режим: FSO (оптимизации включены)", TitleEn = "Fullscreen mode: FSO (optimizations on)",
             DescRu = "Вариант вместо FSE. Включайте только один из двух.", DescEn = "An alternative to FSE. Enable only one of the two.",
-            Run = c => c.Reg("16.", "FSO.reg"), Check = RegChk("16.", "FSO.reg") },
+            Run = c => c.Reg("", "FSO.reg"), Check = RegChk("", "FSO.reg") },
     };
 }

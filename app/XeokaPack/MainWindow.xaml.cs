@@ -551,7 +551,7 @@ public partial class MainWindow : Window
         if (!_pack.IsPack)
         {
             if (await AskAsync(Loc.L("Папка пака не найдена", "Pack folder not found"),
-                Loc.L("Положите программу в корень пака (рядом с папками «1. База», «2. Драйверы» и т.д.) или укажите папку вручную.", "Put the program in the pack root (next to the folders 1. ..., 2. ... and so on) or pick the folder manually."), Loc.L("Указать папку", "Pick folder"), Loc.L("Закрыть", "Close")))
+                Loc.L("Положите программу в папку, распакованную из архива пака целиком, или укажите эту папку вручную.", "Put the program inside the folder extracted from the pack archive, or pick that folder manually."), Loc.L("Указать папку", "Pick folder"), Loc.L("Закрыть", "Close")))
                 await PickFolderAsync();
             return;
         }
@@ -632,14 +632,14 @@ public partial class MainWindow : Window
 
     async Task PickFolderAsync()
     {
-        var dlg = new Microsoft.Win32.OpenFolderDialog { Title = Loc.L("Выберите корневую папку пака (где лежат «1. База», «2. Драйверы» и т.д.)", "Pick the pack root folder (the one with 1. ..., 2. ... and so on)") };
+        var dlg = new Microsoft.Win32.OpenFolderDialog { Title = Loc.L("Выберите папку, распакованную из архива пака", "Pick the folder extracted from the pack archive") };
         if (dlg.ShowDialog(this) != true) return;
         if (PackLocator.IsPackRoot(dlg.FolderName))
         {
             _pack.SetRoot(dlg.FolderName);
             await RefreshPackAsync(autoDetect: false);
         }
-        else await AskAsync(Loc.L("Это не папка пака", "This is not the pack folder"), Loc.L("В выбранной папке не найдены папки пака (1. База, 2. Драйверы ...).", "The selected folder has no pack folders (1. ..., 2. ...)."), Loc.L("Понятно", "OK"), null);
+        else await AskAsync(Loc.L("Это не папка пака", "This is not the pack folder"), Loc.L("В выбранной папке не найден пак.", "No pack was found in the selected folder."), Loc.L("Понятно", "OK"), null);
     }
 
     // ------------------------------------------------------------ звук

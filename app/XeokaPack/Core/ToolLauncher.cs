@@ -36,7 +36,7 @@ public static class ToolLauncher
         {
             case ToolKind.Nvidia:
             {
-                var nip = pack.Find("2.", "XEOKA-OPTIMIZED-V2.nip") ?? pack.Find("2.", "LLC-OPTIMIZED-V2.nip")
+                var nip = pack.Find("", "XEOKA-OPTIMIZED-V2.nip") ?? pack.Find("", "LLC-OPTIMIZED-V2.nip")
                           ?? throw new FileNotFoundException(Loc.L("Файл XEOKA-OPTIMIZED-V2.nip не найден в паке.", "File XEOKA-OPTIMIZED-V2.nip was not found in the pack."));
                 Process.Start(new ProcessStartInfo(p, "\"" + nip + "\"") { WorkingDirectory = dir, UseShellExecute = true });
                 break;
@@ -49,7 +49,7 @@ public static class ToolLauncher
             }
             case ToolKind.Services:
             {
-                var pr = pack.Find("10.", "PowerRun_x64.exe") ?? throw new FileNotFoundException(Loc.L("PowerRun_x64.exe не найден.", "PowerRun_x64.exe was not found."));
+                var pr = pack.Find("", "PowerRun_x64.exe") ?? throw new FileNotFoundException(Loc.L("PowerRun_x64.exe не найден.", "PowerRun_x64.exe was not found."));
                 Process.Start(new ProcessStartInfo(pr, "regedit.exe /s \"" + p + "\"") { WorkingDirectory = Path.GetDirectoryName(pr)!, UseShellExecute = true });
                 break;
             }
