@@ -22,6 +22,23 @@ public partial class MainWindow
 
     [DllImport("user32.dll")] static extern bool GetWindowRect(IntPtr hwnd, out RECT r);
 
+    [DllImport("dwmapi.dll")] static extern int DwmSetWindowAttribute(IntPtr hwnd, int attr, ref int value, int size);
+    const int DWMWA_WINDOW_CORNER_PREFERENCE = 33;
+    const int DWMWCP_ROUND = 2;
+
+    /// <summary>Лёгкое скругление углов окна штатными средствами Windows 11 (на Windows 10 просто ничего не делает).</summary>
+    void ApplyRoundedCorners()
+    {
+        try
+        {
+            var hwnd = new WindowInteropHelper(this).Handle;
+            if (hwnd == IntPtr.Zero) return;
+            int pref = DWMWCP_ROUND;
+            DwmSetWindowAttribute(hwnd, DWMWA_WINDOW_CORNER_PREFERENCE, ref pref, sizeof(int));
+        }
+        catch { }
+    }
+
     /// <summary>При разворачивании окно без рамки выступает за экран на толщину рамки: сдвигаем содержимое внутрь, чтобы кнопки не обрезались.</summary>
     void UpdateMaxMargin()
     {
@@ -47,6 +64,7 @@ public partial class MainWindow
     {
         base.OnSourceInitialized(e);
         if (PresentationSource.FromVisual(this) is HwndSource src) src.AddHook(WndProc);
+        ApplyRoundedCorners();
     }
 
     IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)

@@ -8,7 +8,7 @@
         UseLayoutRounding="True" WindowStartupLocation="CenterScreen"
         PreviewKeyDown="Window_PreviewKeyDown" SizeChanged="Window_SizeChanged" Loaded="Window_Loaded">
     <shell:WindowChrome.WindowChrome>
-        <shell:WindowChrome CaptionHeight="96" ResizeBorderThickness="6" GlassFrameThickness="0" CornerRadius="0" UseAeroCaptionButtons="False"/>
+        <shell:WindowChrome CaptionHeight="96" ResizeBorderThickness="6" GlassFrameThickness="-1" CornerRadius="0" UseAeroCaptionButtons="False"/>
     </shell:WindowChrome.WindowChrome>
 
     <Window.Resources>
