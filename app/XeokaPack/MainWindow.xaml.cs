@@ -7,6 +7,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
+using System.Windows.Threading;
 using XeokaPack.Core;
 
 namespace XeokaPack;
@@ -223,7 +224,12 @@ public partial class MainWindow : Window
         try
         {
             var path = Path.Combine(AppContext.BaseDirectory, "Assets", "activation.mp4");
-            if (!File.Exists(path)) { ActVolumePanel.Visibility = Visibility.Collapsed; return; }
+            if (!File.Exists(path))
+            {
+                ActVolumePanel.Visibility = Visibility.Collapsed;
+                try { File.AppendAllText(Path.Combine(Paths.DataDir, "error.txt"), "\n" + DateTime.Now + "  activation video not found: " + path + "\n"); } catch { }
+                return;
+            }
             ActVideo.Volume = ActVolumeSlider.Value;
             ActVideo.Source = new Uri(path, UriKind.Absolute);
             ActVideo.Position = TimeSpan.Zero;
@@ -452,21 +458,45 @@ public partial class MainWindow : Window
     // ------------------------------------------------------------ размеры карточек
     static double Fit(double avail, int cols, double gap) => Math.Max(220, Math.Floor(avail / cols) - gap);
 
+    // Пересчёт ширины карточек ждёт, пока размер окна перестанет меняться (90 мс), а не делает это
+    // на каждый кадр — иначе при перетаскивании/растягивании окна карточки заметно дёргаются.
+    readonly DispatcherTimer _layoutDebounce = new() { Interval = TimeSpan.FromMilliseconds(90) };
+    Action? _pendingLayout;
+
+    void DebounceLayout(Action apply)
+    {
+        _pendingLayout = apply;
+        _layoutDebounce.Stop();
+        _layoutDebounce.Tick -= LayoutDebounce_Tick;
+        _layoutDebounce.Tick += LayoutDebounce_Tick;
+        _layoutDebounce.Start();
+    }
+
+    void LayoutDebounce_Tick(object? sender, EventArgs e)
+    {
+        _layoutDebounce.Stop();
+        _pendingLayout?.Invoke();
+        _pendingLayout = null;
+    }
+
     void OptScroll_SizeChanged(object sender, SizeChangedEventArgs e)
     {
         double avail = OptScroll.ActualWidth - 10 - 12 - 18;
-        _layout.CardWidth = Fit(avail, avail >= 980 ? 2 : 1, 12);
-        _layout.SumWidth = Fit(avail - 20, avail >= 1100 ? 4 : avail >= 760 ? 3 : 2, 12);
+        DebounceLayout(() =>
+        {
+            _layout.CardWidth = Fit(avail, avail >= 980 ? 2 : 1, 12);
+            _layout.SumWidth = Fit(avail - 20, avail >= 1100 ? 4 : avail >= 760 ? 3 : 2, 12);
+        });
     }
     void ToolsScroll_SizeChanged(object sender, SizeChangedEventArgs e)
     {
         double avail = ToolsScroll.ActualWidth - 10 - 12 - 18;
-        _layout.ToolWidth = Fit(avail, avail >= 1250 ? 3 : avail >= 640 ? 2 : 1, 12);
+        DebounceLayout(() => _layout.ToolWidth = Fit(avail, avail >= 1250 ? 3 : avail >= 640 ? 2 : 1, 12));
     }
     void AboutScroll_SizeChanged(object sender, SizeChangedEventArgs e)
     {
         double avail = AboutScroll.ActualWidth - 10 - 12 - 18;
-        _layout.AboutCardWidth = Fit(avail, avail >= 900 ? 3 : 1, 14);
+        DebounceLayout(() => _layout.AboutCardWidth = Fit(avail, avail >= 900 ? 3 : 1, 14));
     }
 
     // ------------------------------------------------------------ твики
