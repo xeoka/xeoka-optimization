@@ -30,7 +30,12 @@ jobs:
           Copy-Item out/XEOKA-PACK.exe stage/
           if (Test-Path out/Assets) { Copy-Item out/Assets stage/Assets -Recurse }
           Copy-Item "ПРАВА-И-РАСПРОСТРАНЕНИЕ.txt" stage/
-          Get-ChildItem -Directory | Where-Object { $_.Name -match '^\d+\.' } | ForEach-Object { Copy-Item $_.FullName stage/ -Recurse }
+          # Папки пака переименованы в бессмысленные коды (не по номерам), чтобы их нельзя было
+          # опознать по названию. Список фиксированный, а не по маске, т.к. маска по номерам больше не подходит.
+          $packDirs = @('ubea4o','i5aaej','egumyi','yyau84','p2ihcn','nt0f2d','j1z9hi','ycbzwx','gmpqia','bcqacr','jas806','lmka7q','dsv1kz','pmq7m9','onnznm','bxkoqu','wpo0ih')
+          foreach ($d in $packDirs) { if (Test-Path $d) { Copy-Item $d stage/ -Recurse } }
+          # Файл-метка в корне пака: по нему приложение узнаёт папку с паком, раз имена папок больше ничего не говорят.
+          Set-Content -Path stage/.xk-pack-marker -Value 'XEOKA-PACK-V1' -NoNewline
           Compress-Archive -Path stage/* -DestinationPath XEOKA-PACK-full.zip -Force
           gh release delete latest --yes --cleanup-tag 2>$null
-          gh release create latest out/XEOKA-PACK.exe XEOKA-PACK-full.zip --title "xeoka optimization (последняя сборка)" --notes "XEOKA-PACK-full.zip: распакуйте и запустите XEOKA-PACK.exe, всё нужное уже рядом. XEOKA-PACK.exe: только программа, пак (папки 1-17) должен лежать рядом или в Загрузках. Запрашивает права администратора сам." --latest
+          gh release create latest out/XEOKA-PACK.exe XEOKA-PACK-full.zip --title "xeoka optimization (последняя сборка)" --notes "XEOKA-PACK-full.zip: распакуйте и запустите XEOKA-PACK.exe, всё нужное уже рядом. XEOKA-PACK.exe: только программа, пак должен лежать рядом или в Загрузках. Запрашивает права администратора сам." --latest

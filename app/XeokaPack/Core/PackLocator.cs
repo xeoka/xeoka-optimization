@@ -9,7 +9,11 @@ public sealed class PackLocator
 {
     public string Root { get; private set; } = AppContext.BaseDirectory.TrimEnd('\\', '/');
     readonly Dictionary<string, string?> _cache = new();
-    static readonly Regex NumDir = new(@"^\d+\.", RegexOptions.Compiled);
+    // Папки пака специально названы без смысла (не "1. База" и т.п.), чтобы человек, который просто
+    // распаковал архив, не понимал по именам, что внутри. Поэтому сам пак найден не по виду имён папок,
+    // а по файлу-метке в корне (его кладёт сборка, в самих папках его нет).
+    const string MarkerFile = ".xk-pack-marker";
+    const string MarkerSignature = "XEOKA-PACK-V1";
     static readonly Regex NameHint = new(@"xeoka|pack|llc|optimi", RegexOptions.Compiled | RegexOptions.IgnoreCase);
     static readonly Regex Skip = new(@"^\$|^Windows$|^Program|^System Volume|^Recovery|^AppData$|^node_modules$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
     static readonly EnumerationOptions Safe = new() { IgnoreInaccessible = true, RecurseSubdirectories = false, AttributesToSkip = FileAttributes.ReparsePoint };
@@ -21,7 +25,9 @@ public sealed class PackLocator
         try
         {
             if (string.IsNullOrWhiteSpace(path) || !Directory.Exists(path)) return false;
-            return Directory.EnumerateDirectories(path, "*", Safe).Count(d => NumDir.IsMatch(Path.GetFileName(d))) >= 5;
+            var marker = Path.Combine(path, MarkerFile);
+            if (!File.Exists(marker)) return false;
+            return File.ReadAllText(marker).Trim().StartsWith(MarkerSignature, StringComparison.Ordinal);
         }
         catch { return false; }
     }
