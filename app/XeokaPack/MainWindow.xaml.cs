@@ -199,7 +199,6 @@ public partial class MainWindow : Window
         StartBackground();
         MeasureTg();
         BeginAnimation(OpacityProperty, new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(520)) { EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut } });
-        SoundFx.Deep();
         AddLog(Loc.L("Выберите твики и нажмите «ОПТИМИЗИРОВАТЬ».", "Pick tweaks and press OPTIMIZE."), LogLevel.Dim);
         ThemeManager.Apply(_settings.Theme, this);
         RefreshTexts();
