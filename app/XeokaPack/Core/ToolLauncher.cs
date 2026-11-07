@@ -25,10 +25,17 @@ public static class ToolLauncher
         catch { }
     }
 
-    public static string? Resolve(PackLocator pack, ToolDef t) => pack.Find(t.Prefix, t.File);
+    // Системные инструменты (ToolKind.System) встроены в Windows: файла пака не нужно, поэтому
+    // "найдены" всегда — t.File тут держит не путь, а имя команды/программы (UserAccountControlSettings.exe, appwiz.cpl, ms-settings:...).
+    public static string? Resolve(PackLocator pack, ToolDef t) => t.Kind == ToolKind.System ? t.File : pack.Find(t.Prefix, t.File);
 
     public static void Launch(PackLocator pack, ToolDef t)
     {
+        if (t.Kind == ToolKind.System)
+        {
+            Process.Start(new ProcessStartInfo(t.File) { UseShellExecute = true });
+            return;
+        }
         var p = Resolve(pack, t) ?? throw new FileNotFoundException(Loc.L("Файл «" + t.File + "» не найден в паке.", "File \"" + t.File + "\" was not found in the pack."));
         var dir = Path.GetDirectoryName(p)!;
         UnblockTree(dir);

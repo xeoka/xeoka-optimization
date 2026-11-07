@@ -26,6 +26,30 @@ public partial class MainWindow
     const int DWMWA_WINDOW_CORNER_PREFERENCE = 33;
     const int DWMWCP_ROUND = 2;
 
+    [DllImport("user32.dll")] static extern int GetWindowLong(IntPtr hwnd, int index);
+    [DllImport("user32.dll")] static extern int SetWindowLong(IntPtr hwnd, int index, int value);
+    const int GWL_STYLE = -16;
+    const int WS_MAXIMIZEBOX = 0x00010000;
+
+    /// <summary>
+    /// Снимает системный флаг "кнопка максимизации" у окна. У нас своя кнопка разворачивания
+    /// (WindowState мы переключаем в коде — она продолжает работать как раньше), а этот флаг
+    /// у Windows 11 отвечает за автоматическую всплывающую подсказку Snap Layout (мелкие
+    /// квадраты-раскладки) при наведении на область, которую Windows считает "кнопкой максимизации" —
+    /// она вылезала поверх нашей кастомной кнопки и выглядела как лишние "квадратики" в шапке.
+    /// </summary>
+    void DisableSnapLayoutFlyout()
+    {
+        try
+        {
+            var hwnd = new WindowInteropHelper(this).Handle;
+            if (hwnd == IntPtr.Zero) return;
+            var style = GetWindowLong(hwnd, GWL_STYLE);
+            SetWindowLong(hwnd, GWL_STYLE, style & ~WS_MAXIMIZEBOX);
+        }
+        catch { }
+    }
+
     /// <summary>Лёгкое скругление углов окна штатными средствами Windows 11 (на Windows 10 просто ничего не делает).</summary>
     void ApplyRoundedCorners()
     {
@@ -65,6 +89,7 @@ public partial class MainWindow
         base.OnSourceInitialized(e);
         if (PresentationSource.FromVisual(this) is HwndSource src) src.AddHook(WndProc);
         ApplyRoundedCorners();
+        DisableSnapLayoutFlyout();
     }
 
     IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)

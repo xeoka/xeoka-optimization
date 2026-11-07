@@ -1,6 +1,6 @@
 namespace XeokaPack.Core;
 
-public enum ToolKind { File, Ps1, Services, Nvidia }
+public enum ToolKind { File, Ps1, Services, Nvidia, System }
 
 public sealed record ToolDef(string TitleRu, string TitleEn, string DescRu, string DescEn, string Prefix, string File, string Glyph, bool Risk, ToolKind Kind = ToolKind.File)
 {
@@ -24,5 +24,10 @@ public static class ToolDefs
         new("CRU", "CRU", "Настройка разрешений и частот", "Resolutions and refresh rates", "", "CRU.exe", "CRU", false),
         new("Autoruns", "Autoruns", "Автозагрузка", "Startup programs", "", "Autoruns.exe", "AR", false),
         new("Службы (PowerRun)", "Services (PowerRun)", "Отключение служб. Осторожно", "Disable services. Be careful", "", "DISABLE-SERVICES.reg", "SVC", true, ToolKind.Services),
+
+        // Системные: встроены в Windows, файлы пака не нужны — работают даже если скачан только exe.
+        new("Отключение UAC", "Disable UAC", "Откроет штатный ползунок контроля учётных записей", "Opens the built-in User Account Control slider", "", "UserAccountControlSettings.exe", "UAC", true, ToolKind.System),
+        new("Уведомления", "Notifications", "Откроет настройки уведомлений Windows", "Opens Windows notification settings", "", "ms-settings:notifications", "NTF", false, ToolKind.System),
+        new("Удаление программ", "Uninstall programs", "Откроет список установленных программ", "Opens the installed-programs list", "", "appwiz.cpl", "APP", false, ToolKind.System),
     };
 }

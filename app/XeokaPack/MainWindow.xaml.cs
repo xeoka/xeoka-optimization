@@ -195,7 +195,16 @@ public partial class MainWindow : Window
     // ------------------------------------------------------------ запуск
     void Window_Loaded(object sender, RoutedEventArgs e)
     {
-        WindowState = WindowState.Maximized;
+        // Разворачиваем на весь экран поверх панели задач (а не просто Maximized, который оставляет
+        // панель задач снизу видимой). Esc при необходимости вернёт обычное развёрнутое окно с панелью задач.
+        _fullscreen = true;
+        Left = 0; Top = 0;
+        Width = SystemParameters.PrimaryScreenWidth; Height = SystemParameters.PrimaryScreenHeight;
+        WindowState = WindowState.Normal;
+        Topmost = true;
+        MaxIcon.Data = Geometry.Parse("M2.5,0.5 H9.5 V7.5 H7.5 M0.5,2.5 H7.5 V9.5 H0.5 Z"); // окно и так во весь экран — показываем иконку "восстановить"
+        Activated += (_, _) => { if (_fullscreen) Topmost = true; };
+        Deactivated += (_, _) => { if (_fullscreen) Topmost = false; };
         StartBackground();
         MeasureTg();
         BeginAnimation(OpacityProperty, new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(520)) { EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut } });
