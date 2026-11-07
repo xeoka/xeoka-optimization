@@ -630,6 +630,12 @@ public partial class MainWindow : Window
                 Loc.L("Будут отключены службы: DPS, Themes, Spooler (печать), WSearch (поиск), LanmanWorkstation и Netlogon (сетевые папки, домен), SessionEnv (удалённый рабочий стол), edgeupdate, GameInputSvc и другие.\n\nОтключение Themes может испортить внешний вид Windows, без Spooler не будет печати. Откат кнопкой отката не поддерживается.\n\nПродолжить?", "These services will be disabled: DPS, Themes, Spooler (printing), WSearch (search), LanmanWorkstation and Netlogon (network folders, domain), SessionEnv (remote desktop), edgeupdate, GameInputSvc and others.\n\nDisabling Themes can break the look of Windows, and without Spooler there is no printing. The revert button cannot undo this.\n\nContinue?"), Loc.L("Продолжить", "Continue")))
                 return;
         }
+        if (t.Def.Kind == ToolKind.ActivateWindows)
+        {
+            if (!await AskAsync(Loc.L("Стороннее ПО", "Third-party software"),
+                Loc.L("Скачивается и запускается сторонний скрипт активации Windows с get.activated.win (Microsoft Activation Scripts). Это не наш код — мы не можем за него отвечать. Запускается со скрытым окном PowerShell.\n\nПродолжить?", "This downloads and runs a third-party Windows activation script from get.activated.win (Microsoft Activation Scripts). It's not our code — we can't be responsible for it. It runs in a hidden PowerShell window.\n\nContinue?"), Loc.L("Продолжить", "Continue")))
+                return;
+        }
         try { await Task.Run(() => ToolLauncher.Launch(_pack, t.Def)); }
         catch (Exception ex) { await AskAsync(Loc.L("Не удалось запустить", "Could not launch"), ex.Message, Loc.L("Закрыть", "Close"), null); }
     }
