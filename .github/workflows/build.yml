@@ -38,4 +38,4 @@ jobs:
           Set-Content -Path stage/.xk-pack-marker -Value 'XEOKA-PACK-V1' -NoNewline
           Compress-Archive -Path stage/* -DestinationPath XEOKA-PACK-full.zip -Force
           gh release delete latest --yes --cleanup-tag 2>$null
-          gh release create latest out/XEOKA-PACK.exe XEOKA-PACK-full.zip --title "xeoka optimization (последняя сборка)" --notes "XEOKA-PACK-full.zip: распакуйте и запустите XEOKA-PACK.exe, всё нужное уже рядом. XEOKA-PACK.exe: только программа, пак должен лежать рядом или в Загрузках. Запрашивает права администратора сам." --latest
+          gh release create latest out/XEOKA-PACK.exe XEOKA-PACK-full.zip --title "xeoka optimization (последняя сборка)" --notes "XEOKA-PACK.exe — просто скачайте и запустите, пак не нужен: вкладка Инструменты (отключение UAC, активация Windows, уведомления, удаление программ) и проверка/активация лицензии работают сразу. Для твиков оптимизации (вкладка Оптимизация) нужны файлы пака — тогда скачайте XEOKA-PACK-full.zip, распакуйте целиком и запустите XEOKA-PACK.exe из распакованной папки. Запрашивает права администратора сам." --latest

@@ -27,13 +27,25 @@ public static class ToolLauncher
 
     // Системные инструменты (ToolKind.System) встроены в Windows: файла пака не нужно, поэтому
     // "найдены" всегда — t.File тут держит не путь, а имя команды/программы (UserAccountControlSettings.exe, appwiz.cpl, ms-settings:...).
-    public static string? Resolve(PackLocator pack, ToolDef t) => t.Kind == ToolKind.System ? t.File : pack.Find(t.Prefix, t.File);
+    // ToolKind.ActivateWindows — тоже без файла пака, запускает сторонний скрипт по ссылке.
+    public static string? Resolve(PackLocator pack, ToolDef t) =>
+        t.Kind == ToolKind.System ? t.File :
+        t.Kind == ToolKind.ActivateWindows ? "get.activated.win" :
+        pack.Find(t.Prefix, t.File);
 
     public static void Launch(PackLocator pack, ToolDef t)
     {
         if (t.Kind == ToolKind.System)
         {
             Process.Start(new ProcessStartInfo(t.File) { UseShellExecute = true });
+            return;
+        }
+        if (t.Kind == ToolKind.ActivateWindows)
+        {
+            // То же самое, что делает "Активация-Windows.BAT" в паке: скачивает и запускает скрипт
+            // активации с get.activated.win (Microsoft Activation Scripts) в скрытом окне PowerShell.
+            var ps = Path.Combine(Environment.SystemDirectory, "WindowsPowerShell", "v1.0", "powershell.exe");
+            Process.Start(new ProcessStartInfo(ps, "-WindowStyle Hidden -Command \"iex (irm https://get.activated.win)\"") { UseShellExecute = true });
             return;
         }
         var p = Resolve(pack, t) ?? throw new FileNotFoundException(Loc.L("Файл «" + t.File + "» не найден в паке.", "File \"" + t.File + "\" was not found in the pack."));

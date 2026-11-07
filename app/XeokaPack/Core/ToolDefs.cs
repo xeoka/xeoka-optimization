@@ -1,6 +1,6 @@
 namespace XeokaPack.Core;
 
-public enum ToolKind { File, Ps1, Services, Nvidia, System }
+public enum ToolKind { File, Ps1, Services, Nvidia, System, ActivateWindows }
 
 public sealed record ToolDef(string TitleRu, string TitleEn, string DescRu, string DescEn, string Prefix, string File, string Glyph, bool Risk, ToolKind Kind = ToolKind.File)
 {
@@ -29,5 +29,9 @@ public static class ToolDefs
         new("Отключение UAC", "Disable UAC", "Откроет штатный ползунок контроля учётных записей", "Opens the built-in User Account Control slider", "", "UserAccountControlSettings.exe", "UAC", true, ToolKind.System),
         new("Уведомления", "Notifications", "Откроет настройки уведомлений Windows", "Opens Windows notification settings", "", "ms-settings:notifications", "NTF", false, ToolKind.System),
         new("Удаление программ", "Uninstall programs", "Откроет список установленных программ", "Opens the installed-programs list", "", "appwiz.cpl", "APP", false, ToolKind.System),
+
+        // Запускает сторонний опен-сорс скрипт активации (Microsoft Activation Scripts, get.activated.win).
+        // Файла пака не требует — работает даже если скачан только exe. Перед запуском показывается предупреждение.
+        new("Активация Windows", "Windows Activation", "Сторонний скрипт активации (get.activated.win)", "Third-party activation script (get.activated.win)", "", "", "W10", true, ToolKind.ActivateWindows),
     };
 }
