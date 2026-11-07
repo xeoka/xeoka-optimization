@@ -9,7 +9,7 @@ public sealed class Settings
 {
     public bool Sound { get; set; } = true;
     public string Lang { get; set; } = "auto";
-    public string Theme { get; set; } = "violet";
+    public string Theme { get; set; } = "crimson";
     static string FilePath => Path.Combine(Paths.DataDir, "settings.json");
     public static Settings Load()
     {
