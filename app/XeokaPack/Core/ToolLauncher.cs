@@ -72,6 +72,15 @@ public static class ToolLauncher
                 Process.Start(new ProcessStartInfo(pr, "regedit.exe /s \"" + p + "\"") { WorkingDirectory = Path.GetDirectoryName(pr)!, UseShellExecute = true });
                 break;
             }
+            case ToolKind.BiosConfig:
+            {
+                // Сам конфиг BIOS применяется только вручную внутри SCEWIN-GUI (см. инструкцию в паке) —
+                // мы не пишем в BIOS автоматически. Показываем нужный .cfg в проводнике и открываем GUI рядом.
+                try { Process.Start(new ProcessStartInfo("explorer.exe", "/select,\"" + p + "\"")); } catch { }
+                var gui = pack.Find("", "SCEWIN-GUI.exe") ?? throw new FileNotFoundException(Loc.L("SCEWIN-GUI.exe не найден.", "SCEWIN-GUI.exe was not found."));
+                Process.Start(new ProcessStartInfo(gui) { WorkingDirectory = Path.GetDirectoryName(gui)!, UseShellExecute = true });
+                break;
+            }
             default:
                 Process.Start(new ProcessStartInfo(p) { WorkingDirectory = dir, UseShellExecute = true });
                 break;

@@ -1,6 +1,6 @@
 namespace XeokaPack.Core;
 
-public enum ToolKind { File, Ps1, Services, Nvidia, System, ActivateWindows }
+public enum ToolKind { File, Ps1, Services, Nvidia, System, ActivateWindows, BiosConfig }
 
 public sealed record ToolDef(string TitleRu, string TitleEn, string DescRu, string DescEn, string Prefix, string File, string Glyph, bool Risk, ToolKind Kind = ToolKind.File)
 {
@@ -15,7 +15,14 @@ public static class ToolDefs
         new("Windows Defender", "Windows Defender", "Переключатель защитника", "Defender on/off switch", "", "RUN-WDS.bat", "WD", true),
         new("Обновления Windows", "Windows Update", "Блокировщик обновлений", "Windows Update blocker", "", "RUN-WUB.bat", "WU", true),
         new("DEVICE-TWEAKER", "DEVICE-TWEAKER", "Аффинити, прерывания, USB", "Affinity, interrupts, USB", "", "DEVICE-TWEAKER*.ps1", "DT", false, ToolKind.Ps1),
-        new("BIOS (SCEWIN)", "BIOS (SCEWIN)", "Конфиги BIOS. Читайте инструкцию", "BIOS configs. Read the guide first", "", "SCEWIN-GUI.exe", "BIOS", true),
+        new("BIOS: SCEWIN (экспорт / бэкап)", "BIOS: SCEWIN (export / backup)", "Сначала Export NVRAM — это бэкап. Работает только на платах с BIOS от AMI", "Export NVRAM first — that's your backup. Only works on AMI-BIOS boards", "", "SCEWIN-GUI.exe", "BIOS", true),
+        // Готовые конфиги BIOS — применяются внутри SCEWIN-GUI (Export NVRAM -> Check Settings -> конфиг -> Apply -> Import -> перезагрузка).
+        // Сами по себе файлы не меняют BIOS, карточка только открывает нужный конфиг и GUI — применяет всё равно сам пользователь.
+        new("BIOS: авто-твик (AMD)", "BIOS: auto-tweak (AMD)", "Отключает ECC, Watchdog, проверки PCIe и др. Может давать нестабильность", "Disables ECC, watchdog, PCIe checks and more. Can cause instability", "", "AUTO-TWEAK.cfg", "BIOS", true, ToolKind.BiosConfig),
+        new("BIOS: отключить буст CPU", "BIOS: disable CPU boost", "Отключает динамический буст и энергосбережение процессора", "Disables dynamic boost and CPU power saving", "", "DISABLE-BOOST.cfg", "BIOS", true, ToolKind.BiosConfig),
+        new("BIOS: отключить защиту", "BIOS: disable security", "TPM, Secure Boot, DMA-защита. Сломает Vanguard/FACEIT и часть EAC/BattlEye", "TPM, Secure Boot, DMA protection. Breaks Vanguard/FACEIT and some EAC/BattlEye", "", "DISABLE-SECURITY.cfg", "BIOS", true, ToolKind.BiosConfig),
+        new("BIOS: отключить виртуализацию", "BIOS: disable virtualization", "VT-x/VT-d/AMD-V/IOMMU. Сломает WSL, Hyper-V, Docker, виртуалки, Sandbox", "VT-x/VT-d/AMD-V/IOMMU. Breaks WSL, Hyper-V, Docker, VMs, Sandbox", "", "DISABLE-VI.cfg", "BIOS", true, ToolKind.BiosConfig),
+        new("BIOS: отключить Wi-Fi и BT", "BIOS: disable Wi-Fi and BT", "Отключает Wi-Fi и Bluetooth адаптеры на уровне BIOS", "Disables the Wi-Fi and Bluetooth adapters at the BIOS level", "", "DISABLE-WI-FI-N-BT.cfg", "BIOS", true, ToolKind.BiosConfig),
         new("Тип драйвера сети", "Network driver type", "NDIS или NetAdapterCx", "NDIS or NetAdapterCx", "", "RUN-CHECK-NIC-DRIVER-TYPE.PS1.bat", "NIC", false),
         new("Энергосбережение сети", "Network power saving", "Проверка статуса", "Status check", "", "RUN-CHECK-POWER-MANAGEMENT.bat", "PWR", false),
         new("DDU", "DDU", "Удаление драйверов видеокарты", "Remove graphics drivers", "", "Display Driver Uninstaller.exe", "DDU", false),
