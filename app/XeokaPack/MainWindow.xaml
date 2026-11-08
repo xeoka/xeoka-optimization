@@ -212,43 +212,74 @@
             <Grid x:Name="Header" Grid.Row="0">
                 <Grid.Background>
                     <LinearGradientBrush StartPoint="0,0" EndPoint="1,0.35">
-                        <GradientStop Color="#7036DB" Offset="0"/>
-                        <GradientStop Color="#4A22A8" Offset="0.38"/>
-                        <GradientStop Color="#1C0C42" Offset="0.8"/>
-                        <GradientStop Color="#0B0620" Offset="1"/>
+                        <GradientStop Color="#5E2EBD" Offset="0"/>
+                        <GradientStop Color="#3C1C8C" Offset="0.38"/>
+                        <GradientStop Color="#160932" Offset="0.8"/>
+                        <GradientStop Color="#090417" Offset="1"/>
                     </LinearGradientBrush>
                 </Grid.Background>
-                <Rectangle>
+                <Rectangle Opacity="0.7">
                     <Rectangle.Fill>
                         <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                            <GradientStop Color="#2AFFFFFF" Offset="0"/>
+                            <GradientStop Color="#20FFFFFF" Offset="0"/>
                             <GradientStop Color="#00FFFFFF" Offset="0.6"/>
                         </LinearGradientBrush>
                     </Rectangle.Fill>
                 </Rectangle>
-                <Rectangle Height="2" VerticalAlignment="Bottom">
+                <!-- тонкая акцентная линия снизу шапки, мягче прежней сплошной полосы -->
+                <Rectangle Height="1.4" VerticalAlignment="Bottom">
                     <Rectangle.Fill>
                         <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
-                            <GradientStop Color="#C084FC" Offset="0"/>
-                            <GradientStop Color="#8B5CF6" Offset="0.4"/>
-                            <GradientStop Color="#008B5CF6" Offset="1"/>
+                            <GradientStop Color="#00C084FC" Offset="0"/>
+                            <GradientStop Color="#80C084FC" Offset="0.18"/>
+                            <GradientStop Color="#C08B5CF6" Offset="0.5"/>
+                            <GradientStop Color="#80C084FC" Offset="0.82"/>
+                            <GradientStop Color="#00C084FC" Offset="1"/>
                         </LinearGradientBrush>
                     </Rectangle.Fill>
                 </Rectangle>
 
-                <StackPanel Margin="32,14,0,0" VerticalAlignment="Top" HorizontalAlignment="Left">
-                    <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="XEOKA" FontSize="34" FontWeight="Black" Foreground="White"/>
-                        <TextBlock x:Name="PackWord" Text="OPTIMIZATION" FontSize="34" FontWeight="Black" Margin="12,0,0,0">
-                            <TextBlock.Foreground>
-                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
-                                    <GradientStop Color="#E9D5FF" Offset="0"/>
-                                    <GradientStop Color="#C084FC" Offset="1"/>
+                <StackPanel Orientation="Horizontal" Margin="28,0,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Height="96">
+                    <!-- Значок-логотип: стилизованная молния в стеклянной плашке -->
+                    <Border Width="46" Height="46" CornerRadius="13" BorderThickness="1.2" Margin="0,25,14,0">
+                        <Border.BorderBrush>
+                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                <GradientStop Color="#80E9D5FF" Offset="0"/>
+                                <GradientStop Color="#308B5CF6" Offset="1"/>
+                            </LinearGradientBrush>
+                        </Border.BorderBrush>
+                        <Border.Background>
+                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                <GradientStop Color="#55FFFFFF" Offset="0"/>
+                                <GradientStop Color="#1A8B5CF6" Offset="1"/>
+                            </LinearGradientBrush>
+                        </Border.Background>
+                        <Border.Effect>
+                            <DropShadowEffect Color="#C084FC" BlurRadius="16" ShadowDepth="0" Opacity="0.55"/>
+                        </Border.Effect>
+                        <Path Data="M13,2 L4,14 H11 L9,22 L20,8 H13 Z" Stretch="Uniform" Width="20" Height="20">
+                            <Path.Fill>
+                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                    <GradientStop Color="#FFFFFF" Offset="0"/>
+                                    <GradientStop Color="#E9D5FF" Offset="1"/>
                                 </LinearGradientBrush>
-                            </TextBlock.Foreground>
-                        </TextBlock>
+                            </Path.Fill>
+                        </Path>
+                    </Border>
+                    <StackPanel VerticalAlignment="Top" Margin="0,14,0,0">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="XEOKA" FontSize="30" FontWeight="Black" Foreground="White"/>
+                            <TextBlock x:Name="PackWord" Text="OPTIMIZATION" FontSize="30" FontWeight="Black" Margin="11,0,0,0">
+                                <TextBlock.Foreground>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                        <GradientStop Color="#E9D5FF" Offset="0"/>
+                                        <GradientStop Color="#C084FC" Offset="1"/>
+                                    </LinearGradientBrush>
+                                </TextBlock.Foreground>
+                            </TextBlock>
+                        </StackPanel>
+                        <TextBlock x:Name="SubTitle" Text="{local:T sub_title}" FontSize="12.5" Foreground="#CFC3F5" Margin="2,1,0,0"/>
                     </StackPanel>
-                    <TextBlock x:Name="SubTitle" Text="{local:T sub_title}" FontSize="12.5" Foreground="#CFC3F5" Margin="3,0,0,0"/>
                 </StackPanel>
 
                 <!-- кнопки окна -->
@@ -721,7 +752,7 @@
             <Rectangle Fill="#030208" Margin="0,96,0,0"/>
             <MediaElement x:Name="ActVideo" Margin="0,96,0,0" Stretch="UniformToFill" LoadedBehavior="Manual" UnloadedBehavior="Manual"
                           IsHitTestVisible="False" MediaEnded="ActVideo_MediaEnded" Volume="0.1"/>
-            <Rectangle Fill="#26000000" Margin="0,96,0,0"/>
+            <Rectangle Fill="#1A000000" Margin="0,96,0,0"/>
 
             <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
                 <Border Width="560" MaxWidth="620" CornerRadius="22" BorderThickness="1.2" BorderBrush="{DynamicResource Accent2Brush}" Padding="32,28">
@@ -730,8 +761,8 @@
                     </Border.Effect>
                     <Border.Background>
                         <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                            <GradientStop Color="#8F1A1038" Offset="0"/>
-                            <GradientStop Color="#8F0B0718" Offset="1"/>
+                            <GradientStop Color="#731A1038" Offset="0"/>
+                            <GradientStop Color="#730B0718" Offset="1"/>
                         </LinearGradientBrush>
                     </Border.Background>
                     <StackPanel>

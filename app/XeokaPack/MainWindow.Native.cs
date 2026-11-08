@@ -63,6 +63,32 @@ public partial class MainWindow
         catch { }
     }
 
+    /// <summary>
+    /// Точные границы текущего монитора в DIP (а не SystemParameters.PrimaryScreen*, который на экранах
+    /// с масштабированием/не на основном мониторе мог давать окно чуть меньше экрана — отсюда была
+    /// видна тонкая белая полоска рабочего стола снизу).
+    /// </summary>
+    bool TryGetMonitorBoundsDip(out Rect bounds)
+    {
+        bounds = default;
+        try
+        {
+            var hwnd = new WindowInteropHelper(this).Handle;
+            if (hwnd == IntPtr.Zero) return false;
+            var mon = MonitorFromWindow(hwnd, MONITOR_DEFAULTTONEAREST);
+            if (mon == IntPtr.Zero) return false;
+            var mi = new MONITORINFO { cbSize = Marshal.SizeOf<MONITORINFO>() };
+            if (!GetMonitorInfo(mon, ref mi)) return false;
+            var dpi = System.Windows.Media.VisualTreeHelper.GetDpi(this);
+            bounds = new Rect(
+                mi.rcMonitor.left / dpi.DpiScaleX, mi.rcMonitor.top / dpi.DpiScaleY,
+                (mi.rcMonitor.right - mi.rcMonitor.left) / dpi.DpiScaleX,
+                (mi.rcMonitor.bottom - mi.rcMonitor.top) / dpi.DpiScaleY);
+            return true;
+        }
+        catch { return false; }
+    }
+
     /// <summary>При разворачивании окно без рамки выступает за экран на толщину рамки: сдвигаем содержимое внутрь, чтобы кнопки не обрезались.</summary>
     void UpdateMaxMargin()
     {
