@@ -255,16 +255,29 @@
                             </LinearGradientBrush>
                         </Border.Background>
                         <Border.Effect>
-                            <DropShadowEffect Color="#C084FC" BlurRadius="16" ShadowDepth="0" Opacity="0.55"/>
+                            <DropShadowEffect Color="#FF4D3D" BlurRadius="16" ShadowDepth="0" Opacity="0.55"/>
                         </Border.Effect>
-                        <Path Data="M13,2 L4,14 H11 L9,22 L20,8 H13 Z" Stretch="Uniform" Width="20" Height="20">
-                            <Path.Fill>
-                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                                    <GradientStop Color="#FFFFFF" Offset="0"/>
-                                    <GradientStop Color="#E9D5FF" Offset="1"/>
-                                </LinearGradientBrush>
-                            </Path.Fill>
-                        </Path>
+                        <!-- Лого XEOKA: стилизованный "хищный" глаз (J2) -->
+                        <Viewbox Width="30" Height="30" Stretch="Uniform">
+                            <Canvas Width="90" Height="90">
+                                <Path Data="M6,46 C20,22 70,22 84,46 C70,70 20,70 6,46 Z" Fill="#220810" Stroke="#4DFFFFFF" StrokeThickness="1.5"/>
+                                <Path Data="M30,40 L12,26 L7,27 M28,54 L20,70 L24,76 M62,38 L82,30 M58,55 L70,66 L76,65" Stroke="#FF2D4A" StrokeThickness="1.6" Opacity="0.75" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
+                                <Path Data="M45,30 L41,12 M45,62 L48,79" Stroke="#FF2D4A" StrokeThickness="1.3" Opacity="0.55" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
+                                <Ellipse Canvas.Left="12.4" Canvas.Top="22.4" Width="3.2" Height="3.2" Fill="#FF8F70"/>
+                                <Ellipse Canvas.Left="76.4" Canvas.Top="62.4" Width="3.2" Height="3.2" Fill="#FF8F70"/>
+                                <Ellipse Canvas.Left="23.7" Canvas.Top="71.7" Width="2.6" Height="2.6" Fill="#FF8F70"/>
+                                <Ellipse Canvas.Left="29" Canvas.Top="30" Width="32" Height="32">
+                                    <Ellipse.Fill>
+                                        <RadialGradientBrush>
+                                            <GradientStop Color="#FFB37A" Offset="0"/>
+                                            <GradientStop Color="#FF4D3D" Offset="0.55"/>
+                                            <GradientStop Color="#6A1010" Offset="1"/>
+                                        </RadialGradientBrush>
+                                    </Ellipse.Fill>
+                                </Ellipse>
+                                <Ellipse Canvas.Left="40" Canvas.Top="41" Width="10" Height="10" Fill="#140408"/>
+                            </Canvas>
+                        </Viewbox>
                     </Border>
                     <StackPanel VerticalAlignment="Top" Margin="0,14,0,0">
                         <StackPanel Orientation="Horizontal">
@@ -326,9 +339,9 @@
                 <Border Grid.Column="0" BorderThickness="0,0,1,0" BorderBrush="{DynamicResource LineBrush}">
                     <Border.Background>
                         <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                            <GradientStop Color="#8C2A1260" Offset="0"/>
-                            <GradientStop Color="#B005030B" Offset="0.45"/>
-                            <GradientStop Color="#E005030B" Offset="1"/>
+                            <GradientStop Color="#8C3A0A12" Offset="0"/>
+                            <GradientStop Color="#C0300008" Offset="0.45"/>
+                            <GradientStop Color="#F0100003" Offset="1"/>
                         </LinearGradientBrush>
                     </Border.Background>
                     <Grid>
