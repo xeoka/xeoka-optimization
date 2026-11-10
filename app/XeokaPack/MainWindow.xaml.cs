@@ -133,6 +133,7 @@ public partial class MainWindow : Window
         if (sender is not FrameworkElement fe) return;
         SoundFx.Tick();
         _settings.Theme = fe.Tag?.ToString() ?? "violet";
+        _settings.ThemeChosen = true;
         _settings.Save();
         ThemeManager.Apply(_settings.Theme, this);
         ToolsRiskText.Text = Loc.L(ThemeManager.Current.RiskRu, ThemeManager.Current.RiskEn) + Loc.T("tools_risk");
