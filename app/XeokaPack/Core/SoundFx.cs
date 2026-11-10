@@ -10,10 +10,22 @@ public sealed class Settings
     public bool Sound { get; set; } = true;
     public string Lang { get; set; } = "auto";
     public string Theme { get; set; } = "crimson";
+    /// <summary>true, если тему когда-либо выбирали вручную в Настройках — иначе значение могло
+    /// остаться от старого дефолта ("violet") и его можно безопасно мигрировать на новый.</summary>
+    public bool ThemeChosen { get; set; } = false;
     static string FilePath => Path.Combine(Paths.DataDir, "settings.json");
     public static Settings Load()
     {
-        try { if (File.Exists(FilePath)) return JsonSerializer.Deserialize<Settings>(File.ReadAllText(FilePath)) ?? new Settings(); } catch { }
+        try
+        {
+            if (File.Exists(FilePath))
+            {
+                var s = JsonSerializer.Deserialize<Settings>(File.ReadAllText(FilePath)) ?? new Settings();
+                if (!s.ThemeChosen && s.Theme == "violet") { s.Theme = "crimson"; s.Save(); }
+                return s;
+            }
+        }
+        catch { }
         return new Settings();
     }
     public void Save() { try { File.WriteAllText(FilePath, JsonSerializer.Serialize(this)); } catch { } }

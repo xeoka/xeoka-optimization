@@ -355,6 +355,62 @@
         </Setter>
     </Style>
 
+    <!-- ===== Слайдер громкости (капсула, точный клик, крупный ползунок) ===== -->
+    <Style x:Key="VolumeSlider" TargetType="Slider">
+        <Setter Property="IsMoveToPointEnabled" Value="True"/>
+        <Setter Property="SmallChange" Value="0.02"/>
+        <Setter Property="LargeChange" Value="0.08"/>
+        <Setter Property="Height" Value="24"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Slider">
+                    <Grid VerticalAlignment="Center" Background="Transparent">
+                        <Border Height="6" CornerRadius="3" Background="#2A2430"/>
+                        <Border x:Name="FillTrack" Height="6" CornerRadius="3" HorizontalAlignment="Stretch"
+                                Background="{DynamicResource AccentGradient}" RenderTransformOrigin="0,0.5">
+                            <Border.RenderTransform>
+                                <ScaleTransform x:Name="FillScale" ScaleX="{Binding Value, RelativeSource={RelativeSource TemplatedParent}}" ScaleY="1"/>
+                            </Border.RenderTransform>
+                        </Border>
+                        <Track x:Name="PART_Track">
+                            <Track.DecreaseRepeatButton>
+                                <RepeatButton Command="Slider.DecreaseLarge">
+                                    <RepeatButton.Template>
+                                        <ControlTemplate><Rectangle Fill="Transparent" Height="24"/></ControlTemplate>
+                                    </RepeatButton.Template>
+                                </RepeatButton>
+                            </Track.DecreaseRepeatButton>
+                            <Track.IncreaseRepeatButton>
+                                <RepeatButton Command="Slider.IncreaseLarge">
+                                    <RepeatButton.Template>
+                                        <ControlTemplate><Rectangle Fill="Transparent" Height="24"/></ControlTemplate>
+                                    </RepeatButton.Template>
+                                </RepeatButton>
+                            </Track.IncreaseRepeatButton>
+                            <Track.Thumb>
+                                <Thumb Width="20" Height="20" Cursor="Hand">
+                                    <Thumb.Template>
+                                        <ControlTemplate TargetType="Thumb">
+                                            <Grid>
+                                                <Ellipse Width="20" Height="20" Fill="White">
+                                                    <Ellipse.Effect>
+                                                        <DropShadowEffect Color="Black" BlurRadius="8" ShadowDepth="1.5" Opacity="0.45"/>
+                                                    </Ellipse.Effect>
+                                                </Ellipse>
+                                                <Ellipse Width="20" Height="20" StrokeThickness="2.4" Stroke="{DynamicResource AccentGradient}"/>
+                                                <Ellipse Width="8" Height="8" Fill="{DynamicResource AccentGradient}"/>
+                                            </Grid>
+                                        </ControlTemplate>
+                                    </Thumb.Template>
+                                </Thumb>
+                            </Track.Thumb>
+                        </Track>
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
     <!-- ===== Пункт бокового меню ===== -->
     <Style x:Key="NavItem" TargetType="RadioButton">
         <Setter Property="Foreground" Value="{DynamicResource DimBrush}"/>
