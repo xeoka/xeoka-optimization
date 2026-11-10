@@ -28,7 +28,7 @@ public partial class MainWindow : Window
 
     bool _busy, _fullscreen, _closing;
     int _page;
-    WindowState _prevState = WindowState.Maximized;
+    WindowState _prevState = WindowState.Normal;
     double _tgFull = 330;
     TaskCompletionSource<bool>? _dlg;
 
@@ -377,6 +377,20 @@ public partial class MainWindow : Window
         MaxIcon.Data = Geometry.Parse(WindowState == WindowState.Maximized
             ? "M2.5,0.5 H9.5 V7.5 H7.5 M0.5,2.5 H7.5 V9.5 H0.5 Z"
             : "M0.5,0.5 H9.5 V9.5 H0.5 Z");
+
+        // У окна без рамки (WindowStyle=None) в состоянии Maximized Windows сдвигает весь контент
+        // внутрь экрана на толщину невидимой рамки — из-за этого правый край (кнопка "закрыть")
+        // оказывается за пределами видимой области монитора. Компенсируем отступом.
+        if (WindowState == WindowState.Maximized)
+        {
+            var rb = SystemParameters.WindowResizeBorderThickness;
+            var nc = SystemParameters.WindowNonClientFrameThickness;
+            Shell.Margin = new Thickness(rb.Left + nc.Left, rb.Top + nc.Top, rb.Right + nc.Right, rb.Bottom + nc.Bottom);
+        }
+        else
+        {
+            Shell.Margin = new Thickness(0);
+        }
     }
 
     void ToggleFullscreen()
