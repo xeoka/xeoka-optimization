@@ -70,27 +70,27 @@
 
         <!-- Карточка инструмента -->
         <DataTemplate x:Key="ToolCard">
-            <Border x:Name="Card" Width="{Binding Source={StaticResource Layout}, Path=ToolWidth}" Height="84" Margin="0,0,12,12"
+            <Border x:Name="Card" Width="{Binding Source={StaticResource Layout}, Path=ToolWidth}" MinHeight="84" Margin="0,0,12,12"
                     CornerRadius="16" Background="{DynamicResource CardBrush}" BorderBrush="{DynamicResource LineBrush}" BorderThickness="1.2"
                     Cursor="Hand" Tag="{Binding}" Opacity="{Binding Opacity}" MouseLeftButtonUp="ToolCard_Click" RenderTransformOrigin="0.5,0.5">
                 <Border.RenderTransform><TranslateTransform x:Name="CardT" Y="0"/></Border.RenderTransform>
                 <Grid>
                     <Border x:Name="Hover" CornerRadius="16" BorderThickness="1.2" BorderBrush="{DynamicResource Accent2Brush}" Background="#1E8B5CF6" Opacity="0"/>
-                    <Grid Margin="18,0,16,0">
+                    <Grid Margin="18,14,16,14">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
-                        <Grid Width="48" Height="48">
+                        <Grid Width="48" Height="48" VerticalAlignment="Top">
                             <Ellipse Fill="{Binding Badge}"/>
                             <TextBlock Text="{Binding Glyph}" FontSize="11.5" FontWeight="Black" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Grid>
-                        <StackPanel Grid.Column="1" Margin="14,0,8,0" VerticalAlignment="Center">
-                            <TextBlock Text="{Binding Title}" FontSize="15" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/>
-                            <TextBlock Text="{Binding Info}" FontSize="12.5" Foreground="{Binding InfoBrush}" TextTrimming="CharacterEllipsis" Margin="0,3,0,0"/>
+                        <StackPanel Grid.Column="1" Margin="14,0,8,0" VerticalAlignment="Top">
+                            <TextBlock Text="{Binding Title}" FontSize="15" FontWeight="SemiBold" TextWrapping="Wrap"/>
+                            <TextBlock Text="{Binding Info}" FontSize="12.5" Foreground="{Binding InfoBrush}" TextWrapping="Wrap" Margin="0,3,0,0"/>
                         </StackPanel>
-                        <Path Grid.Column="2" Data="M0,0 L6,6 L0,12" Stroke="{DynamicResource Accent2Brush}" StrokeThickness="2" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round" VerticalAlignment="Center" Opacity="0.7"/>
+                        <Path Grid.Column="2" Data="M0,0 L6,6 L0,12" Stroke="{DynamicResource Accent2Brush}" StrokeThickness="2" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round" VerticalAlignment="Top" Margin="0,2,0,0" Opacity="0.7"/>
                     </Grid>
                 </Grid>
             </Border>
@@ -240,46 +240,7 @@
                 </Rectangle>
 
                 <StackPanel Orientation="Horizontal" Margin="28,0,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Height="96">
-                    <!-- Значок-логотип: стилизованная молния в стеклянной плашке -->
-                    <Border Width="52" Height="52" CornerRadius="15" BorderThickness="1.2" Margin="0,22,14,0">
-                        <Border.BorderBrush>
-                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                                <GradientStop Color="#80E9D5FF" Offset="0"/>
-                                <GradientStop Color="#308B5CF6" Offset="1"/>
-                            </LinearGradientBrush>
-                        </Border.BorderBrush>
-                        <Border.Background>
-                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                                <GradientStop Color="#55FFFFFF" Offset="0"/>
-                                <GradientStop Color="#1A8B5CF6" Offset="1"/>
-                            </LinearGradientBrush>
-                        </Border.Background>
-                        <Border.Effect>
-                            <DropShadowEffect Color="#FF4D3D" BlurRadius="16" ShadowDepth="0" Opacity="0.55"/>
-                        </Border.Effect>
-                        <!-- Лого XEOKA: стилизованный "хищный" глаз (J2), укрупнён для чёткости на маленьком значке -->
-                        <Viewbox Width="38" Height="38" Stretch="Uniform">
-                            <Canvas Width="90" Height="90">
-                                <Path Data="M6,46 C20,22 70,22 84,46 C70,70 20,70 6,46 Z" Fill="#2A0C14" Stroke="#99FFFFFF" StrokeThickness="2.2"/>
-                                <Path Data="M30,40 L12,26 L7,27 M28,54 L20,70 L24,76 M62,38 L82,30 M58,55 L70,66 L76,65" Stroke="#FF3B52" StrokeThickness="2.4" Opacity="0.95" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
-                                <Path Data="M45,30 L41,12 M45,62 L48,79" Stroke="#FF3B52" StrokeThickness="2" Opacity="0.8" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
-                                <Ellipse Canvas.Left="11" Canvas.Top="21" Width="5" Height="5" Fill="#FFA98A"/>
-                                <Ellipse Canvas.Left="75" Canvas.Top="61" Width="5" Height="5" Fill="#FFA98A"/>
-                                <Ellipse Canvas.Left="22.5" Canvas.Top="70.5" Width="4.2" Height="4.2" Fill="#FFA98A"/>
-                                <Ellipse Canvas.Left="25" Canvas.Top="26" Width="40" Height="40">
-                                    <Ellipse.Fill>
-                                        <RadialGradientBrush>
-                                            <GradientStop Color="#FFC296" Offset="0"/>
-                                            <GradientStop Color="#FF4D3D" Offset="0.5"/>
-                                            <GradientStop Color="#6A1010" Offset="1"/>
-                                        </RadialGradientBrush>
-                                    </Ellipse.Fill>
-                                </Ellipse>
-                                <Ellipse Canvas.Left="38" Canvas.Top="39" Width="14" Height="14" Fill="#0E0307"/>
-                            </Canvas>
-                        </Viewbox>
-                    </Border>
-                    <StackPanel VerticalAlignment="Top" Margin="0,14,0,0">
+                    <StackPanel VerticalAlignment="Top" Margin="0,22,0,0">
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="XEOKA" FontSize="30" FontWeight="Black" Foreground="White"/>
                             <TextBlock x:Name="PackWord" Text="OPTIMIZATION" FontSize="30" FontWeight="Black" Margin="11,0,0,0">
