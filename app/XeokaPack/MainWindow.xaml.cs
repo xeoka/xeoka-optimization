@@ -1,6 +1,7 @@
 using System.IO;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.Globalization;
 using System.Reflection;
 using System.Windows;
 using System.Windows.Controls;
@@ -103,6 +104,36 @@ public partial class MainWindow : Window
             }).ToList();
         });
         for (int i = 0; i < tweaks.Count; i++) tweaks[i].State = res[i];
+        UpdateHealthRing();
+    }
+
+    /// <summary>Кольцо состояния на главном экране: доля твиков в состоянии Applied от общего числа.</summary>
+    void UpdateHealthRing()
+    {
+        var tweaks = AllTweaks.ToList();
+        double percent = tweaks.Count == 0 ? 0 : tweaks.Count(v => v.State == TweakState.Applied) / (double)tweaks.Count;
+        HealthPercentText.Text = $"{(int)Math.Round(percent * 100)}%";
+        HealthStatusText.Text = percent >= 0.8 ? Loc.T("health_optimal")
+            : percent >= 0.35 ? Loc.T("health_partial")
+            : Loc.T("health_needed");
+        SetHealthArc(percent);
+    }
+
+    void SetHealthArc(double percent)
+    {
+        percent = Math.Clamp(percent, 0.0, 1.0);
+        const double cx = 64, cy = 64, r = 56;
+        double theta = percent * 2 * Math.PI;
+        double sx = cx, sy = cy - r;
+        double ex = cx + r * Math.Sin(theta);
+        double ey = cy - r * Math.Cos(theta);
+        int largeArc = theta > Math.PI ? 1 : 0;
+        string data = percent >= 0.999
+            ? FormattableString.Invariant($"M {sx:F2},{sy:F2} A {r},{r} 0 1 1 {sx - 0.01:F2},{sy:F2}")
+            : percent <= 0.001
+                ? ""
+                : FormattableString.Invariant($"M {sx:F2},{sy:F2} A {r},{r} 0 {largeArc} 1 {ex:F2},{ey:F2}");
+        HealthArc.Data = string.IsNullOrEmpty(data) ? null : Geometry.Parse(data);
     }
 
     async Task RefreshSummaryAsync()

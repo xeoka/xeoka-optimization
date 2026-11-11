@@ -385,6 +385,41 @@
                         </Grid>
                         <local:SmoothScrollViewer x:Name="OptScroll" Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" SizeChanged="OptScroll_SizeChanged">
                             <StackPanel Margin="0,0,10,0">
+                                <!-- Кольцо состояния: общий индикатор готовности системы -->
+                                <Border Style="{StaticResource InfoCard}" Margin="0,0,0,14" Padding="26,22">
+                                    <StackPanel Orientation="Horizontal">
+                                        <Grid Width="128" Height="128" Margin="0,0,26,0">
+                                            <Ellipse Width="128" Height="128" Stroke="#262030" StrokeThickness="8"/>
+                                            <Path x:Name="HealthArc" Stretch="None" HorizontalAlignment="Left" VerticalAlignment="Top" Stroke="{DynamicResource AccentGradient}" StrokeThickness="8" StrokeStartLineCap="Round" StrokeEndLineCap="Round">
+                                                <Path.Effect>
+                                                    <DropShadowEffect Color="#FF4D3D" BlurRadius="16" ShadowDepth="0" Opacity="0.55"/>
+                                                </Path.Effect>
+                                            </Path>
+                                            <Viewbox Width="46" Height="46" Stretch="Uniform">
+                                                <Canvas Width="90" Height="90">
+                                                    <Path Data="M6,46 C20,22 70,22 84,46 C70,70 20,70 6,46 Z" Fill="#2A0C14" Stroke="#99FFFFFF" StrokeThickness="2.2"/>
+                                                    <Path Data="M30,40 L12,26 L7,27 M28,54 L20,70 L24,76 M62,38 L82,30 M58,55 L70,66 L76,65" Stroke="#FF3B52" StrokeThickness="2.4" Opacity="0.95" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
+                                                    <Path Data="M45,30 L41,12 M45,62 L48,79" Stroke="#FF3B52" StrokeThickness="2" Opacity="0.8" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
+                                                    <Ellipse Canvas.Left="25" Canvas.Top="26" Width="40" Height="40">
+                                                        <Ellipse.Fill>
+                                                            <RadialGradientBrush>
+                                                                <GradientStop Color="#FFC296" Offset="0"/>
+                                                                <GradientStop Color="#FF4D3D" Offset="0.5"/>
+                                                                <GradientStop Color="#6A1010" Offset="1"/>
+                                                            </RadialGradientBrush>
+                                                        </Ellipse.Fill>
+                                                    </Ellipse>
+                                                    <Ellipse Canvas.Left="38" Canvas.Top="39" Width="14" Height="14" Fill="#0E0307"/>
+                                                </Canvas>
+                                            </Viewbox>
+                                        </Grid>
+                                        <StackPanel VerticalAlignment="Center">
+                                            <TextBlock x:Name="HealthPercentText" Text="—" FontSize="36" FontWeight="Black" Foreground="White"/>
+                                            <TextBlock x:Name="HealthStatusText" Text="{local:T health_checking}" FontSize="13.5" Foreground="{DynamicResource DimBrush}" Margin="0,2,0,16"/>
+                                            <Button x:Name="QuickStartBtn" Content="{local:T btn_apply}" Style="{StaticResource PrimaryButton}" Width="210" Height="44" HorizontalAlignment="Left" Click="ApplyBtn_Click"/>
+                                        </StackPanel>
+                                    </StackPanel>
+                                </Border>
                                 <Border Style="{StaticResource InfoCard}" Margin="0,0,0,14" Padding="20,14,12,6">
                                     <StackPanel>
                                         <TextBlock Text="{local:T sum_title}" Style="{StaticResource GroupLabel}" Margin="0,0,0,10"/>
