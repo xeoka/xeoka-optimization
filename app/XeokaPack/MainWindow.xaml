@@ -390,7 +390,13 @@
                                     <StackPanel Orientation="Horizontal">
                                         <Grid Width="128" Height="128" Margin="0,0,26,0">
                                             <Ellipse Width="128" Height="128" Stroke="#262030" StrokeThickness="8"/>
-                                            <Path x:Name="HealthArc" Stretch="None" HorizontalAlignment="Left" VerticalAlignment="Top" Stroke="{DynamicResource AccentGradient}" StrokeThickness="8" StrokeStartLineCap="Round" StrokeEndLineCap="Round">
+                                            <Path x:Name="HealthArc" Stretch="None" HorizontalAlignment="Left" VerticalAlignment="Top" StrokeThickness="8" StrokeStartLineCap="Round" StrokeEndLineCap="Round">
+                                                <Path.Stroke>
+                                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                                        <GradientStop Color="#FF6B52" Offset="0"/>
+                                                        <GradientStop Color="#C41830" Offset="1"/>
+                                                    </LinearGradientBrush>
+                                                </Path.Stroke>
                                                 <Path.Effect>
                                                     <DropShadowEffect Color="#FF4D3D" BlurRadius="16" ShadowDepth="0" Opacity="0.55"/>
                                                 </Path.Effect>
