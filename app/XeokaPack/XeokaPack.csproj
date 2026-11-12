@@ -8,9 +8,9 @@
     <LangVersion>latest</LangVersion>
     <AssemblyName>XEOKA-PACK</AssemblyName>
     <RootNamespace>XeokaPack</RootNamespace>
-    <Version>3.14.2</Version>
-    <AssemblyVersion>3.14.2.0</AssemblyVersion>
-    <FileVersion>3.14.2.0</FileVersion>
+    <Version>3.15.0</Version>
+    <AssemblyVersion>3.15.0.0</AssemblyVersion>
+    <FileVersion>3.15.0.0</FileVersion>
     <Product>XEOKA PACK</Product>
     <Company>XEOKA</Company>
     <Copyright>t.me/CMEPT0HOCHbIU</Copyright>
@@ -33,5 +33,7 @@
     <EmbeddedResource Include="Assets\Sounds\*.wav" />
     <!-- Видео для экрана активации: не встраивается в exe (слишком большое для single-file), едет рядом отдельным файлом. -->
     <None Include="Assets\activation.mp4" CopyToOutputDirectory="PreserveNewest" />
+    <!-- Арт глаза в кристаллах для кольца состояния: тоже отдельным файлом, не встраиваем в exe. -->
+    <None Include="Assets\hero_eye.png" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>
