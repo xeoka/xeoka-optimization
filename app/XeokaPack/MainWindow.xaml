@@ -145,41 +145,46 @@
         <Style x:Key="InfoCard" TargetType="Border">
             <Setter Property="CornerRadius" Value="20"/>
             <Setter Property="Background" Value="{DynamicResource CardBrush}"/>
-            <Setter Property="BorderBrush" Value="{DynamicResource LineBrush}"/>
-            <Setter Property="BorderThickness" Value="1.2"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource Accent2Brush}"/>
+            <Setter Property="BorderThickness" Value="1.3"/>
             <Setter Property="Padding" Value="22"/>
             <Setter Property="Margin" Value="0,0,14,14"/>
+            <Setter Property="Effect">
+                <Setter.Value>
+                    <DropShadowEffect Color="#000000" BlurRadius="24" ShadowDepth="8" Direction="270" Opacity="0.35"/>
+                </Setter.Value>
+            </Setter>
         </Style>
     </Window.Resources>
 
     <Grid x:Name="Shell">
         <!-- ================= Фон: чёрный, который переливается ================= -->
         <Grid x:Name="BgLayer" IsHitTestVisible="False" ClipToBounds="True">
-            <Ellipse x:Name="Blob1" Width="1100" Height="800" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="-100,-330,0,0">
+            <Ellipse x:Name="Blob1" Width="1300" Height="950" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="-120,-360,0,0">
                 <Ellipse.Fill>
                     <RadialGradientBrush>
-                        <GradientStop Color="#707C3AED" Offset="0"/>
-                        <GradientStop Color="#287C3AED" Offset="0.55"/>
+                        <GradientStop Color="#8C7C3AED" Offset="0"/>
+                        <GradientStop Color="#3A7C3AED" Offset="0.55"/>
                         <GradientStop Color="#007C3AED" Offset="1"/>
                     </RadialGradientBrush>
                 </Ellipse.Fill>
                 <Ellipse.RenderTransform><TranslateTransform x:Name="Blob1T"/></Ellipse.RenderTransform>
             </Ellipse>
-            <Ellipse x:Name="Blob2" Width="900" Height="700" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,-220,-260">
+            <Ellipse x:Name="Blob2" Width="1050" Height="820" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,-250,-300">
                 <Ellipse.Fill>
                     <RadialGradientBrush>
-                        <GradientStop Color="#58C026D3" Offset="0"/>
-                        <GradientStop Color="#1EC026D3" Offset="0.55"/>
+                        <GradientStop Color="#70C026D3" Offset="0"/>
+                        <GradientStop Color="#2AC026D3" Offset="0.55"/>
                         <GradientStop Color="#00C026D3" Offset="1"/>
                     </RadialGradientBrush>
                 </Ellipse.Fill>
                 <Ellipse.RenderTransform><TranslateTransform x:Name="Blob2T"/></Ellipse.RenderTransform>
             </Ellipse>
-            <Ellipse x:Name="Blob3" Width="800" Height="640" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="-260,0,0,-240">
+            <Ellipse x:Name="Blob3" Width="940" Height="760" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="-300,0,0,-280">
                 <Ellipse.Fill>
                     <RadialGradientBrush>
-                        <GradientStop Color="#544F46E5" Offset="0"/>
-                        <GradientStop Color="#1C4F46E5" Offset="0.55"/>
+                        <GradientStop Color="#664F46E5" Offset="0"/>
+                        <GradientStop Color="#264F46E5" Offset="0.55"/>
                         <GradientStop Color="#004F46E5" Offset="1"/>
                     </RadialGradientBrush>
                 </Ellipse.Fill>
@@ -386,46 +391,76 @@
                         <local:SmoothScrollViewer x:Name="OptScroll" Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" SizeChanged="OptScroll_SizeChanged">
                             <StackPanel Margin="0,0,10,0">
                                 <!-- Кольцо состояния: общий индикатор готовности системы -->
-                                <Border Style="{StaticResource InfoCard}" Margin="0,0,0,14" Padding="26,22">
-                                    <StackPanel Orientation="Horizontal">
-                                        <Grid Width="128" Height="128" Margin="0,0,26,0">
-                                            <Ellipse Width="128" Height="128" Stroke="#262030" StrokeThickness="8"/>
-                                            <Path x:Name="HealthArc" Stretch="None" HorizontalAlignment="Left" VerticalAlignment="Top" StrokeThickness="8" StrokeStartLineCap="Round" StrokeEndLineCap="Round">
-                                                <Path.Stroke>
-                                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                                                        <GradientStop Color="#FF6B52" Offset="0"/>
-                                                        <GradientStop Color="#C41830" Offset="1"/>
-                                                    </LinearGradientBrush>
-                                                </Path.Stroke>
-                                                <Path.Effect>
-                                                    <DropShadowEffect Color="#FF4D3D" BlurRadius="16" ShadowDepth="0" Opacity="0.55"/>
-                                                </Path.Effect>
-                                            </Path>
-                                            <Viewbox Width="46" Height="46" Stretch="Uniform">
-                                                <Canvas Width="90" Height="90">
-                                                    <Path Data="M6,46 C20,22 70,22 84,46 C70,70 20,70 6,46 Z" Fill="#2A0C14" Stroke="#99FFFFFF" StrokeThickness="2.2"/>
-                                                    <Path Data="M30,40 L12,26 L7,27 M28,54 L20,70 L24,76 M62,38 L82,30 M58,55 L70,66 L76,65" Stroke="#FF3B52" StrokeThickness="2.4" Opacity="0.95" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
-                                                    <Path Data="M45,30 L41,12 M45,62 L48,79" Stroke="#FF3B52" StrokeThickness="2" Opacity="0.8" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
-                                                    <Ellipse Canvas.Left="25" Canvas.Top="26" Width="40" Height="40">
-                                                        <Ellipse.Fill>
-                                                            <RadialGradientBrush>
-                                                                <GradientStop Color="#FFC296" Offset="0"/>
-                                                                <GradientStop Color="#FF4D3D" Offset="0.5"/>
-                                                                <GradientStop Color="#6A1010" Offset="1"/>
-                                                            </RadialGradientBrush>
-                                                        </Ellipse.Fill>
-                                                    </Ellipse>
-                                                    <Ellipse Canvas.Left="38" Canvas.Top="39" Width="14" Height="14" Fill="#0E0307"/>
-                                                </Canvas>
-                                            </Viewbox>
-                                        </Grid>
-                                        <StackPanel VerticalAlignment="Center">
-                                            <TextBlock x:Name="HealthPercentText" Text="—" FontSize="36" FontWeight="Black" Foreground="White"/>
-                                            <TextBlock x:Name="HealthStatusText" Text="{local:T health_checking}" FontSize="13.5" Foreground="{DynamicResource DimBrush}" Margin="0,2,0,16"/>
-                                            <Button x:Name="QuickStartBtn" Content="{local:T btn_apply}" Style="{StaticResource PrimaryButton}" Width="210" Height="44" HorizontalAlignment="Left" Click="ApplyBtn_Click"/>
+                                <Grid Margin="0,0,0,14" ClipToBounds="False">
+                                    <!-- Мягкое красное зарево позади карточки -->
+                                    <Ellipse Width="520" Height="420" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="-110,-120,0,0" IsHitTestVisible="False">
+                                        <Ellipse.Fill>
+                                            <RadialGradientBrush>
+                                                <GradientStop Color="#4DFF2D4A" Offset="0"/>
+                                                <GradientStop Color="#17FF2D4A" Offset="0.5"/>
+                                                <GradientStop Color="#00FF2D4A" Offset="1"/>
+                                            </RadialGradientBrush>
+                                        </Ellipse.Fill>
+                                    </Ellipse>
+                                    <Border CornerRadius="20" Background="{DynamicResource CardBrush}" Padding="26,22" BorderThickness="1.4">
+                                        <Border.BorderBrush>
+                                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                                <GradientStop Color="#66FF6B7A" Offset="0"/>
+                                                <GradientStop Color="#1AFF2D4A" Offset="0.5"/>
+                                                <GradientStop Color="#40200000" Offset="1"/>
+                                            </LinearGradientBrush>
+                                        </Border.BorderBrush>
+                                        <Border.Effect>
+                                            <DropShadowEffect Color="#000000" BlurRadius="28" ShadowDepth="10" Direction="270" Opacity="0.4"/>
+                                        </Border.Effect>
+                                        <StackPanel Orientation="Horizontal">
+                                            <Grid Width="132" Height="132" Margin="0,0,26,0">
+                                                <Ellipse Width="132" Height="132">
+                                                    <Ellipse.Fill>
+                                                        <RadialGradientBrush>
+                                                            <GradientStop Color="#33FF2D4A" Offset="0"/>
+                                                            <GradientStop Color="#00FF2D4A" Offset="0.75"/>
+                                                        </RadialGradientBrush>
+                                                    </Ellipse.Fill>
+                                                </Ellipse>
+                                                <Ellipse Width="128" Height="128" Stroke="#262030" StrokeThickness="8"/>
+                                                <Path x:Name="HealthArc" Stretch="None" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="2,2,0,0" StrokeThickness="8" StrokeStartLineCap="Round" StrokeEndLineCap="Round">
+                                                    <Path.Stroke>
+                                                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                                            <GradientStop Color="#FF6B52" Offset="0"/>
+                                                            <GradientStop Color="#C41830" Offset="1"/>
+                                                        </LinearGradientBrush>
+                                                    </Path.Stroke>
+                                                    <Path.Effect>
+                                                        <DropShadowEffect Color="#FF4D3D" BlurRadius="18" ShadowDepth="0" Opacity="0.7"/>
+                                                    </Path.Effect>
+                                                </Path>
+                                                <Viewbox Width="48" Height="48" Stretch="Uniform">
+                                                    <Canvas Width="90" Height="90">
+                                                        <Path Data="M6,46 C20,22 70,22 84,46 C70,70 20,70 6,46 Z" Fill="#2A0C14" Stroke="#99FFFFFF" StrokeThickness="2.2"/>
+                                                        <Path Data="M30,40 L12,26 L7,27 M28,54 L20,70 L24,76 M62,38 L82,30 M58,55 L70,66 L76,65" Stroke="#FF3B52" StrokeThickness="2.4" Opacity="0.95" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
+                                                        <Path Data="M45,30 L41,12 M45,62 L48,79" Stroke="#FF3B52" StrokeThickness="2" Opacity="0.8" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
+                                                        <Ellipse Canvas.Left="25" Canvas.Top="26" Width="40" Height="40">
+                                                            <Ellipse.Fill>
+                                                                <RadialGradientBrush>
+                                                                    <GradientStop Color="#FFC296" Offset="0"/>
+                                                                    <GradientStop Color="#FF4D3D" Offset="0.5"/>
+                                                                    <GradientStop Color="#6A1010" Offset="1"/>
+                                                                </RadialGradientBrush>
+                                                            </Ellipse.Fill>
+                                                        </Ellipse>
+                                                        <Ellipse Canvas.Left="38" Canvas.Top="39" Width="14" Height="14" Fill="#0E0307"/>
+                                                    </Canvas>
+                                                </Viewbox>
+                                            </Grid>
+                                            <StackPanel VerticalAlignment="Center">
+                                                <TextBlock x:Name="HealthPercentText" Text="—" FontSize="38" FontWeight="Black" Foreground="White"/>
+                                                <TextBlock x:Name="HealthStatusText" Text="{local:T health_checking}" FontSize="13.5" Foreground="{DynamicResource DimBrush}" Margin="0,2,0,16"/>
+                                                <Button x:Name="QuickStartBtn" Content="{local:T btn_apply}" Style="{StaticResource PrimaryButton}" Width="210" Height="44" HorizontalAlignment="Left" Click="ApplyBtn_Click"/>
+                                            </StackPanel>
                                         </StackPanel>
-                                    </StackPanel>
-                                </Border>
+                                    </Border>
+                                </Grid>
                                 <Border Style="{StaticResource InfoCard}" Margin="0,0,0,14" Padding="20,14,12,6">
                                     <StackPanel>
                                         <TextBlock Text="{local:T sum_title}" Style="{StaticResource GroupLabel}" Margin="0,0,0,10"/>
