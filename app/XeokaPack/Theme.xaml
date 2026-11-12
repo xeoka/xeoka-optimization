@@ -24,7 +24,10 @@
     <SolidColorBrush x:Key="AccentBrush" Color="{StaticResource AccentColor}"/>
     <SolidColorBrush x:Key="Accent2Brush" Color="{StaticResource Accent2Color}"/>
     <SolidColorBrush x:Key="MagentaBrush" Color="{StaticResource MagentaColor}"/>
-    <SolidColorBrush x:Key="CardBrush" Color="#E0120B22"/>
+    <LinearGradientBrush x:Key="CardBrush" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Color="#F0201230" Offset="0"/>
+        <GradientStop Color="#EC0D0818" Offset="1"/>
+    </LinearGradientBrush>
     <SolidColorBrush x:Key="OkBrush" Color="#3DDC97"/>
     <SolidColorBrush x:Key="WarnBrush" Color="#E3B5FF"/>
     <SolidColorBrush x:Key="ErrBrush" Color="#FF5C6C"/>
