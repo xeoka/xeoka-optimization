@@ -682,6 +682,12 @@ public partial class MainWindow : Window
                 Loc.L("Скачивается и запускается сторонний скрипт активации Windows с get.activated.win (Microsoft Activation Scripts). Это не наш код — мы не можем за него отвечать. Запускается со скрытым окном PowerShell.\n\nПродолжить?", "This downloads and runs a third-party Windows activation script from get.activated.win (Microsoft Activation Scripts). It's not our code — we can't be responsible for it. It runs in a hidden PowerShell window.\n\nContinue?"), Loc.L("Продолжить", "Continue")))
                 return;
         }
+        if (t.Def.Kind == ToolKind.RemoveEdge)
+        {
+            if (!await AskAsync(Loc.L("Удаление Microsoft Edge", "Remove Microsoft Edge"),
+                Loc.L("Edge будет полностью удалён (через его же скрытый деинсталлятор), и его автообновление отключится, чтобы он не вернулся сам. Пока не поставите другой браузер, часть ссылок и PDF может открываться не сразу. После крупного обновления Windows (не обычного патча) Edge может быть установлен системой заново — тогда запустите этот пункт ещё раз. WebView2 (нужен другим программам) не трогаем.\n\nПродолжить?", "Edge will be fully removed (via its own hidden uninstaller), and its auto-update will be disabled so it doesn't come back on its own. Until you install another browser, some links and PDFs may not open right away. After a major Windows feature update (not an ordinary patch), Windows may reinstall Edge — just run this again if that happens. WebView2 (needed by other apps) is left untouched.\n\nContinue?"), Loc.L("Продолжить", "Continue")))
+                return;
+        }
         try { await Task.Run(() => ToolLauncher.Launch(_pack, t.Def)); }
         catch (Exception ex) { await AskAsync(Loc.L("Не удалось запустить", "Could not launch"), ex.Message, Loc.L("Закрыть", "Close"), null); }
     }

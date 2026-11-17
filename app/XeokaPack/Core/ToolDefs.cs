@@ -1,6 +1,6 @@
 namespace XeokaPack.Core;
 
-public enum ToolKind { File, Ps1, Services, Nvidia, System, ActivateWindows, BiosConfig }
+public enum ToolKind { File, Ps1, Services, Nvidia, System, ActivateWindows, BiosConfig, RemoveEdge }
 
 public sealed record ToolDef(string TitleRu, string TitleEn, string DescRu, string DescEn, string Prefix, string File, string Glyph, bool Risk, ToolKind Kind = ToolKind.File)
 {
@@ -40,5 +40,10 @@ public static class ToolDefs
         // Запускает сторонний опен-сорс скрипт активации (Microsoft Activation Scripts, get.activated.win).
         // Файла пака не требует — работает даже если скачан только exe. Перед запуском показывается предупреждение.
         new("Активация Windows", "Windows Activation", "Сторонний скрипт активации (get.activated.win)", "Third-party activation script (get.activated.win)", "", "", "W10", true, ToolKind.ActivateWindows),
+
+        // Полное удаление Microsoft Edge через встроенный скрытый деинсталлятор самого Edge (setup.exe --uninstall),
+        // плюс отключение задач обновления, чтобы он сам себя не переустановил. WebView2-рантайм не трогаем —
+        // от него зависят другие программы. Файла пака не требует. Перед запуском показывается предупреждение.
+        new("Удаление Microsoft Edge", "Remove Microsoft Edge", "Полностью удаляет Edge и отключает его автообновление", "Fully removes Edge and disables its auto-update", "", "", "EDG", true, ToolKind.RemoveEdge),
     };
 }
