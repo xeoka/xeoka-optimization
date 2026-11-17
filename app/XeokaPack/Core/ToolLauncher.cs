@@ -31,6 +31,7 @@ public static class ToolLauncher
     public static string? Resolve(PackLocator pack, ToolDef t) =>
         t.Kind == ToolKind.System ? t.File :
         t.Kind == ToolKind.ActivateWindows ? "get.activated.win" :
+        t.Kind == ToolKind.RemoveEdge ? "remove-edge" :
         pack.Find(t.Prefix, t.File);
 
     public static void Launch(PackLocator pack, ToolDef t)
@@ -46,6 +47,31 @@ public static class ToolLauncher
             // активации с get.activated.win (Microsoft Activation Scripts) в скрытом окне PowerShell.
             var ps = Path.Combine(Environment.SystemDirectory, "WindowsPowerShell", "v1.0", "powershell.exe");
             Process.Start(new ProcessStartInfo(ps, "-WindowStyle Hidden -Command \"iex (irm https://get.activated.win)\"") { UseShellExecute = true });
+            return;
+        }
+        if (t.Kind == ToolKind.RemoveEdge)
+        {
+            // Использует собственный скрытый деинсталлятор Edge (тот же механизм, которым корпоративные
+            // админы пакуют отсутствие Edge в образах) — находит версию через EdgeUpdate ClientState и
+            // запускает её setup.exe --uninstall --force-uninstall. Плюс глушим задачи автообновления Edge,
+            // чтобы он сам себя не вернул. EdgeWebView2 Runtime не трогаем — от него зависят другие программы.
+            var ps = Path.Combine(Environment.SystemDirectory, "WindowsPowerShell", "v1.0", "powershell.exe");
+            const string script = @"
+$ErrorActionPreference = 'SilentlyContinue'
+$key = 'HKLM:\SOFTWARE\WOW6432Node\Microsoft\EdgeUpdate\ClientState\{56EB18F8-B008-4CBD-B6D2-8C97FE7E9062}'
+$ver = (Get-ItemProperty -Path $key).pv
+if ($ver) {
+    $setup = Join-Path ${env:ProgramFiles(x86)} ""Microsoft\Edge\Application\$ver\Installer\setup.exe""
+    if (Test-Path $setup) { Start-Process -FilePath $setup -ArgumentList '--uninstall --system-level --verbose-logging --force-uninstall' -Wait }
+}
+Get-ScheduledTask -TaskName 'MicrosoftEdgeUpdateTaskMachine*' | Disable-ScheduledTask | Out-Null
+New-Item -Path 'HKLM:\SOFTWARE\Policies\Microsoft\EdgeUpdate' -Force | Out-Null
+Set-ItemProperty -Path 'HKLM:\SOFTWARE\Policies\Microsoft\EdgeUpdate' -Name 'UpdateDefault' -Value 0 -Type DWord
+Set-ItemProperty -Path 'HKLM:\SOFTWARE\Policies\Microsoft\EdgeUpdate' -Name 'InstallDefault' -Value 0 -Type DWord
+";
+            var tmp = Path.Combine(Path.GetTempPath(), "xk-remove-edge.ps1");
+            File.WriteAllText(tmp, script);
+            Process.Start(new ProcessStartInfo(ps, "-WindowStyle Hidden -ExecutionPolicy Bypass -File \"" + tmp + "\"") { UseShellExecute = true });
             return;
         }
         var p = Resolve(pack, t) ?? throw new FileNotFoundException(Loc.L("Файл «" + t.File + "» не найден в паке.", "File \"" + t.File + "\" was not found in the pack."));
