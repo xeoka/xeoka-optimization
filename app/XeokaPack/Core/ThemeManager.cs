@@ -13,12 +13,7 @@ public static class ThemeManager
     public const double BaseHue = 262;
     public static readonly List<ThemeDef> All = new()
     {
-        new("violet",  "Фиолетовая", "Violet",  262, 1.00, "#8B5CF6", 300, "розовые", "pink"),
-        new("cyan",    "Океан",      "Ocean",   196, 1.00, "#22B8E8", 22, "оранжевые", "orange"),
-        new("emerald", "Изумруд",    "Emerald", 152, 0.95, "#2FD08A", 318, "розовые", "pink"),
-        new("rose",    "Роза",       "Rose",    334, 1.00, "#E8509A", 24, "оранжевые", "orange"),
-        new("crimson", "Рубин",      "Ruby",    352, 1.00, "#E8465E", 30, "оранжевые", "orange"),
-        new("mono",    "Графит",     "Graphite",262, 0.12, "#A8A8B8", 320, "розовые", "pink"),
+        new("xeoka", "xeoka tech", "xeoka tech", 211, 1.00, "#0A84FF", 28, "оранжевые", "orange"),
     };
 
     public static ThemeDef Current { get; private set; } = All[0];
@@ -159,7 +154,7 @@ public static class ThemeManager
     {
         RgbToHsv(c, out var h, out var s, out var v);
         if (s < 0.12 || h < 228 || h > 312) return c;
-        if (Current.Id == "violet") return c;
+        if (Current.Id == "xeoka") return c;
         h = (h + _delta + 360) % 360;
         s = Math.Clamp(s * _satMul, 0, 1);
         // сохраняем яркость исходного цвета, чтобы белый текст читался так же, как на фиолетовой теме

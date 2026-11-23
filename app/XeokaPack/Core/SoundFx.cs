@@ -9,7 +9,7 @@ public sealed class Settings
 {
     public bool Sound { get; set; } = true;
     public string Lang { get; set; } = "auto";
-    public string Theme { get; set; } = "crimson";
+    public string Theme { get; set; } = "xeoka";
     /// <summary>true, если тему когда-либо выбирали вручную в Настройках — иначе значение могло
     /// остаться от старого дефолта ("violet") и его можно безопасно мигрировать на новый.</summary>
     public bool ThemeChosen { get; set; } = false;
@@ -21,7 +21,7 @@ public sealed class Settings
             if (File.Exists(FilePath))
             {
                 var s = JsonSerializer.Deserialize<Settings>(File.ReadAllText(FilePath)) ?? new Settings();
-                if (!s.ThemeChosen && s.Theme == "violet") { s.Theme = "crimson"; s.Save(); }
+                if (s.Theme != "xeoka") { s.Theme = "xeoka"; s.Save(); }
                 return s;
             }
         }

@@ -88,7 +88,7 @@ public static class Tweaks
             if (r.Code == 0 && g != null) { guid = g; break; }
         }
         if (guid == null) throw new InvalidOperationException(Loc.L("Не удалось создать схему питания.", "Could not create a power plan."));
-        Sys.Powercfg("-changename", guid, "xeoka Performance", "План питания xeoka pack");
+        Sys.Powercfg("-changename", guid, "xeoka Performance", "План питания xeoka tech");
         var sets = new (string Sub, string Setting, int Val)[]
         {
             ("54533251-82be-4824-96c1-47b60b740d00", "893dee8e-2bef-41e0-89c6-b55d0929964c", 100), // мин. состояние процессора

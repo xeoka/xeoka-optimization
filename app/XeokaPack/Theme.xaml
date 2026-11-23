@@ -4,16 +4,16 @@
                     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
                     mc:Ignorable="po">
 
-    <!-- Палитра: чёрный и фиолетовый -->
-    <Color x:Key="BgColor">#030208</Color>
-    <Color x:Key="PanelColor">#120B22</Color>
-    <Color x:Key="Panel2Color">#1A1030</Color>
-    <Color x:Key="LineColor">#2E2152</Color>
-    <Color x:Key="TextColor">#EEE8FF</Color>
-    <Color x:Key="DimColor">#9D92BE</Color>
-    <Color x:Key="AccentColor">#8B5CF6</Color>
-    <Color x:Key="Accent2Color">#A78BFA</Color>
-    <Color x:Key="MagentaColor">#C084FC</Color>
+    <!-- Палитра xeoka tech: чёрный, белый и синий акцент -->
+    <Color x:Key="BgColor">#000000</Color>
+    <Color x:Key="PanelColor">#111113</Color>
+    <Color x:Key="Panel2Color">#1C1C1E</Color>
+    <Color x:Key="LineColor">#2C2C2E</Color>
+    <Color x:Key="TextColor">#F5F5F7</Color>
+    <Color x:Key="DimColor">#86868B</Color>
+    <Color x:Key="AccentColor">#0A84FF</Color>
+    <Color x:Key="Accent2Color">#409CFF</Color>
+    <Color x:Key="MagentaColor">#64D2FF</Color>
 
     <SolidColorBrush x:Key="BgBrush" Color="{StaticResource BgColor}"/>
     <SolidColorBrush x:Key="PanelBrush" Color="{StaticResource PanelColor}"/>
@@ -25,24 +25,24 @@
     <SolidColorBrush x:Key="Accent2Brush" Color="{StaticResource Accent2Color}"/>
     <SolidColorBrush x:Key="MagentaBrush" Color="{StaticResource MagentaColor}"/>
     <LinearGradientBrush x:Key="CardBrush" StartPoint="0,0" EndPoint="1,1">
-        <GradientStop Color="#F0201230" Offset="0"/>
-        <GradientStop Color="#EC0D0818" Offset="1"/>
+        <GradientStop Color="#F0303030" Offset="0"/>
+        <GradientStop Color="#EC181818" Offset="1"/>
     </LinearGradientBrush>
-    <SolidColorBrush x:Key="OkBrush" Color="#3DDC97"/>
-    <SolidColorBrush x:Key="WarnBrush" Color="#E3B5FF"/>
-    <SolidColorBrush x:Key="ErrBrush" Color="#FF5C6C"/>
+    <SolidColorBrush x:Key="OkBrush" Color="#30D158"/>
+    <SolidColorBrush x:Key="WarnBrush" Color="#DAECFF"/>
+    <SolidColorBrush x:Key="ErrBrush" Color="#FF453A"/>
 
     <LinearGradientBrush x:Key="AccentGradient" StartPoint="0,0" EndPoint="1,1">
-        <GradientStop Color="#8B5CF6" Offset="0"/>
-        <GradientStop Color="#C084FC" Offset="1"/>
+        <GradientStop Color="#5CA6F6" Offset="0"/>
+        <GradientStop Color="#84BEFC" Offset="1"/>
     </LinearGradientBrush>
     <LinearGradientBrush x:Key="AmberGradient" StartPoint="0,0" EndPoint="1,1">
-        <GradientStop Color="#F0ABFC" Offset="0"/>
-        <GradientStop Color="#C026D3" Offset="1"/>
+        <GradientStop Color="#ABD2FC" Offset="0"/>
+        <GradientStop Color="#267AD3" Offset="1"/>
     </LinearGradientBrush>
     <LinearGradientBrush x:Key="MutedGradient" StartPoint="0,0" EndPoint="1,1">
-        <GradientStop Color="#2E2152" Offset="0"/>
-        <GradientStop Color="#1A1030" Offset="1"/>
+        <GradientStop Color="#525252" Offset="0"/>
+        <GradientStop Color="#303030" Offset="1"/>
     </LinearGradientBrush>
     <LinearGradientBrush x:Key="TgGradient" StartPoint="0.2,0" EndPoint="0.8,1">
         <GradientStop Color="#46C3FF" Offset="0"/>
@@ -266,8 +266,8 @@
                 <ControlTemplate TargetType="Button">
                     <Grid RenderTransformOrigin="0.5,0.5">
                         <Grid.RenderTransform><ScaleTransform x:Name="Sc"/></Grid.RenderTransform>
-                        <Border x:Name="Body" CornerRadius="14" Background="#CC120B22" BorderThickness="1.2" BorderBrush="{DynamicResource LineBrush}"/>
-                        <Border x:Name="Hot" CornerRadius="14" Opacity="0" BorderThickness="1.2" BorderBrush="{DynamicResource Accent2Brush}" Background="#2A8B5CF6"/>
+                        <Border x:Name="Body" CornerRadius="14" Background="#CC222222" BorderThickness="1.2" BorderBrush="{DynamicResource LineBrush}"/>
+                        <Border x:Name="Hot" CornerRadius="14" Opacity="0" BorderThickness="1.2" BorderBrush="{DynamicResource Accent2Brush}" Background="#2A5CA6F6"/>
                         <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Margin="{TemplateBinding Padding}"/>
                     </Grid>
                     <ControlTemplate.Triggers>
@@ -368,7 +368,7 @@
             <Setter.Value>
                 <ControlTemplate TargetType="Slider">
                     <Grid VerticalAlignment="Center" Background="Transparent">
-                        <Border Height="6" CornerRadius="3" Background="#2A2430"/>
+                        <Border Height="6" CornerRadius="3" Background="#303030"/>
                         <Border x:Name="FillTrack" Height="6" CornerRadius="3" HorizontalAlignment="Stretch"
                                 Background="{DynamicResource AccentGradient}" RenderTransformOrigin="0,0.5">
                             <Border.RenderTransform>
@@ -427,7 +427,7 @@
             <Setter.Value>
                 <ControlTemplate TargetType="RadioButton">
                     <Grid Background="Transparent">
-                        <Border x:Name="Hot" CornerRadius="13" Opacity="0" Background="#26A78BFA"/>
+                        <Border x:Name="Hot" CornerRadius="13" Opacity="0" Background="#268BC1FA"/>
                         <ContentPresenter VerticalAlignment="Center" Margin="18,0,0,0"/>
                     </Grid>
                     <ControlTemplate.Triggers>

@@ -2,7 +2,7 @@
 using System.Text;
 using System.Text.Json;
 
-// Генератор лицензий XEOKA OPTIMIZATION.
+// Генератор лицензий xeoka tech.
 // Держи private.pem только у себя, никогда не выкладывай и не коммить в репозиторий.
 //
 // Использование:

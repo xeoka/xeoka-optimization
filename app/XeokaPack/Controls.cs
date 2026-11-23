@@ -84,7 +84,7 @@ public sealed class ThemeVM : Notify
     public string Name => Loc.L(_d.NameRu, _d.NameEn);
     public Brush SwatchBrush => Freeze(new SolidColorBrush((Color)ColorConverter.ConvertFromString(_d.Swatch)));
     static Brush Freeze(SolidColorBrush b) { b.Freeze(); return b; }
-    public Brush Border => (Brush)Application.Current.FindResource(_cur() == _d.Id || (_cur() is not ("violet" or "cyan" or "emerald" or "rose" or "crimson" or "mono") && _d.Id == "violet") ? "Accent2Brush" : "LineBrush");
+    public Brush Border => (Brush)Application.Current.FindResource(_cur() == _d.Id || (_cur() != "xeoka" && _d.Id == "xeoka") ? "Accent2Brush" : "LineBrush");
     public void Refresh() { Raise(nameof(Name)); Raise(nameof(Border)); }
 }
 
