@@ -79,8 +79,8 @@ public static class Specs
             if (best.Item3 > 0) parts.Add(Math.Round(best.Item3 / 1073741824.0) + " GB");
             var v = best.Item2.Split('.');
             if (Regex.IsMatch(best.Item1, "NVIDIA|GeForce", RegexOptions.IgnoreCase) && v.Length == 4 && v[2].Length >= 1 && v[3].Length >= 4)
-                parts.Add("драйвер " + v[2][^1] + v[3][..^2] + "." + v[3][^2..]);
-            else if (best.Item2 != "") parts.Add("драйвер " + best.Item2);
+                parts.Add(Loc.L("драйвер ", "driver ") + v[2][^1] + v[3][..^2] + "." + v[3][^2..]);
+            else if (best.Item2 != "") parts.Add(Loc.L("драйвер ", "driver ") + best.Item2);
             return (name, string.Join(" · ", parts));
         }
         catch { return ("?", ""); }
@@ -94,16 +94,16 @@ public static class Specs
         cpu = Regex.Replace(cpu, @"\((R|TM)\)|\s+\d+-Core Processor|\s+CPU\b|\s+Processor\b", "", RegexOptions.IgnoreCase);
         cpu = Regex.Replace(cpu, @"\s+", " ").Trim();
         int load = CpuLoad();
-        cards.Add(new("cpu", cpu == "" ? "Процессор" : cpu, $"{Environment.ProcessorCount} потоков", load, $"загрузка {load}%"));
+        cards.Add(new("cpu", cpu == "" ? Loc.L("Процессор", "Processor") : cpu, Loc.L($"{Environment.ProcessorCount} потоков", $"{Environment.ProcessorCount} threads"), load, Loc.L($"загрузка {load}%", $"load {load}%")));
 
         var (gn, gs) = Gpu();
-        cards.Add(new("gpu", gn, gs == "" ? "видеокарта" : gs, 0, "готова"));
+        cards.Add(new("gpu", gn, gs == "" ? Loc.L("видеокарта", "graphics card") : gs, 0, Loc.L("готова", "ready")));
 
         try
         {
             var ms = new MEM { Len = (uint)Marshal.SizeOf<MEM>() };
             if (GlobalMemoryStatusEx(ref ms))
-                cards.Add(new("ram", Math.Round(ms.Total / 1073741824.0) + " GB", "оперативная память", (int)ms.Load, $"занято {ms.Load}%"));
+                cards.Add(new("ram", Math.Round(ms.Total / 1073741824.0) + " GB", Loc.L("оперативная память", "system memory"), (int)ms.Load, Loc.L($"занято {ms.Load}%", $"used {ms.Load}%")));
         }
         catch { }
 
@@ -112,15 +112,15 @@ public static class Specs
             var root = Path.GetPathRoot(Environment.SystemDirectory) ?? "C:\\";
             var di = new DriveInfo(root);
             var used = di.TotalSize - di.AvailableFreeSpace;
-            cards.Add(new("disk", Gb(di.TotalSize), $"системный диск {root.TrimEnd('\\')}", (int)Math.Round(used * 100.0 / di.TotalSize), $"свободно {Gb(di.AvailableFreeSpace)}"));
+            cards.Add(new("disk", Gb(di.TotalSize), Loc.L($"системный диск {root.TrimEnd('\\')}", $"system drive {root.TrimEnd('\\')}"), (int)Math.Round(used * 100.0 / di.TotalSize), Loc.L($"свободно {Gb(di.AvailableFreeSpace)}", $"{Gb(di.AvailableFreeSpace)} free")));
         }
         catch { }
 
         try
         {
             var ad = NetInfo.Primary();
-            if (ad == null) cards.Add(new("net", "Нет сети", "нет активного подключения", 0, "офлайн"));
-            else cards.Add(new("net", ad.Description, $"{(ad.Ethernet ? "Ethernet" : "Wi-Fi")} · драйвер {NetInfo.DriverType(ad.SubKey)}", 0, "онлайн"));
+            if (ad == null) cards.Add(new("net", Loc.L("Нет сети", "No network"), Loc.L("нет активного подключения", "no active connection"), 0, "offline"));
+            else cards.Add(new("net", ad.Description, $"{(ad.Ethernet ? "Ethernet" : "Wi-Fi")} · {Loc.L("драйвер", "driver")} {NetInfo.DriverType(ad.SubKey)}", 0, "online"));
         }
         catch { }
 
@@ -134,12 +134,12 @@ public static class Specs
             var ubr = Reg(@"SOFTWARE\Microsoft\Windows NT\CurrentVersion", "UBR");
             if (int.TryParse(build, out var bn) && bn >= 22000) prod = prod.Replace("Windows 10", "Windows 11");
             line.Add($"{prod} {disp}".Trim());
-            line.Add($"сборка {build}{(ubr != "" ? "." + ubr : "")}");
+            line.Add(Loc.L("сборка ", "build ") + $"{build}{(ubr != "" ? "." + ubr : "")}");
             var up = TimeSpan.FromMilliseconds(Environment.TickCount64);
-            line.Add("без перезагрузки " + (up.Days > 0 ? $"{up.Days} д {up.Hours} ч" : $"{up.Hours} ч {up.Minutes} мин"));
+            line.Add(Loc.L("без перезагрузки ", "uptime ") + (up.Days > 0 ? Loc.L($"{up.Days} д {up.Hours} ч", $"{up.Days} d {up.Hours} h") : Loc.L($"{up.Hours} ч {up.Minutes} мин", $"{up.Hours} h {up.Minutes} min")));
             var o = Sys.Powercfg("/getactivescheme").Output;
             int a = o.IndexOf('('), z = o.LastIndexOf(')');
-            if (a >= 0 && z > a) line.Add("план питания: " + o.Substring(a + 1, z - a - 1));
+            if (a >= 0 && z > a) line.Add(Loc.L("план питания: ", "power plan: ") + o.Substring(a + 1, z - a - 1));
         }
         catch { }
         return (cards, string.Join(" · ", line));

@@ -27,12 +27,26 @@ public partial class ShellWindow : Window
 
     public ShellWindow()
     {
-        Loc.Set("ru");
+        Loc.Set(_settings.Lang);
         SoundFx.Enabled = _settings.Sound;
         InitializeComponent();
         _log.Entry += (text, level) => Push(new JsonObject { ["ev"] = "log", ["text"] = text, ["level"] = level.ToString().ToLowerInvariant() });
         StateChanged += (_, _) => Push(new JsonObject { ["ev"] = "win", ["max"] = WindowState == WindowState.Maximized });
         Loaded += async (_, _) => await StartAsync();
+        // запасной выход: если страница не сообщила о готовности, всё равно показываем окно
+        var t = new System.Windows.Threading.DispatcherTimer { Interval = TimeSpan.FromSeconds(8) };
+        t.Tick += (_, _) => { t.Stop(); Reveal(); };
+        t.Start();
+    }
+
+    bool _revealed;
+    void Reveal()
+    {
+        if (_revealed) return;
+        _revealed = true;
+        Left = 0; Top = 0;
+        WindowState = WindowState.Maximized;
+        Activate();
     }
 
     // ------------------------------------------------------------ запуск WebView2
@@ -144,6 +158,8 @@ public partial class ShellWindow : Window
                 _ = Task.Run(() => { _pack.AutoDetect(); Push(PackEvent()); });
                 return new
                 {
+                    lang = Loc.En ? "en" : "ru",
+                    langSetting = _settings.Lang,
                     version = Assembly.GetExecutingAssembly().GetName().Version?.ToString(3) ?? "",
                     licensed = lic.Valid,
                     licNote = lic.Note,
@@ -174,6 +190,8 @@ public partial class ShellWindow : Window
                 return await RevertAsync();
             case "tool":
                 return await ToolAsync(m["idx"]?.GetValue<int>() ?? -1);
+            case "ready":
+                Reveal(); return null;
             case "openTg":
                 Sys.OpenUrl(TgUrl); return null;
             case "openFolder":
@@ -181,7 +199,7 @@ public partial class ShellWindow : Window
                 return null;
             case "pickPack":
             {
-                var dlg = new Microsoft.Win32.OpenFolderDialog { Title = "Выберите папку, распакованную из архива пака" };
+                var dlg = new Microsoft.Win32.OpenFolderDialog { Title = Loc.L("Выберите папку, распакованную из архива пака", "Pick the folder extracted from the pack archive") };
                 if (dlg.ShowDialog(this) != true) return new { picked = false };
                 if (!PackLocator.IsPackRoot(dlg.FolderName)) return new { picked = true, ok = false };
                 _pack.SetRoot(dlg.FolderName);
@@ -203,6 +221,7 @@ public partial class ShellWindow : Window
                 var k = S(m, "k");
                 if (k == "theme") _settings.UiTheme = S(m, "v");
                 else if (k == "anim") _settings.Anim = m["v"]?.GetValue<bool>() ?? true;
+                else if (k == "lang") { _settings.Lang = S(m, "v"); Loc.Set(_settings.Lang); }
                 else if (k == "sound") { _settings.Sound = m["v"]?.GetValue<bool>() ?? true; SoundFx.Enabled = _settings.Sound; }
                 _settings.Save();
                 return null;
@@ -282,14 +301,13 @@ public partial class ShellWindow : Window
 
     async Task<object?> ApplyAsync(JsonNode m)
     {
-        if (_busy) throw new InvalidOperationException("Уже выполняется операция.");
-        if (!Licensed) throw new InvalidOperationException("Нужен ключ активации.");
+        if (_busy) throw new InvalidOperationException(Loc.L("Уже выполняется операция.", "Another operation is running."));
+        if (!Licensed) throw new InvalidOperationException(Loc.L("Нужен ключ активации.", "An activation key is required."));
         if (!_pack.IsPack) throw new InvalidOperationException("nopack");
         var ids = (m["ids"] as JsonArray)?.Select(x => x?.GetValue<string>() ?? "").ToHashSet() ?? new HashSet<string>();
         var sel = Tweaks.All.Where(t => ids.Contains(t.Id)).ToList();
-        if (sel.Count == 0) throw new InvalidOperationException("Ничего не выбрано.");
+        if (sel.Count == 0) throw new InvalidOperationException(Loc.L("Ничего не выбрано.", "Nothing selected."));
         _busy = true;
-        SoundFx.Deep();
         try
         {
             var res = await Task.Run(() => Operations.Apply(sel, _log, _pack,
@@ -303,8 +321,8 @@ public partial class ShellWindow : Window
 
     async Task<object?> RevertAsync()
     {
-        if (_busy) throw new InvalidOperationException("Уже выполняется операция.");
-        if (!Licensed) throw new InvalidOperationException("Нужен ключ активации.");
+        if (_busy) throw new InvalidOperationException(Loc.L("Уже выполняется операция.", "Another operation is running."));
+        if (!Licensed) throw new InvalidOperationException(Loc.L("Нужен ключ активации.", "An activation key is required."));
         _busy = true;
         try { await Task.Run(() => Operations.Revert(_log)); return new { ok = 1, fail = 0 }; }
         finally { _busy = false; }
@@ -320,7 +338,17 @@ public partial class ShellWindow : Window
     static string ToolRisk(ToolDef t) =>
         t.Kind == ToolKind.Services ? "bad" : t.Risk ? "warn" : t.Kind is ToolKind.ActivateWindows or ToolKind.RemoveEdge ? "warn" : "ok";
 
-    static string? ToolConfirm(ToolDef t) => t.Kind switch
+    static string? ToolConfirm(ToolDef t) => Loc.En ? ToolConfirmEn(t) : ToolConfirmRu(t);
+
+    static string? ToolConfirmEn(ToolDef t) => t.Kind switch
+    {
+        ToolKind.Services => "These services will be disabled: DPS, Themes, Spooler (printing), WSearch (search), LanmanWorkstation and Netlogon (network folders, domain), SessionEnv (remote desktop), edgeupdate, GameInputSvc and others.\n\nDisabling Themes can break the look of Windows, and without Spooler there is no printing. The revert button cannot undo this.",
+        ToolKind.ActivateWindows => "This downloads and runs a third-party Windows activation script from get.activated.win (Microsoft Activation Scripts). It is not our code and we cannot be responsible for it. It runs in a hidden PowerShell window.",
+        ToolKind.RemoveEdge => "Edge will be fully removed: its own hidden uninstaller, plus cleanup of shortcuts, leftover registry keys and the app folder. Auto-update is disabled. Every user's Edge profile data on this PC (history, cache, saved passwords, bookmarks) will be erased and this cannot be undone. Until you install another browser, some links and PDFs may not open right away. WebView2 (needed by other programs, including this one) is left untouched.",
+        _ => null,
+    };
+
+    static string? ToolConfirmRu(ToolDef t) => t.Kind switch
     {
         ToolKind.Services => "Будут отключены службы: DPS, Themes, Spooler (печать), WSearch (поиск), LanmanWorkstation и Netlogon (сетевые папки, домен), SessionEnv (удалённый рабочий стол), edgeupdate, GameInputSvc и другие.\n\nОтключение Themes может испортить внешний вид Windows, без Spooler не будет печати. Откат кнопкой отката не поддерживается.",
         ToolKind.ActivateWindows => "Скачивается и запускается сторонний скрипт активации Windows с get.activated.win (Microsoft Activation Scripts). Это не наш код — мы не можем за него отвечать. Запускается со скрытым окном PowerShell.",
@@ -330,11 +358,10 @@ public partial class ShellWindow : Window
 
     async Task<object?> ToolAsync(int idx)
     {
-        if (!Licensed) throw new InvalidOperationException("Нужен ключ активации.");
-        if (idx < 0 || idx >= ToolDefs.All.Count) throw new InvalidOperationException("Нет такого инструмента.");
+        if (!Licensed) throw new InvalidOperationException(Loc.L("Нужен ключ активации.", "An activation key is required."));
+        if (idx < 0 || idx >= ToolDefs.All.Count) throw new InvalidOperationException(Loc.L("Нет такого инструмента.", "No such tool."));
         var def = ToolDefs.All[idx];
         if (ToolLauncher.Resolve(_pack, def) == null) return new { found = false, file = def.File };
-        SoundFx.Tap();
         await Task.Run(() => ToolLauncher.Launch(_pack, def));
         return new { found = true };
     }
