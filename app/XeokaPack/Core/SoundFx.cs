@@ -13,6 +13,10 @@ public sealed class Settings
     /// <summary>true, если тему когда-либо выбирали вручную в Настройках — иначе значение могло
     /// остаться от старого дефолта ("violet") и его можно безопасно мигрировать на новый.</summary>
     public bool ThemeChosen { get; set; } = false;
+    /// <summary>Оформление нового интерфейса: dark | light | auto.</summary>
+    public string UiTheme { get; set; } = "dark";
+    /// <summary>Живой фон (линза, блики, частицы).</summary>
+    public bool Anim { get; set; } = true;
     static string FilePath => Path.Combine(Paths.DataDir, "settings.json");
     public static Settings Load()
     {

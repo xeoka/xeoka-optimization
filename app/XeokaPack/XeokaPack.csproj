@@ -29,10 +29,13 @@
     <NoWarn>$(NoWarn);CS8618;CS8600;CS8601;CS8602;CS8603;CS8604;CS8625;CS8765;CS8767</NoWarn>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.2792.45" />
+  </ItemGroup>
+  <ItemGroup>
     <Resource Include="Assets\icon.ico" />
     <EmbeddedResource Include="Assets\Sounds\*.wav" />
-    <!-- Видео для экрана активации: не встраивается в exe (слишком большое для single-file), едет рядом отдельным файлом. -->
-    <None Include="Assets\activation.mp4" CopyToOutputDirectory="PreserveNewest" />
+    <!-- Интерфейс (HTML/шрифты) встроен в exe и при запуске распаковывается в LocalAppData. -->
+    <EmbeddedResource Include="Web\**\*" LogicalName="web/%(RecursiveDir)%(Filename)%(Extension)" />
     <!-- Арт глаза в кристаллах для кольца состояния: небольшой файл, встраиваем прямо в exe,
          чтобы он грузился и при запуске голого XEOKA-PACK.exe без остальных файлов рядом. -->
     <Resource Include="Assets\hero_eye.png" />

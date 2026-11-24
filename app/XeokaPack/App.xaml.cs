@@ -19,7 +19,7 @@ public partial class App : Application
         TaskScheduler.UnobservedTaskException += (_, a) => a.SetObserved();
 
         base.OnStartup(e);
-        try { new MainWindow().Show(); }
+        try { new ShellWindow().Show(); }
         catch (Exception ex) { Report(ex); Shutdown(); }
     }
 
