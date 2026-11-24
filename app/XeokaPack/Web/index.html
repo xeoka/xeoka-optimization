@@ -556,7 +556,7 @@ function sceneA(k,t){const u=(((t-k*D)%T)+T)%T;if(u>D+O)return[0,u];const a=u<O?
 function draw(t){
   t=((t%T)+T)%T;bg(t);
   const A=[];
-  for(let k=0;k<SC.length;k++){const[a,u]=sceneA(k,t);A.push(a);if(a>0.001){c.save();c.globalAlpha=1;SC[k](u,a);c.restore()}}
+  for(let k=0;k<SC.length;k++){const[a,u]=sceneA(k,t);A.push(a);if(a>0.001){c.save();c.globalAlpha=1;if(window.ACT){c.translate(0,22);c.scale(.75,.75)}SC[k](u,a);c.restore()}}
   // постоянная рамка: марка слева, точки по центру, подпись справа
   c.save();c.globalAlpha=.9;if(!window.ACT){c.beginPath();c.arc(112,1006,18,0,TAU);c.fillStyle='#fff';c.fill();txt('x',112,1016,28,900,'#000',{al:'center',ls:-1});
   txt('xeoka tech',146,1015,28,900,'#fff',{ls:-.5})}
@@ -567,7 +567,7 @@ function draw(t){
 }
 
 const $=s=>document.querySelector('#idle '+s),root=document.documentElement;
-let raf=0,t0=0;
+let raf=0,t0=0;window.xtDraw=draw;
 function loop(now){draw(((now-t0)/1000)%T);raf=requestAnimationFrame(loop)}
 function start(){cancelAnimationFrame(raf);t0=performance.now();raf=requestAnimationFrame(loop)}
 window.xtIdleOpen=async()=>{root.classList.add('idle-on');window.xtFx&&window.xtFx();
