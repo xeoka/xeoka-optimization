@@ -45,7 +45,7 @@ public static class License
     }
 
     // ---------------------------------------------------------- проверка
-    sealed record Payload(string Hw, string? Note, string? Exp, string? Pk = null);
+    sealed record Payload(string Hw, string? Note, string? Exp, string? Pk = null, string? Id = null);
     static readonly JsonSerializerOptions JsonOpts = new() { PropertyNameCaseInsensitive = true };
 
     public static LicenseInfo Check()
@@ -74,6 +74,8 @@ public static class License
             var p = JsonSerializer.Deserialize<Payload>(payloadBytes, JsonOpts) ?? throw new Exception();
             if (!string.Equals(p.Hw, HardwareId(), StringComparison.OrdinalIgnoreCase))
                 return new(false, p.Note, null, "hardware");
+
+            if (Revocation.IsRevoked(p.Id, p.Hw)) return new(false, p.Note, null, "revoked");
 
             DateTime? exp = string.IsNullOrEmpty(p.Exp) ? null : DateTime.Parse(p.Exp, null, System.Globalization.DateTimeStyles.RoundtripKind);
             if (exp != null && exp < DateTime.UtcNow) return new(false, p.Note, exp, "expired");
@@ -117,6 +119,7 @@ public static class License
             {
                 "hardware" => Loc.L("Этот код выдан для другого компьютера.", "This code was issued for a different computer."),
                 "expired" => Loc.L("Срок действия кода истёк.", "This code has expired."),
+                "revoked" => Loc.L("Этот ключ отозван автором.", "This key has been revoked by the author."),
                 "signature" => Loc.L("Код повреждён или недействителен.", "The code is corrupted or invalid."),
                 _ => Loc.L("Неверный код активации.", "Invalid activation code."),
             };

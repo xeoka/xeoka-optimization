@@ -233,6 +233,11 @@ html.boot .win{visibility:hidden}
 .eye-note{color:var(--fg);opacity:.75}
 .log .er{color:var(--bad)}.log .hd{font-weight:700}.log .dm{opacity:.6}
 .sk{opacity:.5}
+input[type=range]{width:130px;accent-color:var(--accent);cursor:pointer}
+#idle .itop input[type=range]{width:90px;margin:7px 4px 0 0;opacity:.0;transition:opacity .2s}
+#idle .itop:hover input[type=range],#idle .itop input[type=range]:focus{opacity:1}
+#idMusic .m{display:none}#idMusic[aria-pressed=false] .m{display:inline}#idMusic[aria-pressed=false] .w{display:none}
+#idle.saver .act{display:none!important}
 .cmp{display:grid;gap:2px;margin:10px 0 4px;font-size:13px}
 .cmp .ch,.cmp .cr{display:grid;grid-template-columns:1.5fr 1fr 1fr auto;gap:10px;align-items:center;padding:7px 10px;border-radius:10px}
 .cmp .ch{color:var(--dim);font-size:11px;font-weight:700;letter-spacing:.02em}
@@ -400,6 +405,8 @@ html.idle-on #idle{display:grid}
           <div class="srow"><div class="t"><b>Тема</b><span>Светлая, тёмная или как в системе</span></div>
             <div class="seg" id="segTheme"><button data-v="light">Светлая</button><button data-v="dark">Тёмная</button><button data-v="auto">Авто</button></div></div>
           <div class="srow"><div class="t"><b>Язык</b><span>Интерфейс и подсказки</span></div><div class="seg" id="segLang"><button data-v="ru">Русский</button><button data-v="en">English</button></div></div>
+          <div class="srow"><div class="t"><b>Музыка заставки</b><span>Тихий ambient на заставке. Громкость справа</span></div><input type="range" id="rngVol" min="0" max="100" aria-label="Громкость музыки"><button class="sw" id="swMusic" role="switch" aria-checked="false" aria-label="Музыка заставки"></button></div>
+          <div class="srow"><div class="t"><b>Заставка при бездействии</b><span>Анимация xeoka tech, если долго ничего не нажимать</span></div><div class="seg" id="segSaver"><button data-v="0">Выкл</button><button data-v="3">3 мин</button><button data-v="5">5 мин</button><button data-v="10">10 мин</button></div></div>
           <div class="srow"><div class="t"><b>Живой фон</b><span>Линза, блики и частицы. Отключите на слабом ПК</span></div><button class="sw" id="swAnim" role="switch" aria-checked="true" aria-label="Живой фон"></button></div>
           <div class="srow"><div class="t"><b>Звуки</b><span>Короткий сигнал при нажатии и после оптимизации</span></div><button class="sw" id="swSnd" role="switch" aria-checked="true" aria-label="Звуки"></button></div>
         </div>
@@ -431,7 +438,7 @@ html.idle-on #idle{display:grid}
 </div>
 
 <div id="idle"><div class="frame" id="frame"><canvas id="cv" width="1920" height="1080" aria-label="Заставка xeoka tech"></canvas>
-  <div class="itop dragz"><button data-op="min" aria-label="Свернуть"><svg viewBox="0 0 24 24"><path d="M6 12h12"/></svg></button><button data-op="close" aria-label="Закрыть"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+  <div class="itop dragz"><input type="range" id="idVol" min="0" max="100" aria-label="Громкость музыки"><button id="idMusic" aria-label="Музыка" aria-pressed="false"><svg viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9z"/><path class="w" d="M16 9a4 4 0 010 6M18.5 6.5a8 8 0 010 11"/><path class="m" d="M17 9l5 6M22 9l-5 6"/></svg></button><button data-op="min" aria-label="Свернуть"><svg viewBox="0 0 24 24"><path d="M6 12h12"/></svg></button><button data-op="close" aria-label="Закрыть"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
   <div class="act" id="act" role="group" aria-label="Активация">
     <div class="a-top"><span class="a-tag">ПЕРВЫЙ ЗАПУСК</span><span class="a-id">ID компьютера<b id="hwIdle"></b></span><button id="cp">Копировать</button></div>
     <div class="a-row"><input id="keyAct" placeholder="Вставьте ключ" autocomplete="off" spellcheck="false" aria-label="Ключ активации"><button id="go" class="pri">Активировать</button></div>
@@ -572,14 +579,27 @@ function draw(t){
   c.restore();c.globalAlpha=1;
 }
 
-const $=s=>document.querySelector('#idle '+s),root=document.documentElement;
+const $=s=>document.querySelector(('#idle '+s).trim()),root=document.documentElement;
 let raf=0,t0=0;window.xtDraw=draw;
 function loop(now){draw(((now-t0)/1000)%T);raf=requestAnimationFrame(loop)}
 function start(){cancelAnimationFrame(raf);t0=performance.now();raf=requestAnimationFrame(loop)}
-window.xtIdleOpen=async()=>{root.classList.add('idle-on');window.xtFx&&window.xtFx();
+const M={ctx:null,buf:null,src:null,gain:null,on:false,vol:.4,open:false};
+const curve=v=>Math.pow(v/100,2)*.9;
+async function loadBuf(){if(M.buf)return;const r=await fetch('audio/ambient.wav');const ab=await r.arrayBuffer();M.ctx=M.ctx||new(window.AudioContext||window.webkitAudioContext)();M.buf=await M.ctx.decodeAudioData(ab)}
+async function mPlay(){if(!M.on||!M.open||M.src)return;try{await loadBuf();if(!M.on||!M.open||M.src)return;if(M.ctx.state==='suspended')await M.ctx.resume();
+  const s=M.ctx.createBufferSource();s.buffer=M.buf;s.loop=true;const g=M.ctx.createGain();g.gain.value=0;s.connect(g);g.connect(M.ctx.destination);s.start();g.gain.linearRampToValueAtTime(M.vol,M.ctx.currentTime+1.6);M.src=s;M.gain=g}catch(e){}}
+function mStop(){if(!M.src)return;const s=M.src,g=M.gain;M.src=null;try{g.gain.cancelScheduledValues(0);g.gain.setValueAtTime(g.gain.value,M.ctx.currentTime);g.gain.linearRampToValueAtTime(0,M.ctx.currentTime+.8)}catch(e){}setTimeout(()=>{try{s.stop()}catch(e){}},900)}
+window.xtMusic={cfg(on,vol){M.on=!!on;M.vol=curve(vol);if(M.gain)try{M.gain.gain.setTargetAtTime(M.vol,M.ctx.currentTime,.1)}catch(e){}if(!M.on)mStop();else mPlay()}};
+let startPt=null,openedAt=0;
+window.xtIdleMsg=(t,k)=>say(t,k);
+window.xtIdleOpen=async(act=true)=>{window.ACT=act;$('').classList.toggle('saver',!act);openedAt=performance.now();startPt=null;root.classList.add('idle-on');window.xtFx&&window.xtFx();M.open=true;mPlay();
   try{await Promise.all([document.fonts.load('900 100px Inter'),document.fonts.load('500 40px Inter'),document.fonts.load('700 40px Inter')])}catch(e){}
   start()};
-function close(){cancelAnimationFrame(raf);root.classList.remove('idle-on');window.xtFx&&window.xtFx()}
+function close(){cancelAnimationFrame(raf);M.open=false;mStop();root.classList.remove('idle-on');window.xtFx&&window.xtFx()}
+const inSaver=()=>!window.ACT&&root.classList.contains('idle-on');
+document.addEventListener('pointerdown',e=>{if(inSaver()&&!e.target.closest('.itop')&&performance.now()-openedAt>400)close()},true);
+document.addEventListener('keydown',e=>{if(inSaver()&&performance.now()-openedAt>400)close()},true);
+document.addEventListener('pointermove',e=>{if(!inSaver()||e.target.closest('.itop')||performance.now()-openedAt<700)return;if(!startPt){startPt=[e.clientX,e.clientY];return}if(Math.hypot(e.clientX-startPt[0],e.clientY-startPt[1])>14)close()},true);
 const msg=$('#msg');function say(t,k=''){msg.textContent=t;msg.className=k}
 $('#cp').onclick=async()=>{const id=$('#hwIdle').textContent;try{await navigator.clipboard.writeText(id);say('ID скопирован','ok')}catch(e){const r=document.createRange();r.selectNodeContents($('#hwIdle'));const sl=getSelection();sl.removeAllRanges();sl.addRange(r);say('Выделили ID, нажмите Ctrl+C')}};
 $('#tg').onclick=()=>{$('#dlg').classList.add('show');$('#dGo').focus()};
@@ -594,7 +614,7 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape')$('#dlg').classList.
 })();
 </script>
 <script>
-window.EN_MAP={'Результат оптимизации':'Optimization result','Сравнение «до и после»: процессы, память, нагрузка, таймер':'Before/after comparison: processes, memory, load, timer','Показать':'Show','Замерить сейчас':'Measure now','ID компьютера':'Computer ID','Zip на рабочем столе, без личных данных':'A zip on the desktop, no personal data','Авто':'Auto','Активировать':'Activate','Ввести ключ':'Enter key','Все инструменты':'All tools','Все твики':'All tweaks','Вставьте полученный ключ ниже.':'Paste the key you received below.','Выбрать все безопасные':'Select all safe','Живой фон':'Live background','Журнал и отчёт для поддержки':'Log and support report','Журналы':'Logs','Закрыть':'Close','Звуки':'Sounds','Инструменты':'Tools','Ключ вводится один раз':'The key is entered once','Ключ покупается один раз и действует навсегда':'The key is bought once and works forever','Ключ покупается один раз и действует навсегда. Он привязан к вашему ПК.':'The key is bought once and works forever. It is bound to your PC.','Ключ сохранён':'Key saved','Копировать':'Copy','Короткий сигнал при нажатии и после оптимизации':'A short sound on click and after optimization','Линза, блики и частицы. Отключите на слабом ПК':'Lens, glints and particles. Turn off on a weak PC','Лицензия':'License','Написать в Telegram':'Message on Telegram','Он привязан к этому ПК. В следующий раз xeoka tech откроется сразу, вводить ничего не нужно.':'It is bound to this PC. Next time xeoka tech opens right away, nothing to enter.','Оптимизация':'Optimization','Оптимизировать':'Optimize','Откатить':'Revert','Откроется t.me/CMEPT0HOCHbIU в браузере. Окно активации останется открытым.':'t.me/CMEPT0HOCHbIU will open in your browser. The activation window stays open.','Открыть':'Open','Открыть xeoka tech':'Open xeoka tech','Отмена':'Cancel','Отправьте его в Telegram автору.':'Send it to the author on Telegram.','ПЕРВЫЙ ЗАПУСК':'FIRST LAUNCH','Пак xeoka:':'xeoka pack:','Перейти':'Go','Перейти в Telegram':'Go to Telegram','Перейти в Telegram?':'Go to Telegram?','Получить ключ в Telegram':'Get a key on Telegram','Пресеты':'Presets','Продолжить':'Continue','Светлая':'Light','Светлая, тёмная или как в системе':'Light, dark or follow the system','Скопируйте ID компьютера.':'Copy the computer ID.','Снять':'Clear','Собрать':'Build','Тема':'Theme','Тёмная':'Dark','Указать':'Pick','запускаются отдельно от кнопки «Оптимизировать»':'run separately from the Optimize button','точка восстановления':'restore point','Язык':'Language','Интерфейс и подсказки':'Interface and hints','Вставьте ключ':'Paste the key',
+window.EN_MAP={'Музыка заставки':'Screensaver music','Тихий ambient на заставке. Громкость справа':'Quiet ambient on the screensaver. Volume on the right','Заставка при бездействии':'Idle screensaver','Анимация xeoka tech, если долго ничего не нажимать':'The xeoka tech animation when nothing is pressed for a while','Выкл':'Off','3 мин':'3 min','5 мин':'5 min','10 мин':'10 min','Громкость музыки':'Music volume','Музыка':'Music','Результат оптимизации':'Optimization result','Сравнение «до и после»: процессы, память, нагрузка, таймер':'Before/after comparison: processes, memory, load, timer','Показать':'Show','Замерить сейчас':'Measure now','ID компьютера':'Computer ID','Zip на рабочем столе, без личных данных':'A zip on the desktop, no personal data','Авто':'Auto','Активировать':'Activate','Ввести ключ':'Enter key','Все инструменты':'All tools','Все твики':'All tweaks','Вставьте полученный ключ ниже.':'Paste the key you received below.','Выбрать все безопасные':'Select all safe','Живой фон':'Live background','Журнал и отчёт для поддержки':'Log and support report','Журналы':'Logs','Закрыть':'Close','Звуки':'Sounds','Инструменты':'Tools','Ключ вводится один раз':'The key is entered once','Ключ покупается один раз и действует навсегда':'The key is bought once and works forever','Ключ покупается один раз и действует навсегда. Он привязан к вашему ПК.':'The key is bought once and works forever. It is bound to your PC.','Ключ сохранён':'Key saved','Копировать':'Copy','Короткий сигнал при нажатии и после оптимизации':'A short sound on click and after optimization','Линза, блики и частицы. Отключите на слабом ПК':'Lens, glints and particles. Turn off on a weak PC','Лицензия':'License','Написать в Telegram':'Message on Telegram','Он привязан к этому ПК. В следующий раз xeoka tech откроется сразу, вводить ничего не нужно.':'It is bound to this PC. Next time xeoka tech opens right away, nothing to enter.','Оптимизация':'Optimization','Оптимизировать':'Optimize','Откатить':'Revert','Откроется t.me/CMEPT0HOCHbIU в браузере. Окно активации останется открытым.':'t.me/CMEPT0HOCHbIU will open in your browser. The activation window stays open.','Открыть':'Open','Открыть xeoka tech':'Open xeoka tech','Отмена':'Cancel','Отправьте его в Telegram автору.':'Send it to the author on Telegram.','ПЕРВЫЙ ЗАПУСК':'FIRST LAUNCH','Пак xeoka:':'xeoka pack:','Перейти':'Go','Перейти в Telegram':'Go to Telegram','Перейти в Telegram?':'Go to Telegram?','Получить ключ в Telegram':'Get a key on Telegram','Пресеты':'Presets','Продолжить':'Continue','Светлая':'Light','Светлая, тёмная или как в системе':'Light, dark or follow the system','Скопируйте ID компьютера.':'Copy the computer ID.','Снять':'Clear','Собрать':'Build','Тема':'Theme','Тёмная':'Dark','Указать':'Pick','запускаются отдельно от кнопки «Оптимизировать»':'run separately from the Optimize button','точка восстановления':'restore point','Язык':'Language','Интерфейс и подсказки':'Interface and hints','Вставьте ключ':'Paste the key',
 'Активация':'Activation','Вид':'View','Главная':'Home','Действия':'Actions','Заставка xeoka tech':'xeoka tech screensaver','Карточки':'Cards','Ключ активации':'Activation key','Назад':'Back','Настройки':'Settings','Обновить данные':'Refresh data','Оптимизировать Windows 11':'Optimize Windows 11','Откатить последнее':'Revert the last run','Развернуть':'Maximize','Разделы':'Sections','Свернуть':'Minimize','Список':'List',
 'оптимизация Windows 11':'Windows 11 optimization','ФАКТ':'FACT','столько по умолчанию тикает системный таймер Windows':'is the default tick of the Windows system timer','xeoka tech настраивает его под игры':'xeoka tech tunes it for games','Что делает xeoka tech':'What xeoka tech does','План питания без парковки ядер':'Power plan without core parking','Системный таймер и MMCSS':'System timer and MMCSS','Сеть: меньше задержка':'Network: lower latency','Game Bar, FSE и FSO':'Game Bar, FSE and FSO','Приоритет активного окна':'Active window priority','Автозагрузка и службы':'Startup and services','Кадры идут ровно':'Frames come out even','рывки':'stutter','ровно':'smooth','на один кадр. Любая задержка в системе съедает часть этого времени.':'per frame. Any delay in the system eats part of that time.','Каждое применение начинается':'Every run starts','с точки восстановления':'with a restore point','Откат — одна кнопка':'Revert is one button','Опасные твики вынесены отдельно':'Risky tweaks are kept apart','ЛИЦЕНЗИЯ':'LICENSE','Ключ — один раз.':'One key.','Навсегда.':'Forever.','Инструменты под рукой':'Tools at hand','Тип драйвера сети':'Network driver type','Удаление Edge':'Remove Edge','Службы':'Services','Уведомления':'Notifications'};
 
@@ -618,7 +638,7 @@ window.xtSend=send;
 const MOCK={tweaks:[['power','power','power','План питания xeoka','Включает схему питания xeoka Performance. Прежняя схема запоминается для отката.','ok',1],['devpow','power','plug','Энергосбережение всех устройств','Запрещает отключать устройства для экономии энергии. Не откатывается кнопкой отката.','warn',1],['prio','cpu','cpu','Приоритет процессов','Больше процессорного времени активному окну (игре).','ok',1],['timer','cpu','timer','Прерывания системного таймера','SerializeTimerExpiration = 1.','ok',1],['mmcss','cpu','layers','MMCSS','NDIS: оптимизированные параметры. Определяется автоматически.','ok',1],['net','net','net','Сетевой адаптер (Ethernet)','Оптимизация параметров карты и отключение энергосбережения.','ok',1],['gamebar','game','gamepad','Game Bar и игровой режим','Отключает запись игр, Game Bar и автоматический игровой режим.','ok',1],['fse','game','gamepad','Полноэкранный режим: FSE','Отключает полноэкранные оптимизации. Взаимоисключается с FSO.','ok',1],['fso','game','gamepad','Полноэкранный режим: FSO','Вариант вместо FSE. Включайте только один из двух.','ok',0]]};
 const MOCKC={before:{procs:214,ramMb:7820,cpu:6,timerMs:15.625,plan:'Сбалансированная',applied:0,total:9,at:'25.11 03:40'},after:{procs:196,ramMb:7340,cpu:3,timerMs:0.5,plan:'xeoka Performance',applied:8,total:9,at:'25.11 03:41'}};
 function mock(cmd,a){const R=d=>Promise.resolve({ok:true,data:d});
-  if(cmd==='init')return R({lang:/en/.test(location.hash)?'en':'ru',langSetting:/en/.test(location.hash)?'en':'ru',version:'3.17.0',licensed:/app/.test(location.hash),hwid:'A1B2-C3D4-E5F6-0789',tg:'https://t.me/CMEPT0HOCHbIU',pack:{found:true,root:'D:\\xeoka-pack'},settings:{theme:'dark',anim:true,sound:true},
+  if(cmd==='init')return R({lang:/en/.test(location.hash)?'en':'ru',langSetting:/en/.test(location.hash)?'en':'ru',version:'3.17.0',licensed:/app/.test(location.hash),hwid:'A1B2-C3D4-E5F6-0789',tg:'https://t.me/CMEPT0HOCHbIU',pack:{found:true,root:'D:\\xeoka-pack'},settings:{theme:'dark',anim:true,sound:true,music:false,vol:40,saver:true,saverMin:5},licReason:'missing',
     tweaks:MOCK.tweaks.map(t=>({id:t[0],g:t[1],i:t[2],n:t[3],d:t[4],r:t[5],on:!!t[6]})),
     tools:[['drv','DDU','Удаление драйверов видеокарты','ok'],['drv','NVCleanstall','Установка драйвера NVIDIA','ok'],['drv','CRU','Разрешения и частоты монитора','ok'],['sys','Windows Defender','Переключатель защитника','warn'],['sys','Autoruns','Автозагрузка','ok'],['sys','Службы (PowerRun)','Отключение служб. Осторожно','bad'],['sys','Удаление Microsoft Edge','Полностью удаляет Edge','warn'],['bios','BIOS: SCEWIN','Сначала Export NVRAM — это бэкап','warn']].map((t,i)=>({idx:i,g:t[0],t:t[1],d:t[2],r:t[3],confirm:t[3]==='bad'?'Откат кнопкой не поддерживается.':null}))});
   if(cmd==='specs')return R({line:'Windows 11 Pro 24H2 · сборка 26100.2314 · без перезагрузки 3 д 4 ч · план питания: xeoka Performance',cards:[{i:'cpu',t:'AMD Ryzen 7 7800X3D',p:'16 потоков',m:12,ml:'загрузка 12%'},{i:'gpu',t:'GeForce RTX 4070 SUPER',p:'12 GB · драйвер 566.36',m:0,ml:'готова'},{i:'ram',t:'32 GB',p:'оперативная память',m:41,ml:'занято 41%'},{i:'disk',t:'1 TB',p:'системный диск C:',m:59,ml:'свободно 412 GB'},{i:'net',t:'Realtek 2.5GbE Family Controller',p:'Ethernet · драйвер NDIS',m:0,ml:'онлайн'}]});
@@ -646,6 +666,18 @@ $$('#segTheme button').forEach(b=>b.onclick=()=>setTheme(b.dataset.v));
 const anim=$('#swAnim'),snd=$('#swSnd');let animOn=true;
 function setAnim(v,save=true){animOn=v;cfg.anim=v;anim.setAttribute('aria-checked',v);win.classList.toggle('noanim',!v);fx();if(save)send('set',{k:'anim',v})}
 anim.onclick=()=>setAnim(!animOn);
+/* музыка и заставка в простое */
+const rngVol=$('#rngVol'),idVol=$('#idVol'),swMusic=$('#swMusic'),idMusic=$('#idMusic');
+function applyMusic(){const on=!!cfg.music,v=cfg.vol==null?40:cfg.vol;swMusic.setAttribute('aria-checked',on);idMusic.setAttribute('aria-pressed',on);rngVol.value=idVol.value=v;window.xtMusic&&window.xtMusic.cfg(on,v)}
+function setMusic(v,save=true){cfg.music=v;applyMusic();if(save)send('set',{k:'music',v})}
+function setVol(v,save=true){cfg.vol=+v;applyMusic();if(save)send('set',{k:'vol',v:+v})}
+swMusic.onclick=()=>setMusic(!cfg.music);idMusic.onclick=()=>setMusic(!cfg.music);
+rngVol.oninput=()=>setVol(rngVol.value);idVol.oninput=()=>setVol(idVol.value);
+function setSaver(min,save=true){cfg.saver=min>0;cfg.saverMin=min>0?min:cfg.saverMin||5;$$('#segSaver button').forEach(b=>b.classList.toggle('on',+b.dataset.v===(cfg.saver?cfg.saverMin:0)));if(save){send('set',{k:'saver',v:cfg.saver});if(min>0)send('set',{k:'saverMin',v:min})}}
+$$('#segSaver button').forEach(b=>b.onclick=()=>setSaver(+b.dataset.v));
+let lastIn=Date.now();['pointermove','pointerdown','keydown','wheel'].forEach(e=>addEventListener(e,()=>{lastIn=Date.now()},{passive:true,capture:true}));
+setInterval(()=>{if(!licensed||!cfg.saver||root.classList.contains('idle-on')||sheet.classList.contains('on')||lic.classList.contains('on'))return;if(Date.now()-lastIn>(cfg.saverMin||5)*60000)window.xtIdleOpen(false)},5000);
+window.xtSaverNow=()=>window.xtIdleOpen(false);
 function setSound(v,save=true){cfg.sound=v;snd.setAttribute('aria-checked',v);if(save)send('set',{k:'sound',v})}
 snd.onclick=()=>setSound(!cfg.sound);
 document.addEventListener('pointerdown',e=>{if(cfg.sound&&e.target.closest('.btn,.nav,.ib,.grp,.tool,.pc,.eye,.txtb,.seg button'))send('sfx',{name:'tap'})},true);
@@ -686,8 +718,9 @@ $('#selNone').onclick=()=>{TWEAKS.forEach(t=>t.on=false);renderRows()};
 const PRES=[['Игровой','Gaming','Максимум отзывчивости для игр','Maximum responsiveness for games','#0a84ff','#0b2a66','bolt',t=>t.id!=='fso'],['Баланс','Balanced','Скорость без лишнего риска','Speed without extra risk','#3a3a3f','#121214','layers',t=>t.r==='ok'&&t.id!=='fso'],['Минимум','Minimal','Только самое безопасное','Only the safest','#6e6e73','#2a2a2d','shield',t=>t.r==='ok'&&['power','net','game'].includes(t.g)&&t.id!=='fso']];
 function renderPres(){$('#presets').innerHTML=PRES.map((p,i)=>`<button class="pc" style="--c1:${p[4]};--c2:${p[5]}" data-p="${i}"><b>${ic(p[6])}${L(p[0],p[1])}</b><small>${L(p[2],p[3])}</small><span class="ap">${L('Выбрать','Select')}</span></button>`).join('');
 $$('#presets .pc').forEach(b=>b.onclick=()=>{const f=PRES[b.dataset.p][7];TWEAKS.forEach(t=>t.on=!!f(t));renderRows()})}
+function expNote(){if(!D||!D.licExpires)return '';const [d,m,y]=D.licExpires.split('.').map(Number);const days=Math.ceil((new Date(y,m-1,d,23,59)-Date.now())/864e5);return days<=7&&days>=0?L(`Ключ истекает через ${days} дн.<br>`,`The key expires in ${days} d.<br>`):''}
 function health(){const n=TWEAKS.length,a=TWEAKS.filter(t=>t.st==='Applied').length;
-  $('#eyeNote').innerHTML=(TWEAKS.some(t=>t.st)?L(`Применено твиков: <b>${a} из ${n}</b><br>`,`Tweaks applied: <b>${a} of ${n}</b><br>`):'')+L('Перед применением создаётся точка восстановления.<br>Откатить можно одной кнопкой.','A restore point is created before applying.<br>You can revert with one button.')}
+  $('#eyeNote').innerHTML=expNote()+(TWEAKS.some(t=>t.st)?L(`Применено твиков: <b>${a} из ${n}</b><br>`,`Tweaks applied: <b>${a} of ${n}</b><br>`):'')+L('Перед применением создаётся точка восстановления.<br>Откатить можно одной кнопкой.','A restore point is created before applying.<br>You can revert with one button.')}
 async function loadStates(){const r=await call('states');if(r.ok&&r.data){r.data.forEach(s=>{const t=TWEAKS.find(x=>x.id===s.id);if(t)t.st=s.st});renderRows();health()}}
 
 const TOOLG_=[['all','Все','All'],['drv','Драйверы','Drivers'],['sys','Система','System'],['bios','BIOS','BIOS']];let TOOLG=[];
@@ -813,7 +846,7 @@ window.xtFx=fx;
 (async()=>{
   const r=await call('init');if(!r.ok){document.body.textContent=r.error||'Ошибка запуска';return}
   D=r.data;cfg=D.settings;licensed=D.licensed;packFound=D.pack.found;
-  setTheme(cfg.theme||'dark',false);setAnim(cfg.anim!==false,false);setSound(cfg.sound!==false,false);
+  setTheme(cfg.theme||'dark',false);setAnim(cfg.anim!==false,false);setSound(cfg.sound!==false,false);setMusic(!!cfg.music,false);setVol(cfg.vol==null?40:cfg.vol,false);setSaver(cfg.saver===false?0:(cfg.saverMin||5),false);
   TWEAKS=D.tweaks.map(t=>({...t,st:''}));TOOLS=D.tools;
   LANG=D.lang;window.xtEN=LANG==='en';root.lang=LANG;translateDom();
   $('#hwid').textContent=D.hwid;$('#hwIdle').textContent=D.hwid;$('#hwSet').textContent=L('ID компьютера: ','Computer ID: ')+D.hwid;
@@ -823,7 +856,7 @@ window.xtFx=fx;
   try{await document.fonts.ready}catch(e){}
   await Promise.race([new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r))),new Promise(r=>setTimeout(r,350))]);
   root.classList.remove('boot');send('ready');
-  if(!licensed)window.xtIdleOpen();
+  if(!licensed){await window.xtIdleOpen(true);const R={revoked:L('Этот ключ отозван автором. Напишите в Telegram.','This key was revoked by the author. Message us on Telegram.'),expired:L('Срок ключа истёк. Продлите его в Telegram.','The key has expired. Renew it on Telegram.'),hardware:L('Сохранённый ключ не подходит к этому ПК.','The saved key does not match this PC.')}[D.licReason];if(R)window.xtIdleMsg(R,'err')}
   loadSpecs();loadStates();
 })();
 window.xtLicensed=()=>{licensed=true;setLic();loadSpecs();loadStates()};

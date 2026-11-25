@@ -10,6 +10,11 @@ on:
         description: 'Имя покупателя / заметка'
         required: true
         type: string
+      days:
+        description: 'Срок действия в днях (0 = бессрочно)'
+        required: false
+        default: '0'
+        type: string
 jobs:
   generate:
     runs-on: ubuntu-latest
@@ -28,4 +33,5 @@ jobs:
         env:
           HW: ${{ github.event.inputs.hw_id }}
           NOTE: ${{ github.event.inputs.note }}
-        run: dotnet run --project tools/LicenseGen -- --key private.pem --hw "$HW" --note "$NOTE"
+          DAYS: ${{ github.event.inputs.days }}
+        run: dotnet run --project tools/LicenseGen -- --key private.pem --hw "$HW" --note "$NOTE" --days "${DAYS:-0}"

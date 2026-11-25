@@ -110,7 +110,7 @@ public partial class ShellWindow : Window
             ExtractWeb();
             var data = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "XEOKA-Pack", "webview");
             Directory.CreateDirectory(data);
-            var env = await CoreWebView2Environment.CreateAsync(null, data);
+            var env = await CoreWebView2Environment.CreateAsync(null, data, new CoreWebView2EnvironmentOptions { AdditionalBrowserArguments = "--autoplay-policy=no-user-gesture-required" });
             await Web.EnsureCoreWebView2Async(env);
         }
         catch (Exception ex)
@@ -187,6 +187,7 @@ public partial class ShellWindow : Window
         {
             case "init":
             {
+                await Revocation.RefreshAsync();
                 var lic = License.Check();
                 _ = Task.Run(() => { _pack.AutoDetect(); if (lic.Valid) EnsurePack(); Push(PackEvent()); });
                 return new
@@ -196,11 +197,12 @@ public partial class ShellWindow : Window
                     version = Assembly.GetExecutingAssembly().GetName().Version?.ToString(3) ?? "",
                     licensed = lic.Valid,
                     licNote = lic.Note,
+                    licReason = lic.Reason,
                     licExpires = lic.Expires?.ToString("dd.MM.yyyy"),
                     hwid = License.HardwareId(),
                     tg = TgUrl,
                     pack = new { found = _pack.HasPack, root = _pack.VaultPath ?? _pack.Root },
-                    settings = new { theme = _settings.UiTheme, anim = _settings.Anim, sound = _settings.Sound },
+                    settings = new { theme = _settings.UiTheme, anim = _settings.Anim, sound = _settings.Sound, music = _settings.Music, vol = _settings.Volume, saver = _settings.Saver, saverMin = _settings.SaverMin },
                     tweaks = Tweaks.All.Select(t => new { id = t.Id, g = GroupOf(t.Id), i = IconOf(t.Id), n = t.Title, d = t.Desc, r = RiskOf(t.Id), on = t.Default, hasCheck = t.Check != null }),
                     tools = ToolDefs.All.Select((t, i) => new { idx = i, g = ToolGroup(t), t = t.Title, d = t.Desc, r = ToolRisk(t), confirm = ToolConfirm(t) }),
                 };
@@ -266,6 +268,10 @@ public partial class ShellWindow : Window
                 var k = S(m, "k");
                 if (k == "theme") _settings.UiTheme = S(m, "v");
                 else if (k == "anim") _settings.Anim = m["v"]?.GetValue<bool>() ?? true;
+                else if (k == "music") _settings.Music = m["v"]?.GetValue<bool>() ?? false;
+                else if (k == "vol") _settings.Volume = Math.Clamp(m["v"]?.GetValue<int>() ?? 40, 0, 100);
+                else if (k == "saver") _settings.Saver = m["v"]?.GetValue<bool>() ?? true;
+                else if (k == "saverMin") _settings.SaverMin = Math.Clamp(m["v"]?.GetValue<int>() ?? 5, 1, 60);
                 else if (k == "lang") { _settings.Lang = S(m, "v"); Loc.Set(_settings.Lang); }
                 else if (k == "sound") { _settings.Sound = m["v"]?.GetValue<bool>() ?? true; SoundFx.Enabled = _settings.Sound; }
                 _settings.Save();

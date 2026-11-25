@@ -17,6 +17,12 @@ public sealed class Settings
     public string UiTheme { get; set; } = "dark";
     /// <summary>Живой фон (линза, блики, частицы).</summary>
     public bool Anim { get; set; } = true;
+    /// <summary>Музыка заставки (ambient) и её громкость, 0–100.</summary>
+    public bool Music { get; set; } = false;
+    public int Volume { get; set; } = 40;
+    /// <summary>Заставка при бездействии, через сколько минут.</summary>
+    public bool Saver { get; set; } = true;
+    public int SaverMin { get; set; } = 5;
     static string FilePath => Path.Combine(Paths.DataDir, "settings.json");
     public static Settings Load()
     {

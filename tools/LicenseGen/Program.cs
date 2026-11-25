@@ -77,8 +77,10 @@ var wc = new byte[packKey.Length];
 using (var g = new AesGcm(wrapKey, 16)) g.Encrypt(wn, packKey, wc, wt);
 var pk = Convert.ToBase64String(wn.Concat(wt).Concat(wc).ToArray());
 
+var id = Convert.ToHexString(RandomNumberGenerator.GetBytes(4)).ToLowerInvariant();
 var payload = JsonSerializer.SerializeToUtf8Bytes(new
 {
+    id,
     hw,
     note,
     exp = days > 0 ? DateTime.UtcNow.AddDays(days).ToString("o") : null,
@@ -87,6 +89,8 @@ var payload = JsonSerializer.SerializeToUtf8Bytes(new
 var sig = rsa.SignData(payload, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
 var code = Convert.ToBase64String(payload) + "." + Convert.ToBase64String(sig);
 
+Console.WriteLine();
+Console.WriteLine($"ID ключа: {id}  (для отзыва)   ID компьютера: {hw}   Срок: {(days > 0 ? days + " дн." : "бессрочно")}");
 Console.WriteLine();
 Console.WriteLine("Код активации (отправь покупателю):");
 Console.WriteLine();
