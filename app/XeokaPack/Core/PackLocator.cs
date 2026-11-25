@@ -18,6 +18,23 @@ public sealed class PackLocator
     static readonly Regex Skip = new(@"^\$|^Windows$|^Program|^System Volume|^Recovery|^AppData$|^node_modules$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
     static readonly EnumerationOptions Safe = new() { IgnoreInaccessible = true, RecurseSubdirectories = false, AttributesToSkip = FileAttributes.ReparsePoint };
 
+    /// <summary>Зашифрованный пак (pack.xkp): расшифровывается только лицензией этого ПК.</summary>
+    public string? VaultPath { get; private set; }
+    public bool HasPack => IsPack || VaultPath != null;
+
+    public void SetVault(string file)
+    {
+        VaultPath = file;
+        try { File.WriteAllText(Path.Combine(Paths.DataDir, "vault.txt"), file); } catch { }
+    }
+
+    /// <summary>Временная папка с расшифрованным паком. Путь не запоминается.</summary>
+    public void UseExtracted(string dir)
+    {
+        Root = dir;
+        lock (_cache) _cache.Clear();
+    }
+
     public bool IsPack => IsPackRoot(Root);
 
     public static bool IsPackRoot(string? path)
@@ -53,7 +70,17 @@ public sealed class PackLocator
             if (File.Exists(saved)) cands.Add(File.ReadAllText(saved).Trim());
         }
         catch { }
-        foreach (var c in cands) if (IsPackRoot(c)) { SetRootQuiet(c); return; }
+        try
+        {
+            var sv = Path.Combine(Paths.DataDir, "vault.txt");
+            if (File.Exists(sv)) { var f = File.ReadAllText(sv).Trim(); if (File.Exists(f)) { VaultPath = f; return; } }
+        }
+        catch { }
+        foreach (var c in cands)
+        {
+            try { var f = Path.Combine(c, "pack.xkp"); if (File.Exists(f)) { VaultPath = f; return; } } catch { }
+            if (IsPackRoot(c)) { SetRootQuiet(c); return; }
+        }
 
         var bases = new List<string>();
         void AddB(string? p) { if (!string.IsNullOrEmpty(p) && Directory.Exists(p)) bases.Add(p); }
@@ -67,7 +94,12 @@ public sealed class PackLocator
         var sw = Stopwatch.StartNew();
         var found = new List<string>();
         foreach (var b in bases) Walk(b, 3, found, sw);
-        foreach (var c in found) if (IsPackRoot(c)) { SetRootQuiet(c); return; }
+        foreach (var b in bases) { try { var f = Path.Combine(b, "pack.xkp"); if (File.Exists(f)) { VaultPath = f; return; } } catch { } }
+        foreach (var c in found)
+        {
+            try { var f = Path.Combine(c, "pack.xkp"); if (File.Exists(f)) { VaultPath = f; return; } } catch { }
+            if (IsPackRoot(c)) { SetRootQuiet(c); return; }
+        }
     }
 
     void SetRootQuiet(string p) { Root = p; lock (_cache) _cache.Clear(); }

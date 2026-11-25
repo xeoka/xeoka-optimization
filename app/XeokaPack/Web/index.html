@@ -744,9 +744,9 @@ async function runOp(kind,ids){
   cur=v=>{cur=null;sheet.classList.remove('on');$('#dCmp').hidden=true;if(v&&reboot)send('reboot')};
   loadStates()}
 async function needPack(){if(packFound)return false;
-  if(await ask({title:L('Папка пака не найдена','Pack folder not found'),text:L('Положите программу в папку, распакованную из архива пака целиком, или укажите эту папку вручную.','Put the program inside the folder extracted from the pack archive, or pick that folder manually.'),ok:L('Указать папку','Pick folder'),cancel:L('Закрыть','Close')}))await pickPack();return true}
+  if(await ask({title:L('Пак не найден','Pack not found'),text:L('Положите программу рядом с файлом pack.xkp (в папку, распакованную из архива целиком) или укажите этот файл вручную.','Put the program next to pack.xkp (inside the folder fully extracted from the archive) or pick that file manually.'),ok:L('Указать файл','Pick file'),cancel:L('Закрыть','Close')}))await pickPack();return true}
 async function pickPack(){const r=await call('pickPack');const d=r.data||{};if(!d.picked)return;
-  if(d.ok){packFound=true;setPack(d.root,true)}else await ask({title:L('Это не папка пака','This is not the pack folder'),text:L('В выбранной папке не найден пак.','No pack was found in the selected folder.'),ok:L('Понятно','OK'),cancel:''})}
+  if(d.ok){packFound=true;setPack(d.root,true)}else await ask({title:L('Это не файл пака','This is not a pack file'),text:L('Нужен файл pack.xkp из архива.','You need the pack.xkp file from the archive.'),ok:L('Понятно','OK'),cancel:''})}
 function setPack(root,found){packFound=found;$('#packPath').textContent=found?root:L('не найден','not found');$('#packState').textContent=found?L('найден','found'):L('не найден','not found')}
 EV.pack=m=>{setPack(m.root,m.found);loadStates()};
 $('#btnApply').onclick=async()=>{if(await needPack())return;const ids=TWEAKS.filter(t=>t.on).map(t=>t.id);
@@ -758,7 +758,7 @@ async function openTool(i){const t=TOOLS.find(x=>x.idx===i);if(!t)return;
   if(t.confirm&&!await ask({title:t.t,text:t.confirm+L('\n\nПродолжить?','\n\nContinue?'),ok:L('Продолжить','Continue')}))return;
   const r=await call('tool',{idx:i});
   if(!r.ok){await ask({title:L('Не удалось запустить','Could not launch'),text:r.error||'',ok:L('Закрыть','Close'),cancel:''});return}
-  if(r.data&&r.data.found===false){if(await ask({title:L('Файл не найден','File not found'),text:L(`«${r.data.file}» не найден в паке. Укажите папку пака или положите файл на место.`,`«${r.data.file}» was not found in the pack. Pick the pack folder or put the file back.`),ok:L('Указать папку','Pick folder'),cancel:L('Закрыть','Close')}))pickPack()}}
+  if(r.data&&r.data.found===false){if(await ask({title:L('Файл не найден','File not found'),text:L(`«${r.data.file}» не найден в паке. Скачайте архив заново.`,`«${r.data.file}» was not found in the pack. Download the archive again.`),ok:L('Указать файл','Pick file'),cancel:L('Закрыть','Close')}))pickPack()}}
 $('#btnRefresh').onclick=()=>{SPECS=[];renderSpecs();loadSpecs();loadStates()};
 
 /* ---------- лицензия ---------- */

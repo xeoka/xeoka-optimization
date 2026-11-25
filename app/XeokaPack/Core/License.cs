@@ -45,7 +45,7 @@ public static class License
     }
 
     // ---------------------------------------------------------- проверка
-    sealed record Payload(string Hw, string? Note, string? Exp);
+    sealed record Payload(string Hw, string? Note, string? Exp, string? Pk = null);
     static readonly JsonSerializerOptions JsonOpts = new() { PropertyNameCaseInsensitive = true };
 
     public static LicenseInfo Check()
@@ -81,6 +81,30 @@ public static class License
             return new(true, p.Note, exp, "ok");
         }
         catch { return new(false, null, null, "parse"); }
+    }
+
+    /// <summary>
+    /// Ключ расшифровки пака (pack.xkp), зашифрованный внутри лицензии под ID этого компьютера.
+    /// Null: лицензии нет, она недействительна или выдана в старом формате без ключа пака.
+    /// </summary>
+    public static byte[]? PackKey()
+    {
+        try
+        {
+            if (!File.Exists(FilePath)) return null;
+            var code = File.ReadAllText(FilePath).Trim();
+            if (!Verify(code).Valid) return null;
+            var p = JsonSerializer.Deserialize<Payload>(Convert.FromBase64String(Pad(code.Split('.')[0])), JsonOpts);
+            if (p == null || string.IsNullOrEmpty(p.Pk)) return null;
+            var raw = Convert.FromBase64String(p.Pk);
+            if (raw.Length < 29) return null;
+            var wrapKey = SHA256.HashData(Encoding.UTF8.GetBytes("xeoka-wrap|" + HardwareId().ToUpperInvariant()));
+            var key = new byte[raw.Length - 28];
+            using var g = new AesGcm(wrapKey, 16);
+            g.Decrypt(raw.AsSpan(0, 12), raw.AsSpan(28), raw.AsSpan(12, 16), key);
+            return key;
+        }
+        catch { return null; }
     }
 
     public static bool Activate(string code, out string error)

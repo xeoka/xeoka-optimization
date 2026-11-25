@@ -21,6 +21,37 @@ public partial class ShellWindow : Window
     readonly Settings _settings = Settings.Load();
     readonly Logger _log = new();
     bool _busy;
+    string? _extracted;
+    string _packErr = "";
+    readonly object _packLock = new();
+
+    /// <summary>Готовит пак к работе: обычная папка или расшифровка pack.xkp ключом из лицензии.</summary>
+    bool EnsurePack()
+    {
+        lock (_packLock)
+        {
+            if (_pack.IsPack) return true;
+            if (_pack.VaultPath == null) { _packErr = "nopack"; return false; }
+            var key = License.PackKey();
+            if (key == null) { _packErr = "nokey"; return false; }
+            try
+            {
+                PackVault.Cleanup(_extracted);
+                _extracted = PackVault.Extract(_pack.VaultPath, key);
+                _pack.UseExtracted(_extracted);
+                _packErr = "";
+                return true;
+            }
+            catch { _packErr = "badvault"; return false; }
+        }
+    }
+
+    string PackMessage() => _packErr switch
+    {
+        "nokey" => Loc.L("Ваш ключ выдан в старом формате и не открывает пак. Напишите автору в Telegram: вам выдадут новый ключ.", "Your key uses the old format and cannot open the pack. Message the author on Telegram for a new key."),
+        "badvault" => Loc.L("Файл пака повреждён или не подходит к вашему ключу. Скачайте архив заново.", "The pack file is damaged or does not match your key. Download the archive again."),
+        _ => Loc.L("Пак не найден: положите программу рядом с файлом pack.xkp или укажите его в настройках.", "Pack not found: put the program next to pack.xkp or pick the file in Settings."),
+    };
 
     [DllImport("user32.dll")] static extern bool ReleaseCapture();
     [DllImport("user32.dll")] static extern IntPtr SendMessage(IntPtr hWnd, int msg, IntPtr wParam, IntPtr lParam);
@@ -28,9 +59,11 @@ public partial class ShellWindow : Window
     public ShellWindow()
     {
         Loc.Set(_settings.Lang);
+        PackVault.CleanStale();
         SoundFx.Enabled = _settings.Sound;
         InitializeComponent();
         _log.Entry += (text, level) => Push(new JsonObject { ["ev"] = "log", ["text"] = text, ["level"] = level.ToString().ToLowerInvariant() });
+        Closed += (_, _) => PackVault.Cleanup(_extracted);
         StateChanged += (_, _) => Push(new JsonObject { ["ev"] = "win", ["max"] = WindowState == WindowState.Maximized });
         Loaded += async (_, _) => await StartAsync();
         // запасной выход: если страница не сообщила о готовности, всё равно показываем окно
@@ -155,7 +188,7 @@ public partial class ShellWindow : Window
             case "init":
             {
                 var lic = License.Check();
-                _ = Task.Run(() => { _pack.AutoDetect(); Push(PackEvent()); });
+                _ = Task.Run(() => { _pack.AutoDetect(); if (lic.Valid) EnsurePack(); Push(PackEvent()); });
                 return new
                 {
                     lang = Loc.En ? "en" : "ru",
@@ -166,7 +199,7 @@ public partial class ShellWindow : Window
                     licExpires = lic.Expires?.ToString("dd.MM.yyyy"),
                     hwid = License.HardwareId(),
                     tg = TgUrl,
-                    pack = new { found = _pack.IsPack, root = _pack.Root },
+                    pack = new { found = _pack.HasPack, root = _pack.VaultPath ?? _pack.Root },
                     settings = new { theme = _settings.UiTheme, anim = _settings.Anim, sound = _settings.Sound },
                     tweaks = Tweaks.All.Select(t => new { id = t.Id, g = GroupOf(t.Id), i = IconOf(t.Id), n = t.Title, d = t.Desc, r = RiskOf(t.Id), on = t.Default, hasCheck = t.Check != null }),
                     tools = ToolDefs.All.Select((t, i) => new { idx = i, g = ToolGroup(t), t = t.Title, d = t.Desc, r = ToolRisk(t), confirm = ToolConfirm(t) }),
@@ -181,7 +214,7 @@ public partial class ShellWindow : Window
                 return await Task.Run(StatesNow);
             case "activate":
             {
-                if (License.Activate(S(m, "key"), out var err)) { SoundFx.Chime(); return new { ok = true }; }
+                if (License.Activate(S(m, "key"), out var err)) { SoundFx.Chime(); _ = Task.Run(() => { EnsurePack(); Push(PackEvent()); }); return new { ok = true }; }
                 return new { ok = false, error = err };
             }
             case "apply":
@@ -206,20 +239,21 @@ public partial class ShellWindow : Window
             case "openTg":
                 Sys.OpenUrl(TgUrl); return null;
             case "openFolder":
-                if (S(m, "what") == "logs") Sys.OpenFolder(Paths.DataDir); else Sys.OpenFolder(_pack.Root);
+                if (S(m, "what") == "logs") Sys.OpenFolder(Paths.DataDir); else Sys.OpenFolder(_pack.VaultPath != null ? (Path.GetDirectoryName(_pack.VaultPath) ?? _pack.Root) : _pack.Root);
                 return null;
             case "pickPack":
             {
-                var dlg = new Microsoft.Win32.OpenFolderDialog { Title = Loc.L("Выберите папку, распакованную из архива пака", "Pick the folder extracted from the pack archive") };
+                var dlg = new Microsoft.Win32.OpenFileDialog { Title = Loc.L("Выберите файл пака (pack.xkp)", "Pick the pack file (pack.xkp)"), Filter = "pack.xkp|*.xkp|*.*|*.*" };
                 if (dlg.ShowDialog(this) != true) return new { picked = false };
-                if (!PackLocator.IsPackRoot(dlg.FolderName)) return new { picked = true, ok = false };
-                _pack.SetRoot(dlg.FolderName);
-                _ = Task.Run(() => ToolLauncher.UnblockTree(_pack.Root));
+                if (!dlg.FileName.EndsWith(".xkp", StringComparison.OrdinalIgnoreCase)) return new { picked = true, ok = false };
+                _pack.SetVault(dlg.FileName);
+                await Task.Run(EnsurePack);
                 Push(PackEvent());
-                return new { picked = true, ok = true, root = _pack.Root };
+                return new { picked = true, ok = true, root = dlg.FileName };
             }
             case "support":
             {
+                await Task.Run(EnsurePack);
                 var sum = await Task.Run(() => SysInfo.Collect(_pack));
                 var st = await Task.Run(StatesNow);
                 var rows = Tweaks.All.Select(t => (t.Title, st.FirstOrDefault(x => x.id == t.Id)?.st ?? "Unknown")).ToList();
@@ -253,7 +287,7 @@ public partial class ShellWindow : Window
         return null;
     }
 
-    JsonObject PackEvent() => new() { ["ev"] = "pack", ["found"] = _pack.IsPack, ["root"] = _pack.Root };
+    JsonObject PackEvent() => new() { ["ev"] = "pack", ["found"] = _pack.HasPack, ["root"] = _pack.VaultPath ?? _pack.Root };
 
     // ------------------------------------------------------------ окно
     void WindowOp(string op)
@@ -314,7 +348,8 @@ public partial class ShellWindow : Window
     {
         if (_busy) throw new InvalidOperationException(Loc.L("Уже выполняется операция.", "Another operation is running."));
         if (!Licensed) throw new InvalidOperationException(Loc.L("Нужен ключ активации.", "An activation key is required."));
-        if (!_pack.IsPack) throw new InvalidOperationException("nopack");
+        if (!_pack.HasPack) throw new InvalidOperationException("nopack");
+        if (!await Task.Run(EnsurePack)) throw new InvalidOperationException(PackMessage());
         var ids = (m["ids"] as JsonArray)?.Select(x => x?.GetValue<string>() ?? "").ToHashSet() ?? new HashSet<string>();
         var sel = Tweaks.All.Where(t => ids.Contains(t.Id)).ToList();
         if (sel.Count == 0) throw new InvalidOperationException(Loc.L("Ничего не выбрано.", "Nothing selected."));
@@ -379,6 +414,7 @@ public partial class ShellWindow : Window
         if (!Licensed) throw new InvalidOperationException(Loc.L("Нужен ключ активации.", "An activation key is required."));
         if (idx < 0 || idx >= ToolDefs.All.Count) throw new InvalidOperationException(Loc.L("Нет такого инструмента.", "No such tool."));
         var def = ToolDefs.All[idx];
+        if (!await Task.Run(EnsurePack)) throw new InvalidOperationException(PackMessage());
         if (ToolLauncher.Resolve(_pack, def) == null) return new { found = false, file = def.File };
         await Task.Run(() => ToolLauncher.Launch(_pack, def));
         return new { found = true };

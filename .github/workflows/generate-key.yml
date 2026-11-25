@@ -21,6 +21,11 @@ jobs:
         with:
           dotnet-version: '8.0.x'
       - name: Create private key file
-        run: echo "${{ secrets.LICENSE_PRIVATE_KEY }}" > private.pem
+        env:
+          KEY: ${{ secrets.LICENSE_PRIVATE_KEY }}
+        run: printf '%s\n' "$KEY" > private.pem
       - name: Run LicenseGen
-        run: dotnet run --project tools/LicenseGen -- --key private.pem --hw "${{ github.event.inputs.hw_id }}" --note "${{ github.event.inputs.note }}"
+        env:
+          HW: ${{ github.event.inputs.hw_id }}
+          NOTE: ${{ github.event.inputs.note }}
+        run: dotnet run --project tools/LicenseGen -- --key private.pem --hw "$HW" --note "$NOTE"

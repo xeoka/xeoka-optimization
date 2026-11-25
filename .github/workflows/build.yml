@@ -25,6 +25,7 @@ jobs:
         shell: pwsh
         env:
           GH_TOKEN: ${{ github.token }}
+          LK: ${{ secrets.LICENSE_PRIVATE_KEY }}
         run: |
           New-Item -ItemType Directory -Force stage | Out-Null
           Copy-Item out/XEOKA-PACK.exe stage/
@@ -33,9 +34,16 @@ jobs:
           # Папки пака переименованы в бессмысленные коды (не по номерам), чтобы их нельзя было
           # опознать по названию. Список фиксированный, а не по маске, т.к. маска по номерам больше не подходит.
           $packDirs = @('1. База','2. Драйверы','3. CRU','4. План-питания','5. Геймбар-И-Игровой-Режим','6. Защитник-Виндовс','7. Обновления-Windows','8. Авторанс','9. Настройки-Сетевого-Адаптера','10. Службы-И-Драйверы','11. Диспетчер-Устройств','12. BIOS','13. Аффинити','14. Прерывания-Системного-Таймера','15. ММЦСС','16. ФСЕ-И-ФСО','17. Вин-32-Приорити-Сеперейшн')
-          foreach ($d in $packDirs) { if (Test-Path $d) { Copy-Item $d stage/ -Recurse } }
-          # Файл-метка в корне пака: по нему приложение узнаёт папку с паком, раз имена папок больше ничего не говорят.
-          Set-Content -Path stage/.xk-pack-marker -Value 'XEOKA-PACK-V1' -NoNewline
+          # Пак кладётся в stage-pack, шифруется ключом из закрытого ключа лицензий и едет одним файлом pack.xkp.
+          # Открытых папок пака в релизе нет: без лицензии для конкретного ПК файлы расшифровать нельзя.
+          New-Item -ItemType Directory -Force stage-pack | Out-Null
+          foreach ($d in $packDirs) { if (Test-Path $d) { Copy-Item $d stage-pack/ -Recurse } }
+          Set-Content -Path stage-pack/.xk-pack-marker -Value 'XEOKA-PACK-V1' -NoNewline
+          if (-not $env:LK) { throw 'Секрет LICENSE_PRIVATE_KEY не задан: без него пак не зашифровать.' }
+          Set-Content -Path private.pem -Value $env:LK
+          dotnet run --project tools/LicenseGen -c Release -- pack --key private.pem --dir stage-pack --out stage/pack.xkp
+          if ($LASTEXITCODE -ne 0) { throw 'Не удалось зашифровать пак' }
+          Remove-Item private.pem -Force
           Compress-Archive -Path stage/* -DestinationPath XEOKA-PACK-full.zip -Force
           gh release delete latest --yes --cleanup-tag 2>$null
-          gh release create latest out/XEOKA-PACK.exe XEOKA-PACK-full.zip --title "xeoka tech (последняя сборка)" --notes "XEOKA-PACK.exe — просто скачайте и запустите, пак не нужен: вкладка Инструменты (отключение UAC, активация Windows, уведомления, удаление программ) и проверка/активация лицензии работают сразу. Для твиков оптимизации (вкладка Оптимизация) нужны файлы пака — тогда скачайте XEOKA-PACK-full.zip, распакуйте целиком и запустите XEOKA-PACK.exe из распакованной папки. Запрашивает права администратора сам." --latest
+          gh release create latest out/XEOKA-PACK.exe XEOKA-PACK-full.zip --title "xeoka tech (последняя сборка)" --notes "Скачайте XEOKA-PACK-full.zip, распакуйте архив целиком и запустите XEOKA-PACK.exe (права администратора запросятся сами). Файлы пака лежат в зашифрованном pack.xkp и открываются только лицензией, выданной автором для вашего ПК. Отдельный XEOKA-PACK.exe без pack.xkp открывает только интерфейс." --latest
