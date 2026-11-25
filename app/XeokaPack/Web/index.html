@@ -233,6 +233,11 @@ html.boot .win{visibility:hidden}
 .eye-note{color:var(--fg);opacity:.75}
 .log .er{color:var(--bad)}.log .hd{font-weight:700}.log .dm{opacity:.6}
 .sk{opacity:.5}
+.cmp{display:grid;gap:2px;margin:10px 0 4px;font-size:13px}
+.cmp .ch,.cmp .cr{display:grid;grid-template-columns:1.5fr 1fr 1fr auto;gap:10px;align-items:center;padding:7px 10px;border-radius:10px}
+.cmp .ch{color:var(--dim);font-size:11px;font-weight:700;letter-spacing:.02em}
+.cmp .cr{background:var(--row)}.cmp .cr b{font-weight:600}.cmp .cr span:nth-child(3){font-weight:800}
+.cmp .chip{min-width:52px;text-align:center}
 .rz{position:fixed;z-index:200}.rz-l,.rz-r{top:8px;bottom:8px;width:5px;cursor:ew-resize}.rz-l{left:0}.rz-r{right:0}
 .rz-t,.rz-b{left:8px;right:8px;height:5px;cursor:ns-resize}.rz-t{top:0}.rz-b{bottom:0}
 .rz-tl,.rz-tr,.rz-bl,.rz-br{width:9px;height:9px}.rz-tl{left:0;top:0;cursor:nwse-resize}.rz-br{right:0;bottom:0;cursor:nwse-resize}.rz-tr{right:0;top:0;cursor:nesw-resize}.rz-bl{left:0;bottom:0;cursor:nesw-resize}
@@ -401,6 +406,7 @@ html.idle-on #idle{display:grid}
         <div class="setg glass">
           <div class="srow"><div class="t"><b>Лицензия</b><span id="licState"></span><span class="mono" id="hwSet"></span></div><button class="btn sec" id="licBtn" data-lic><svg class="i"><use href="#key"/></svg>Ввести ключ</button></div>
           <div class="srow"><div class="t"><b>Пак xeoka: <span id="packState" style="display:inline"></span></b><span class="mono" id="packPath"></span></div><button class="btn sec" id="openPack">Открыть</button><button class="btn sec" id="pickPack">Указать</button></div>
+          <div class="srow"><div class="t"><b>Результат оптимизации</b><span>Сравнение «до и после»: процессы, память, нагрузка, таймер</span></div><button class="btn sec" id="cmpShow">Показать</button><button class="btn sec" id="cmpNow">Замерить сейчас</button></div>
           <div class="srow"><div class="t"><b>Журнал и отчёт для поддержки</b><span>Zip на рабочем столе, без личных данных</span></div><button class="btn sec" id="openLogs">Журналы</button><button class="btn sec" id="btnSupport"><svg class="i"><use href="#log"/></svg>Собрать</button></div>
           <div class="srow"><div class="t"><b id="ver">xeoka tech</b><span>Ключ покупается один раз и действует навсегда</span></div><button class="btn sec" data-tg><svg class="i"><use href="#tg"/></svg>Telegram</button></div>
         </div>
@@ -410,7 +416,7 @@ html.idle-on #idle{display:grid}
 
   <div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="dTitle">
     <div class="dlg"><h4 id="dTitle"></h4><p id="dText"></p>
-      <div class="bar" id="dBarW" hidden><i id="dBar"></i></div><div class="log" id="dLog" hidden></div>
+      <div class="bar" id="dBarW" hidden><i id="dBar"></i></div><div class="cmp" id="dCmp" hidden></div><div class="log" id="dLog" hidden></div>
       <div class="dact"><button class="btn sec" id="dCancel">Отмена</button><button class="btn pri" id="dOk">Продолжить</button><button class="btn pri" id="dLink" hidden>Перейти в Telegram</button></div></div>
   </div>
   <div class="sheet" id="lic" role="dialog" aria-modal="true" aria-labelledby="lTitle">
@@ -588,7 +594,7 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape')$('#dlg').classList.
 })();
 </script>
 <script>
-window.EN_MAP={'ID компьютера':'Computer ID','Zip на рабочем столе, без личных данных':'A zip on the desktop, no personal data','Авто':'Auto','Активировать':'Activate','Ввести ключ':'Enter key','Все инструменты':'All tools','Все твики':'All tweaks','Вставьте полученный ключ ниже.':'Paste the key you received below.','Выбрать все безопасные':'Select all safe','Живой фон':'Live background','Журнал и отчёт для поддержки':'Log and support report','Журналы':'Logs','Закрыть':'Close','Звуки':'Sounds','Инструменты':'Tools','Ключ вводится один раз':'The key is entered once','Ключ покупается один раз и действует навсегда':'The key is bought once and works forever','Ключ покупается один раз и действует навсегда. Он привязан к вашему ПК.':'The key is bought once and works forever. It is bound to your PC.','Ключ сохранён':'Key saved','Копировать':'Copy','Короткий сигнал при нажатии и после оптимизации':'A short sound on click and after optimization','Линза, блики и частицы. Отключите на слабом ПК':'Lens, glints and particles. Turn off on a weak PC','Лицензия':'License','Написать в Telegram':'Message on Telegram','Он привязан к этому ПК. В следующий раз xeoka tech откроется сразу, вводить ничего не нужно.':'It is bound to this PC. Next time xeoka tech opens right away, nothing to enter.','Оптимизация':'Optimization','Оптимизировать':'Optimize','Откатить':'Revert','Откроется t.me/CMEPT0HOCHbIU в браузере. Окно активации останется открытым.':'t.me/CMEPT0HOCHbIU will open in your browser. The activation window stays open.','Открыть':'Open','Открыть xeoka tech':'Open xeoka tech','Отмена':'Cancel','Отправьте его в Telegram автору.':'Send it to the author on Telegram.','ПЕРВЫЙ ЗАПУСК':'FIRST LAUNCH','Пак xeoka:':'xeoka pack:','Перейти':'Go','Перейти в Telegram':'Go to Telegram','Перейти в Telegram?':'Go to Telegram?','Получить ключ в Telegram':'Get a key on Telegram','Пресеты':'Presets','Продолжить':'Continue','Светлая':'Light','Светлая, тёмная или как в системе':'Light, dark or follow the system','Скопируйте ID компьютера.':'Copy the computer ID.','Снять':'Clear','Собрать':'Build','Тема':'Theme','Тёмная':'Dark','Указать':'Pick','запускаются отдельно от кнопки «Оптимизировать»':'run separately from the Optimize button','точка восстановления':'restore point','Язык':'Language','Интерфейс и подсказки':'Interface and hints','Вставьте ключ':'Paste the key',
+window.EN_MAP={'Результат оптимизации':'Optimization result','Сравнение «до и после»: процессы, память, нагрузка, таймер':'Before/after comparison: processes, memory, load, timer','Показать':'Show','Замерить сейчас':'Measure now','ID компьютера':'Computer ID','Zip на рабочем столе, без личных данных':'A zip on the desktop, no personal data','Авто':'Auto','Активировать':'Activate','Ввести ключ':'Enter key','Все инструменты':'All tools','Все твики':'All tweaks','Вставьте полученный ключ ниже.':'Paste the key you received below.','Выбрать все безопасные':'Select all safe','Живой фон':'Live background','Журнал и отчёт для поддержки':'Log and support report','Журналы':'Logs','Закрыть':'Close','Звуки':'Sounds','Инструменты':'Tools','Ключ вводится один раз':'The key is entered once','Ключ покупается один раз и действует навсегда':'The key is bought once and works forever','Ключ покупается один раз и действует навсегда. Он привязан к вашему ПК.':'The key is bought once and works forever. It is bound to your PC.','Ключ сохранён':'Key saved','Копировать':'Copy','Короткий сигнал при нажатии и после оптимизации':'A short sound on click and after optimization','Линза, блики и частицы. Отключите на слабом ПК':'Lens, glints and particles. Turn off on a weak PC','Лицензия':'License','Написать в Telegram':'Message on Telegram','Он привязан к этому ПК. В следующий раз xeoka tech откроется сразу, вводить ничего не нужно.':'It is bound to this PC. Next time xeoka tech opens right away, nothing to enter.','Оптимизация':'Optimization','Оптимизировать':'Optimize','Откатить':'Revert','Откроется t.me/CMEPT0HOCHbIU в браузере. Окно активации останется открытым.':'t.me/CMEPT0HOCHbIU will open in your browser. The activation window stays open.','Открыть':'Open','Открыть xeoka tech':'Open xeoka tech','Отмена':'Cancel','Отправьте его в Telegram автору.':'Send it to the author on Telegram.','ПЕРВЫЙ ЗАПУСК':'FIRST LAUNCH','Пак xeoka:':'xeoka pack:','Перейти':'Go','Перейти в Telegram':'Go to Telegram','Перейти в Telegram?':'Go to Telegram?','Получить ключ в Telegram':'Get a key on Telegram','Пресеты':'Presets','Продолжить':'Continue','Светлая':'Light','Светлая, тёмная или как в системе':'Light, dark or follow the system','Скопируйте ID компьютера.':'Copy the computer ID.','Снять':'Clear','Собрать':'Build','Тема':'Theme','Тёмная':'Dark','Указать':'Pick','запускаются отдельно от кнопки «Оптимизировать»':'run separately from the Optimize button','точка восстановления':'restore point','Язык':'Language','Интерфейс и подсказки':'Interface and hints','Вставьте ключ':'Paste the key',
 'Активация':'Activation','Вид':'View','Главная':'Home','Действия':'Actions','Заставка xeoka tech':'xeoka tech screensaver','Карточки':'Cards','Ключ активации':'Activation key','Назад':'Back','Настройки':'Settings','Обновить данные':'Refresh data','Оптимизировать Windows 11':'Optimize Windows 11','Откатить последнее':'Revert the last run','Развернуть':'Maximize','Разделы':'Sections','Свернуть':'Minimize','Список':'List',
 'оптимизация Windows 11':'Windows 11 optimization','ФАКТ':'FACT','столько по умолчанию тикает системный таймер Windows':'is the default tick of the Windows system timer','xeoka tech настраивает его под игры':'xeoka tech tunes it for games','Что делает xeoka tech':'What xeoka tech does','План питания без парковки ядер':'Power plan without core parking','Системный таймер и MMCSS':'System timer and MMCSS','Сеть: меньше задержка':'Network: lower latency','Game Bar, FSE и FSO':'Game Bar, FSE and FSO','Приоритет активного окна':'Active window priority','Автозагрузка и службы':'Startup and services','Кадры идут ровно':'Frames come out even','рывки':'stutter','ровно':'smooth','на один кадр. Любая задержка в системе съедает часть этого времени.':'per frame. Any delay in the system eats part of that time.','Каждое применение начинается':'Every run starts','с точки восстановления':'with a restore point','Откат — одна кнопка':'Revert is one button','Опасные твики вынесены отдельно':'Risky tweaks are kept apart','ЛИЦЕНЗИЯ':'LICENSE','Ключ — один раз.':'One key.','Навсегда.':'Forever.','Инструменты под рукой':'Tools at hand','Тип драйвера сети':'Network driver type','Удаление Edge':'Remove Edge','Службы':'Services','Уведомления':'Notifications'};
 
@@ -610,6 +616,7 @@ window.xtSend=send;
 
 /* ---------- заглушка для просмотра в обычном браузере ---------- */
 const MOCK={tweaks:[['power','power','power','План питания xeoka','Включает схему питания xeoka Performance. Прежняя схема запоминается для отката.','ok',1],['devpow','power','plug','Энергосбережение всех устройств','Запрещает отключать устройства для экономии энергии. Не откатывается кнопкой отката.','warn',1],['prio','cpu','cpu','Приоритет процессов','Больше процессорного времени активному окну (игре).','ok',1],['timer','cpu','timer','Прерывания системного таймера','SerializeTimerExpiration = 1.','ok',1],['mmcss','cpu','layers','MMCSS','NDIS: оптимизированные параметры. Определяется автоматически.','ok',1],['net','net','net','Сетевой адаптер (Ethernet)','Оптимизация параметров карты и отключение энергосбережения.','ok',1],['gamebar','game','gamepad','Game Bar и игровой режим','Отключает запись игр, Game Bar и автоматический игровой режим.','ok',1],['fse','game','gamepad','Полноэкранный режим: FSE','Отключает полноэкранные оптимизации. Взаимоисключается с FSO.','ok',1],['fso','game','gamepad','Полноэкранный режим: FSO','Вариант вместо FSE. Включайте только один из двух.','ok',0]]};
+const MOCKC={before:{procs:214,ramMb:7820,cpu:6,timerMs:15.625,plan:'Сбалансированная',applied:0,total:9,at:'25.11 03:40'},after:{procs:196,ramMb:7340,cpu:3,timerMs:0.5,plan:'xeoka Performance',applied:8,total:9,at:'25.11 03:41'}};
 function mock(cmd,a){const R=d=>Promise.resolve({ok:true,data:d});
   if(cmd==='init')return R({lang:/en/.test(location.hash)?'en':'ru',langSetting:/en/.test(location.hash)?'en':'ru',version:'3.17.0',licensed:/app/.test(location.hash),hwid:'A1B2-C3D4-E5F6-0789',tg:'https://t.me/CMEPT0HOCHbIU',pack:{found:true,root:'D:\\xeoka-pack'},settings:{theme:'dark',anim:true,sound:true},
     tweaks:MOCK.tweaks.map(t=>({id:t[0],g:t[1],i:t[2],n:t[3],d:t[4],r:t[5],on:!!t[6]})),
@@ -617,8 +624,9 @@ function mock(cmd,a){const R=d=>Promise.resolve({ok:true,data:d});
   if(cmd==='specs')return R({line:'Windows 11 Pro 24H2 · сборка 26100.2314 · без перезагрузки 3 д 4 ч · план питания: xeoka Performance',cards:[{i:'cpu',t:'AMD Ryzen 7 7800X3D',p:'16 потоков',m:12,ml:'загрузка 12%'},{i:'gpu',t:'GeForce RTX 4070 SUPER',p:'12 GB · драйвер 566.36',m:0,ml:'готова'},{i:'ram',t:'32 GB',p:'оперативная память',m:41,ml:'занято 41%'},{i:'disk',t:'1 TB',p:'системный диск C:',m:59,ml:'свободно 412 GB'},{i:'net',t:'Realtek 2.5GbE Family Controller',p:'Ethernet · драйвер NDIS',m:0,ml:'онлайн'}]});
   if(cmd==='states')return R(MOCK.tweaks.map((t,i)=>({id:t[0],st:i%3===0?'Applied':i%4===1?'Partial':'NotApplied'})));
   if(cmd==='activate')return R(a.key.length>=8?{ok:true}:{ok:false,error:'Неверный код активации.'});
-  if(cmd==='apply'||cmd==='revert'){const L=['Создаю точку восстановления…','> План питания xeoka','  готово','> Системный таймер','  готово','> Сетевой адаптер','  готово'];let i=0;return new Promise(res=>{const t=setInterval(()=>{if(i<L.length){EV.log&&EV.log({text:L[i],level:/^>/.test(L[i])?'head':/готово/.test(L[i])?'ok':'info'});EV.progress&&EV.progress({p:++i/L.length})}else{clearInterval(t);res({ok:true,data:{ok:3,fail:0}})}},380)})}
+  if(cmd==='apply'||cmd==='revert'){const L=['Создаю точку восстановления…','> План питания xeoka','  готово','> Системный таймер','  готово','> Сетевой адаптер','  готово'];let i=0;return new Promise(res=>{const t=setInterval(()=>{if(i<L.length){EV.log&&EV.log({text:L[i],level:/^>/.test(L[i])?'head':/готово/.test(L[i])?'ok':'info'});EV.progress&&EV.progress({p:++i/L.length})}else{clearInterval(t);res({ok:true,data:{ok:3,fail:0,cmp:MOCKC}})}},380)})}
   if(cmd==='tool')return R({found:true});
+  if(cmd==='cmp'||cmd==='measure')return R(MOCKC);
   if(cmd==='pickPack')return R({picked:true,ok:true,root:'D:\\xeoka-pack'});
   if(cmd==='support')return R({path:'C:\\Users\\you\\Desktop\\XEOKA-support.zip'});
   return R(null)}
@@ -700,7 +708,7 @@ $$('[data-go]').forEach(b=>b.addEventListener('click',()=>go(b.dataset.go)));
 const sheet=$('#sheet');let cur=null;
 function sheetBtns(o){$('#dOk').hidden=!o.ok;$('#dOk').textContent=o.ok||'';$('#dCancel').hidden=!o.cancel;$('#dCancel').textContent=o.cancel||'';$('#dLink').hidden=!o.link}
 function ask({title,text,ok=L('Продолжить','Continue'),cancel=L('Отмена','Cancel'),link=false}){return new Promise(res=>{
-  $('#dTitle').textContent=title;$('#dText').textContent=text;$('#dBarW').hidden=true;$('#dLog').hidden=true;
+  $('#dTitle').textContent=title;$('#dText').textContent=text;$('#dBarW').hidden=true;$('#dLog').hidden=true;$('#dCmp').hidden=true;
   sheetBtns({ok:link?'':ok,cancel,link});cur=v=>{cur=null;sheet.classList.remove('on');res(v)};
   sheet.classList.add('on');(link?$('#dLink'):$('#dOk')).focus()})}
 $('#dOk').onclick=()=>cur&&cur(true);$('#dCancel').onclick=()=>cur&&cur(false);
@@ -710,11 +718,20 @@ const askTg=()=>ask({title:L('Перейти в Telegram?','Go to Telegram?'),te
 $$('[data-tg]').forEach(b=>b.onclick=askTg);
 $('#lTg').onclick=async()=>{lic.classList.remove('on');await askTg()};
 
+function renderCmp(c){const b=c.before,a=c.after;if(!a){$('#dCmp').hidden=true;return}
+  const R=[[L('Процессы','Processes'),b.procs,a.procs,-1,''],[L('Память занята','Memory used'),b.ramMb,a.ramMb,-1,' MB'],[L('Нагрузка CPU в простое','Idle CPU load'),b.cpu,a.cpu,-1,'%'],[L('Разрешение таймера','Timer resolution'),b.timerMs,a.timerMs,-1,' ms'],[L('Применено твиков','Tweaks applied'),b.applied,a.applied,1,' / '+a.total],[L('План питания','Power plan'),b.plan,a.plan,0,'']];
+  $('#dCmp').innerHTML=`<div class="ch"><span></span><span>${L('До','Before')} · ${esc(b.at)}</span><span>${L('После','After')} · ${esc(a.at)}</span><span></span></div>`+R.map(([n,x,y,dir,u])=>{
+    let chip='';if(typeof x==='number'){const d=Math.round((y-x)*1000)/1000;chip=d===0?'<span class="chip">—</span>':`<span class="chip ${dir&&d*dir>0?'ok':dir&&d*dir<0?'warn':''}">${d>0?'+':''}${d}${u.trim()===''||u.includes('/')?'':u}</span>`}else if(x!==y)chip=`<span class="chip ok">${L('изменён','changed')}</span>`;
+    return `<div class="cr"><b>${n}</b><span>${esc(x)}${typeof x==='number'&&!u.includes('/')?u:''}</span><span>${esc(y)}${typeof y==='number'?u:''}</span>${chip}</div>`}).join('');
+  $('#dCmp').hidden=false}
+function showCmp(c,title,note){return new Promise(res=>{$('#dTitle').textContent=title;$('#dText').textContent=note;$('#dBarW').hidden=true;$('#dLog').hidden=true;renderCmp(c);sheetBtns({ok:L('Закрыть','Close')});
+  cur=()=>{cur=null;sheet.classList.remove('on');$('#dCmp').hidden=true;res()};sheet.classList.add('on')})}
+const CMPNOTE=()=>L('Часть изменений вступит в силу только после перезагрузки: потом нажмите «Замерить сейчас» в Настройках.','Some changes apply only after a restart: then press "Measure now" in Settings.');
 const LV={ok:'ok',warn:'wa',err:'er',head:'hd',dim:'dm',info:''};
 async function runOp(kind,ids){
-  const L=$('#dLog');L.innerHTML='';L.hidden=false;$('#dBarW').hidden=false;$('#dBar').style.width='0';
+  const LG=$('#dLog');LG.innerHTML='';LG.hidden=false;$('#dCmp').hidden=true;$('#dBarW').hidden=false;$('#dBar').style.width='0';
   $('#dTitle').textContent=kind==='apply'?L('Применяю оптимизацию…','Applying optimization…'):L('Откатываю изменения…','Reverting changes…');$('#dText').textContent=L('Не закрывайте программу.','Do not close the program.');sheetBtns({});sheet.classList.add('on');
-  EV.log=m=>{const d=document.createElement('div');d.className=LV[m.level]||'';d.textContent=m.text;L.appendChild(d);L.scrollTop=1e6};
+  EV.log=m=>{const d=document.createElement('div');d.className=LV[m.level]||'';d.textContent=m.text;LG.appendChild(d);LG.scrollTop=1e6};
   EV.progress=m=>{$('#dBar').style.width=Math.round(m.p*100)+'%'};
   EV.step=m=>{$('#dText').textContent=`${m.n} / ${m.total}   ${m.title}`};
   const r=await call(kind,kind==='apply'?{ids}:{});EV.log=EV.progress=EV.step=null;
@@ -722,9 +739,9 @@ async function runOp(kind,ids){
   if(!r.ok){$('#dTitle').textContent=L('Не получилось','Failed');$('#dText').textContent=r.error||L('Неизвестная ошибка','Unknown error');sheetBtns({ok:L('Закрыть','Close')})}
   else{const d=r.data||{};$('#dBar').style.width='100%';
     $('#dTitle').textContent=kind==='apply'?(d.fail?L('Готово с ошибками','Done with errors'):L('Оптимизация завершена','Optimization complete')):L('Откат выполнен','Revert complete');
-    if(kind==='apply'){$('#dText').textContent=L(`Успешно: ${d.ok}, с ошибками: ${d.fail}. Для применения всех изменений нужна перезагрузка.`,`Succeeded: ${d.ok}, failed: ${d.fail}. A restart is needed for all changes to take effect.`);sheetBtns({ok:L('Перезагрузить','Restart'),cancel:L('Позже','Later')});reboot=true}
+    if(kind==='apply'){$('#dText').textContent=L(`Успешно: ${d.ok}, с ошибками: ${d.fail}. Для применения всех изменений нужна перезагрузка.`,`Succeeded: ${d.ok}, failed: ${d.fail}. A restart is needed for all changes to take effect.`);sheetBtns({ok:L('Перезагрузить','Restart'),cancel:L('Позже','Later')});reboot=true;if(d.cmp){$('#dLog').hidden=true;renderCmp(d.cmp)}}
     else{$('#dText').textContent=L('Значения возвращены. Часть изменений вступит в силу после перезагрузки.','Values restored. Some changes apply after a restart.');sheetBtns({ok:L('Закрыть','Close')})}}
-  cur=v=>{cur=null;sheet.classList.remove('on');if(v&&reboot)send('reboot')};
+  cur=v=>{cur=null;sheet.classList.remove('on');$('#dCmp').hidden=true;if(v&&reboot)send('reboot')};
   loadStates()}
 async function needPack(){if(packFound)return false;
   if(await ask({title:L('Папка пака не найдена','Pack folder not found'),text:L('Положите программу в папку, распакованную из архива пака целиком, или укажите эту папку вручную.','Put the program inside the folder extracted from the pack archive, or pick that folder manually.'),ok:L('Указать папку','Pick folder'),cancel:L('Закрыть','Close')}))await pickPack();return true}
@@ -764,6 +781,11 @@ function setLic(){$('#licState').textContent=licensed?L('Активна. Клю�
 /* ---------- настройки ---------- */
 $('#openPack').onclick=()=>send('openFolder',{what:'pack'});
 $('#pickPack').onclick=pickPack;
+$('#cmpShow').onclick=async()=>{const r=await call('cmp');if(!r.ok||!r.data||!r.data.after){await ask({title:L('Пока нет данных','No data yet'),text:L('Результат появится после первой оптимизации.','The result appears after the first optimization.'),ok:L('Понятно','OK'),cancel:''});return}
+  showCmp(r.data,L('Результат: до и после','Result: before and after'),CMPNOTE())};
+$('#cmpNow').onclick=async()=>{const b=$('#cmpNow');b.disabled=true;const r=await call('measure');b.disabled=false;
+  if(!r.ok){await ask({title:L('Не получилось','Failed'),text:r.error||'',ok:L('Понятно','OK'),cancel:''});return}
+  showCmp(r.data,L('Замер сейчас','Measured now'),L('Сравнение с состоянием до оптимизации.','Compared with the state before optimization.'))};
 $('#openLogs').onclick=()=>send('openFolder',{what:'logs'});
 $('#btnSupport').onclick=async()=>{const b=$('#btnSupport');b.disabled=true;const r=await call('support');b.disabled=false;
   await ask({title:r.ok?L('Отчёт готов','Report ready'):L('Не получилось','Failed'),text:r.ok?L('Архив сохранён: ','Archive saved: ')+r.data.path+L('. Отправьте его автору в Telegram.','. Send it to the author on Telegram.'):(r.error||''),ok:L('Хорошо','OK'),cancel:''})};

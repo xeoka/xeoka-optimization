@@ -33,17 +33,34 @@ public static class Specs
         catch { return ""; }
     }
 
-    static int CpuLoad()
+    internal static int CpuLoad(int ms = 250)
     {
         try
         {
             GetSystemTimes(out var i1, out var k1, out var u1);
-            Thread.Sleep(250);
+            Thread.Sleep(ms);
             GetSystemTimes(out var i2, out var k2, out var u2);
             double idle = i2.V - i1.V, total = (k2.V - k1.V) + (u2.V - u1.V);
             return total <= 0 ? 0 : (int)Math.Round(Math.Clamp(100 - idle * 100 / total, 0, 100));
         }
         catch { return 0; }
+    }
+
+    internal static (ulong Total, ulong Avail) Mem()
+    {
+        var ms = new MEM { Len = (uint)Marshal.SizeOf<MEM>() };
+        return GlobalMemoryStatusEx(ref ms) ? (ms.Total, ms.Avail) : (0, 0);
+    }
+
+    internal static string PlanName()
+    {
+        try
+        {
+            var o = Sys.Powercfg("/getactivescheme").Output;
+            int a = o.IndexOf('('), z = o.LastIndexOf(')');
+            return a >= 0 && z > a ? o.Substring(a + 1, z - a - 1) : "";
+        }
+        catch { return ""; }
     }
 
     static string Gb(double bytes)

@@ -190,6 +190,17 @@ public partial class ShellWindow : Window
                 return await RevertAsync();
             case "tool":
                 return await ToolAsync(m["idx"]?.GetValue<int>() ?? -1);
+            case "cmp":
+                return Snapshot.Load();
+            case "measure":
+            {
+                var saved = Snapshot.Load();
+                if (saved == null) throw new InvalidOperationException(Loc.L("Сначала примените оптимизацию: замеру не с чем сравнивать.", "Apply the optimization first: there is nothing to compare with."));
+                var now = await Task.Run(() => Snapshot.Take(AppliedCount(), Tweaks.All.Count));
+                var cmp = new Cmp(saved.Before, now);
+                Snapshot.Save(cmp);
+                return cmp;
+            }
             case "ready":
                 Reveal(); return null;
             case "openTg":
@@ -310,14 +321,21 @@ public partial class ShellWindow : Window
         _busy = true;
         try
         {
+            var before = await Task.Run(() => Snapshot.Take(AppliedCount(), Tweaks.All.Count));
             var res = await Task.Run(() => Operations.Apply(sel, _log, _pack,
                 p => Push(new JsonObject { ["ev"] = "progress", ["p"] = p }),
                 (n, total, title) => Push(new JsonObject { ["ev"] = "step", ["n"] = n, ["total"] = total, ["title"] = title })));
             if (res.Fail == 0) SoundFx.Chime();
-            return new { ok = res.Ok, fail = res.Fail };
+            await Task.Delay(1500);
+            var after = await Task.Run(() => Snapshot.Take(AppliedCount(), Tweaks.All.Count));
+            var cmp = new Cmp(before, after);
+            Snapshot.Save(cmp);
+            return new { ok = res.Ok, fail = res.Fail, cmp };
         }
         finally { _busy = false; }
     }
+
+    int AppliedCount() => StatesNow().Count(x => x.st == "Applied");
 
     async Task<object?> RevertAsync()
     {
