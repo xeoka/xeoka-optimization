@@ -227,6 +227,16 @@ input[type=range]{accent-color:var(--accent);width:140px}
   .scr{padding:78px 14px 14px}
   .tools{grid-template-columns:1fr}
 }
+.nav.on{color:var(--fg);background:var(--fg-a,var(--row));box-shadow:inset 0 0 0 1px var(--glass-b)}
+.pill .sep{width:1px;height:22px;background:var(--glass-b);margin:0 4px;opacity:.7}
+.scr{transform:translateX(0) scale(.99)}
+.scr[data-pos=prev]{transform:translateX(-56px) scale(.985)}
+.scr[data-pos=next]{transform:translateX(56px) scale(.985)}
+.scr.on{transform:none!important}
+.scr{transition:opacity .32s,transform .5s cubic-bezier(.2,.75,.15,1),visibility 0s .5s}
+.scr.on{transition-delay:0s}
+@media (prefers-reduced-motion:reduce){.scr,.scr[data-pos]{transform:none!important;transition:opacity .15s,visibility 0s .15s}}
+
 [hidden]{display:none!important}
 html.boot *{transition:none!important}
 html.boot .win{visibility:hidden}
@@ -328,6 +338,7 @@ html.idle-on #idle{display:grid}
         <span style="color:var(--fg)"><b>xeoka</b> <span>tech</span></span>
       </div>
       <nav class="pill glass" aria-label="Разделы">
+        <button class="nav on" data-go="home"><svg class="i"><use href="#home"/></svg><span class="lbl">Главная</span></button>
         <button class="nav" data-go="opt"><svg class="i"><use href="#bolt"/></svg><span class="lbl">Оптимизация</span></button>
         <button class="nav" data-go="tools"><svg class="i"><use href="#wrench"/></svg><span class="lbl">Инструменты</span></button>
         <button class="nav hide-s" data-tg aria-label="Telegram"><svg class="i"><use href="#tg"/></svg><span class="lbl">Telegram</span></button>
@@ -335,11 +346,9 @@ html.idle-on #idle{display:grid}
     </div>
     <div class="rail">
       <div class="pill glass" role="toolbar" aria-label="Действия">
-        <button class="ib on" data-go="home" data-tip="Главная" aria-label="Главная"><svg class="i"><use href="#home"/></svg></button>
-        <button class="ib" id="btnRefresh" data-tip="Обновить данные" aria-label="Обновить данные"><svg class="i"><use href="#refresh"/></svg></button>
-        <button class="ib" data-go="opt" data-tip="Оптимизация" aria-label="Оптимизация"><svg class="i"><use href="#bolt"/></svg></button>
-        <button class="ib" id="btnRollback" data-tip="Откатить последнее" aria-label="Откатить последнее"><svg class="i"><use href="#undo"/></svg></button>
-        <button class="ib" data-go="tools" data-tip="Инструменты" aria-label="Инструменты"><svg class="i"><use href="#cube"/></svg></button>
+                <button class="ib" id="btnRefresh" data-tip="Обновить данные" aria-label="Обновить данные"><svg class="i"><use href="#refresh"/></svg></button>
+                <button class="ib" id="btnRollback" data-tip="Откатить последнее" aria-label="Откатить последнее"><svg class="i"><use href="#undo"/></svg></button>
+                <span class="sep"></span>
         <button class="ib" data-lic data-tip="Лицензия" aria-label="Лицензия"><svg class="i"><use href="#key"/></svg></button>
         <button class="ib" data-go="settings" data-tip="Настройки" aria-label="Настройки"><svg class="i"><use href="#sliders"/></svg></button>
       </div>
@@ -732,9 +741,12 @@ function renderTools(){TOOLG=TOOLG_.map(g=>[g[0],L(g[1],g[2])]);$('#tgroups').in
   $$('#tools .tool').forEach(b=>b.onclick=()=>openTool(+b.dataset.i))}
 
 /* ---------- навигация ---------- */
-function go(s){win.dataset.screen=s;$$('.scr').forEach(e=>e.classList.toggle('on',e.id==='s-'+s));
+const ORDER=['home','opt','tools','settings'];
+function go(s){const ti=ORDER.indexOf(s);win.dataset.screen=s;
+  $$('.scr').forEach(e=>{const id=e.id.slice(2),i=ORDER.indexOf(id);e.dataset.pos=i<ti?'prev':i>ti?'next':'cur';e.classList.toggle('on',id===s)});
   $$('.ib[data-go]').forEach(b=>b.classList.toggle('on',b.dataset.go===s));
-  $$('.nav[data-go]').forEach(b=>b.style.color=b.dataset.go===s?'var(--fg)':'')}
+  $$('.nav[data-go]').forEach(b=>b.classList.toggle('on',b.dataset.go===s))}
+go('home');
 $$('[data-go]').forEach(b=>b.addEventListener('click',()=>go(b.dataset.go)));
 
 /* ---------- окно действий ---------- */
