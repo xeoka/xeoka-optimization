@@ -25,12 +25,36 @@ public partial class ShellWindow : Window
     string _packErr = "";
     readonly object _packLock = new();
 
+    const string VaultUrl = "https://github.com/xeoka/xeoka-optimization/releases/download/pack-data/pack.xkp";
+
+    /// <summary>Голый exe без pack.xkp: докачивает зашифрованный пак из релиза (без лицензии он бесполезен).</summary>
+    void TryDownloadVault()
+    {
+        try
+        {
+            var dest = System.IO.Path.Combine(Paths.DataDir, "pack.xkp");
+            var tmp = dest + ".part";
+            using var http = new System.Net.Http.HttpClient { Timeout = TimeSpan.FromMinutes(10) };
+            http.DefaultRequestHeaders.UserAgent.ParseAdd("xeoka-tech");
+            using (var r = http.GetAsync(VaultUrl, System.Net.Http.HttpCompletionOption.ResponseHeadersRead).GetAwaiter().GetResult())
+            {
+                r.EnsureSuccessStatusCode();
+                using var fs = System.IO.File.Create(tmp);
+                r.Content.CopyToAsync(fs).GetAwaiter().GetResult();
+            }
+            System.IO.File.Move(tmp, dest, true);
+            _pack.SetVault(dest);
+        }
+        catch { }
+    }
+
     /// <summary>Готовит пак к работе: обычная папка или расшифровка pack.xkp ключом из лицензии.</summary>
     bool EnsurePack()
     {
         lock (_packLock)
         {
             if (_pack.IsPack) return true;
+            if (_pack.VaultPath == null) TryDownloadVault();
             if (_pack.VaultPath == null) { _packErr = "nopack"; return false; }
             var key = License.PackKey();
             if (key == null) { _packErr = "nokey"; return false; }
@@ -354,7 +378,6 @@ public partial class ShellWindow : Window
     {
         if (_busy) throw new InvalidOperationException(Loc.L("Уже выполняется операция.", "Another operation is running."));
         if (!Licensed) throw new InvalidOperationException(Loc.L("Нужен ключ активации.", "An activation key is required."));
-        if (!_pack.HasPack) throw new InvalidOperationException("nopack");
         if (!await Task.Run(EnsurePack)) throw new InvalidOperationException(PackMessage());
         var ids = (m["ids"] as JsonArray)?.Select(x => x?.GetValue<string>() ?? "").ToHashSet() ?? new HashSet<string>();
         var sel = Tweaks.All.Where(t => ids.Contains(t.Id)).ToList();

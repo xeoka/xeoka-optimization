@@ -54,4 +54,4 @@ jobs:
           }
           Compress-Archive -Path stage/* -DestinationPath XEOKA-PACK-full.zip -Force
           gh release delete latest --yes --cleanup-tag 2>$null
-          gh release create latest out/XEOKA-PACK.exe XEOKA-PACK-full.zip --title "xeoka tech (последняя сборка)" --notes "Скачайте XEOKA-PACK-full.zip, распакуйте архив целиком и запустите XEOKA-PACK.exe (права администратора запросятся сами). Файлы пака лежат в зашифрованном pack.xkp и открываются только лицензией, выданной автором для вашего ПК. Отдельный XEOKA-PACK.exe без pack.xkp открывает только интерфейс." --latest
+          gh release create latest out/XEOKA-PACK.exe XEOKA-PACK-full.zip --title "xeoka tech (последняя сборка)" --notes "Скачайте XEOKA-PACK-full.zip, распакуйте архив целиком и запустите XEOKA-PACK.exe (права администратора запросятся сами). Файлы пака лежат в зашифрованном pack.xkp и открываются только лицензией, выданной автором для вашего ПК. Достаточно скачать один XEOKA-PACK.exe: зашифрованный пак он докачает сам после активации." --latest
